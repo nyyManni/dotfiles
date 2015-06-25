@@ -1,0 +1,60 @@
+! urxvt
+
+URxvt*geometry:                43x20
+!URxvt*font:  xft:Terminus:pixelsize=10
+URxvt.font:     xft:bitstream vera sans mono:size=10:antialias=true
+URxvt.boldFont: xft:bitstream vera sans mono:bold:size=10:antialias=true
+
+!URxvt*depth:                32
+!URxvt*background:            #000000
+!URxvt*foreground:            #ffffff
+URxvt*borderless: 	     1
+URxvt*scrollBar:            false
+URxvt*saveLines:  5000
+URxvt*termName:    rxvt-unicode
+URxvt.perl-ext-common: default,matcher
+URxvt.urlLauncher: chromium
+URxvt.matcher.button: 1
+
+
+URxvt*.foreground:   #98d1ce
+URxvt*.background:   #0a0f14
+URxvt*.cursorColor:  #98d1ce
+
+!#0a0f14:#c33027:#003428:#edb54b:#5493a5:#4e5165:#33859d:#98d1ce:#ffffff:#d26939:#284455:#5c7a83:#246881:#888ba5:#599caa:#d3ebe9
+
+URxvt*.color0:       #0a0f14
+URxvt*.color1:       #c33027
+!URxvt*.color2:       #26a98b
+URxvt*.color2:       #003428
+URxvt*.color3:       #edb54b
+!URxvt*.color4:       #195465
+URxvt*.color4:       #5493a5
+URxvt*.color5:       #4e5165
+URxvt*.color6:       #33859d
+URxvt*.color7:       #98d1ce
+!URxvt*.color8:       #10151b
+URxvt*.color8:       #ffffff
+URxvt*.color9:       #d26939
+!URxvt*.color10:      #081f2d
+URxvt*.color10:      #284455
+!URxvt*.color11:      #245361
+URxvt*.color11:      #25c7a8
+!URxvt*.color12:      #093748
+URxvt*.color12:      #246881
+URxvt*.color13:      #888ba5
+URxvt*.color14:      #599caa
+URxvt*.color15:      #d3ebe9
+
+
+URxvt.perl-ext-common: ...,keyboard-select
+URxvt.keysym.M-Escape: perl:keyboard-select:activate
+
+URxvt.perl-ext-common: ...,url-select
+URxvt.keysym.M-u: perl:url-select:select_next
+
+URxvt.perl-ext-common: ...,clipboard
+URxvt.keysym.M-c:   perl:clipboard:copy
+URxvt.keysym.M-v:   perl:clipboard:paste
+URxvt.keysym.M-C-v: perl:clipboard:paste_escaped
+
