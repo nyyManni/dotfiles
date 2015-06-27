@@ -82,7 +82,10 @@ export EDITOR="emacs -nw"
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+alias xcip="xclip -selection c"
 
+
+# Custom functions
 playsub() {
   mpv --fs --sub-file $2 $1
 }
