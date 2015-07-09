@@ -52,7 +52,7 @@
   (blink-cursor-mode 0)
 
   (global-hl-line-mode 1)
-  
+
 
   (use-package winner
     :ensure t
@@ -61,6 +61,9 @@
 
   ;; Use 'y' or 'n' instead of 'yes' or 'no'
   (fset 'yes-or-no-p 'y-or-n-p)
+
+  ;; Kill whole line with C-S-k
+  (bind-key (kbd "C-S-k") 'kill-whole-line)
 
 
 #+END_SRC
