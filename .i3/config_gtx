@@ -1,0 +1,58 @@
+# 
+# i3 configuration that is used only on desktop
+#
+
+
+# start dmenu (a program launcher) with workaround script
+bindsym $mod+d exec ~/scripts/opendmenu.py
+
+
+
+# mpd controls
+bindsym XF86AudioPrev        exec mpc prev
+bindsym XF86AudioNext        exec mpc next
+bindsym XF86AudioPlay        exec mpc toggle
+bindsym XF86AudioMute        exec mpc stop
+bindsym XF86AudioLowerVolume exec mpc volume -5
+bindsym XF86AudioRaiseVolume exec mpc volume +5
+
+
+# custom scripts
+bindsym XF86TouchpadToggle exec ~/.toggletouchpad.sh
+
+# turn off displays
+bindsym XF86Sleep exec ~/scripts/togglescreensaver.sh
+
+
+
+mode "raspictrl" {
+     # mpd controls
+     bindsym XF86AudioPrev        exec mpc -h raspi prev
+     bindsym XF86AudioNext        exec mpc -h raspi next
+     bindsym XF86AudioPlay        exec mpc -h raspi toggle
+     bindsym XF86AudioMute        exec mpc -h raspi stop
+     bindsym XF86AudioLowerVolume exec mpc -h raspi volume -5
+     bindsym XF86AudioRaiseVolume exec mpc -h raspi volume +5
+
+     bindsym Return mode "default"
+     bindsym Escape mode "default"
+     bindsym $mod+Pause mode "default"
+}
+bindsym $mod+Pause mode "raspictrl"
+
+
+# set workspaces to specific monitors
+workspace 1 output DVI-I-1
+workspace 2 output DVI-I-1
+workspace 3 output DVI-I-1
+workspace 4 output DP-1
+workspace 5 output DP-1
+workspace 6 output DP-1
+workspace 7 output DVI-D-0
+workspace 8 output DVI-D-0
+workspace 9 output DVI-D-0
+workspace 10 output HDMI-0
+
+
+assign [class="mpv"] 10
+

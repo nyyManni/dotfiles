@@ -29,8 +29,24 @@ xset dpms 0 0 0
 xset -dpms
 xset s 0
 
-# Set correct resolution to the monitor on the other X display
-DISPLAY=$DISPLAY.1 xrandr --output VGA-0 --mode 1440x900
+# start generating the i3 config with common settings
+cat ~/.i3/config_common > ~/.i3/config
+
+# use hostname to figure out on which machine this file exists
+if [ "$(cat /etc/hostname)" = "gtx" ]; then
+    # specific to desktop
+    
+    # Set correct resolution to the monitor on the other X display
+    DISPLAY=$DISPLAY.1 xrandr --output VGA-0 --mode 1440x900
+
+    # append the rest of i3's settings
+    cat ~/.i3/config_gtx >> ~/.i3/config
+else
+    # specific to laptop
+
+    # append the rest of i3's settings
+    cat ~/.i3/config_asus >> ~/.i3/config
+fi
 
 # launch the window manager
 exec i3
