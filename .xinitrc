@@ -29,6 +29,10 @@ xset dpms 0 0 0
 xset -dpms
 xset s 0
 
+# set cursor
+xsetroot -cursor_name left_ptr &
+
+
 # start generating the i3 config with common settings
 cat ~/.i3/config_common > ~/.i3/config
 
