@@ -82,7 +82,7 @@ export EDITOR="emacs -nw"
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias xcip="xclip -selection c"
+alias xclp="xclip -selection c"
 
 
 # Custom functions
