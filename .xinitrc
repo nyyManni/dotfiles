@@ -45,6 +45,10 @@ if [ "$(cat /etc/hostname)" = "gtx" ]; then
 
     # append the rest of i3's settings
     cat ~/.i3/config_gtx >> ~/.i3/config
+
+    # Open HUD view from raspi
+    DISPLAY=$DISPLAY.1 awesome &
+    DISPLAY=$DISPLAY.1 firefox http://raspi:3000 -profile=hud &
 else
     # specific to laptop
 
