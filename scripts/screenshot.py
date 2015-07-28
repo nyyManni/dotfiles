@@ -10,8 +10,7 @@ from os.path import expanduser
 
 
 SCR_PATH = expanduser("~/screenshots/")
-call(["mkdir", "-p", SCR_PATH])
-QUALITY = "95"
+QUALITY = "100"
 
 # Read the workspace setup from i3-msg
 JSON_INPUT = check_output(["i3-msg", "-t", "get_workspaces"])
@@ -32,6 +31,9 @@ GEOMETRY = "%sx%s+%s+%s" % (width, height, posX, posY)
 DATESTR = strftime("%Y%m%d-%H%M%S")
 FILENAME = SCR_PATH + DATESTR + ".png"
 
+# Create the directory if it does not exist
+call(["mkdir", "-p", SCR_PATH])
+
 # Take and save the screenshot
 call(["import", "-window", "root", "-crop", GEOMETRY,
-      "-quality", "100", FILENAME])
+      "-quality", QUALITY, FILENAME])
