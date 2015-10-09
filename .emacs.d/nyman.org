@@ -39,12 +39,17 @@
   (global-unset-key (kbd "C-z"))
 
   ;; Disable ugly scrollbars
-  (toggle-scroll-bar nil)
+  ;;(toggle-scroll-bar nil)
 
   ;; Don't show any menu's
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
+  ;;(tool-bar-mode -1)
+  ;;(menu-bar-mode -1)
   (tooltip-mode -1)
+
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
   (setq inhibit-startup-screen t)
 
   (setq sentence-end-double-space nil)
@@ -123,6 +128,13 @@
 
   (when window-system
     (load-theme 'gotham t))
+
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (load-theme 'gotham t)
+                  (scroll-bar-mode -1)
+                  (powerline-reset))))
 
   ;; TODO: find a good theme for terminal use
   ;;(when (not window-system)
@@ -1054,5 +1066,14 @@
     :ensure t
     :defer t)
 
+
+#+END_SRC
+** Latex
+#+BEGIN_SRC emacs-lisp
+  (setq-default Tex-master nil)
+  (setq Tex-parse-self t)
+  (setq Tex-auto-save t)
+
+  (add-hook 'latex-mode-hook 'hiwin-deactivate)
 
 #+END_SRC

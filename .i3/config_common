@@ -40,7 +40,7 @@ bindsym $mod+Shift+c kill
 # quicklaunch programs
 bindsym $mod+F1 exec chromium
 bindsym $mod+F2 exec vlc
-bindsym $mod+F3 exec emacs
+bindsym $mod+F3 exec emacsclient -c -e '(switch-to-buffer "*scratch*")'
 bindsym $mod+F4 exec telegram
 
 

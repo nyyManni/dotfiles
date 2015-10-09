@@ -12,6 +12,7 @@ from os.path import expanduser
 SCR_PATH = expanduser("~/screenshots/")
 QUALITY = "100"
 
+
 # Read the workspace setup from i3-msg
 JSON_INPUT = check_output(["i3-msg", "-t", "get_workspaces"])
 MODEL = loads(JSON_INPUT.decode("utf-8"))
@@ -37,3 +38,14 @@ call(["mkdir", "-p", SCR_PATH])
 # Take and save the screenshot
 call(["import", "-window", "root", "-crop", GEOMETRY,
       "-quality", QUALITY, FILENAME])
+
+
+NTF_WIDTH = str(200)
+NTF_HEIGHT = str(30)
+
+NTF_POS_X = str()
+NTF_POS_Y = str()
+
+
+call(["popup.sh", NTF_POS_X, NTF_POS_Y,
+      NTF_WIDTH, NTF_HEIGHT, "Screenshot captured"])

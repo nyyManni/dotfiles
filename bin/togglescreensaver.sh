@@ -6,14 +6,15 @@ then
     xset dpms 0 0 0
     xset -dpms
     xset s 0
-#   ~/scripts/screensaverclient.py -d
+#   ~/bin/screensaverclient.py -d
     exit
 else
     xset +dpms
     xset dpms 5 5 5
     xset s 5
-#    ~/scripts/screensaverclient.py -e
+    #    ~/bin/screensaverclient.py -e
     xset dpms force off
+    #xset dpms off
     exit
 fi
 

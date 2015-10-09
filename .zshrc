@@ -51,7 +51,7 @@ plugins=(git nodejs heroku dirhistory)
 
 # User configuration
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/scripts:/opt/magicdraw/bin"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/bin:/opt/magicdraw/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
@@ -66,7 +66,7 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='mvim'
 # fi
 
-export EDITOR="emacs -nw"
+export EDITOR='emacsclient -s cli -t -a ""'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
