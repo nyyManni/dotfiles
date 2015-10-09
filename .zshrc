@@ -83,7 +83,7 @@ export EDITOR='emacsclient -s cli -t -a ""'
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias xclp="xclip -selection c"
-
+alias edit="emacsclient -s cli -t"
 
 # Custom functions
 playsub() {
