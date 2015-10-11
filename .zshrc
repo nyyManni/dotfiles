@@ -47,7 +47,7 @@ HIST_STAMPS="dd.mm.yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git nodejs heroku dirhistory)
+plugins=(git nodejs heroku dirhistory zsh-syntax-highlighting)
 
 # User configuration
 
@@ -67,6 +67,7 @@ source $ZSH/oh-my-zsh.sh
 # fi
 
 export EDITOR='emacsclient -s cli -t -a ""'
+export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -84,6 +85,7 @@ export EDITOR='emacsclient -s cli -t -a ""'
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias xclp="xclip -selection c"
 alias edit="emacsclient -s cli -t"
+alias sedit="sudo -e"
 
 # Custom functions
 playsub() {
