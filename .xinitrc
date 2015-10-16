@@ -38,7 +38,7 @@ xsetroot -cursor_name left_ptr &
 cat ~/.i3/config_common > ~/.i3/config
 
 # use hostname to figure out on which machine this file exists
-if [ "$(cat /etc/hostname)" = "gtx" ]; then
+if [ "$(cat /etc/hostname)" = "overkill" ]; then
     # specific to desktop
     
     # Set correct resolution to the monitor on the other X display
