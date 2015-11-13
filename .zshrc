@@ -86,6 +86,7 @@ export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 alias xclp="xclip -selection c"
 alias edit="emacsclient -s cli -t"
 alias sedit="sudo -e"
+alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r sound:remote winkkari:3389"
 
 # Custom functions
 playsub() {
