@@ -12,9 +12,7 @@ my $width;
 # Find the workspace that is focused and get its dimensions
 foreach my $output (@{decode_json(`i3-msg -t get_workspaces`)}) {
   if ($output->{'focused'}) {
-    $pos = $output->{'rect'}{'x'};
-    $width = $output->{'rect'}{'width'};
-
+    ($pos, $width) = @{$output->{'rect'}}{qw/x width/};
     # Break out of the loop, no need to check other monitors
     last;
   }
