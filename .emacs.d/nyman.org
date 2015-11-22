@@ -1085,6 +1085,8 @@
   (setq Tex-parse-self t)
   (setq Tex-auto-save t)
 
-  (add-hook 'latex-mode-hook 'hiwin-deactivate)
+  (add-hook 'LaTeX-mode-hook 'hiwin-deactivate)
+  (add-hook 'LaTeX-mode-hook 'visual-line-mode)
 
 #+END_SRC
+   
