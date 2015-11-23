@@ -5,7 +5,7 @@
 
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec dmenu_run -b -o 0.75 -dim 0.1 -t
+bindsym $mod+d exec i3-dmenu-desktop --dmenu='dmenu -b -o 0.75 -dim 0.1 -t'
 
 
 # custom scripts

@@ -424,12 +424,14 @@
     (progn
       (setq company-backends
             (quote
-             (company-clang company-nxml company-css company-eclim company-semantic company-bbdb company-xcode company-cmake company-capf company-tern
+             (company-clang company-nxml company-css company-eclim company-semantic company-bbdb company-xcode company-cmake company-capf company-tern company-anaconda
                             (company-dabbrev-code company-gtags company-etags company-keywords)
-                            company-oddmuse company-files company-dabbrev))
+                            company-oddmuse company-files company-dabbrev)
+             )
             company-c-headers-path-system (quote ("/usr/include/c++/4.9.2/" "/usr/include/qt/" "/usr/include/"))
             company-clang-arguments (quote ("-fPIC" "-I/usr/include/qt/")))
-      (add-hook 'prog-mode-hook 'company-mode)))
+      (add-hook 'prog-mode-hook 'company-mode)
+      (add-hook 'LaTeX-mode-hook 'company-mode)))
 
   ;; Fix company-mode not working correctly with yasnippet
   (defun check-expansion ()
@@ -1074,6 +1076,19 @@
   ;; Use cPerl as a default Perl mode
   (defalias 'perl-mode 'cperl-mode)
 
+  (setq cperl-invalid-face nil)
+
+
+#+END_SRC
+
+*** Python
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (set (make-local-variable 'company-backends) '(company-anaconda))))
+
+  (add-hook 'python-mode-hook 'anaconda-mode)
+
 
 
 
@@ -1087,6 +1102,7 @@
 
   (add-hook 'LaTeX-mode-hook 'hiwin-deactivate)
   (add-hook 'LaTeX-mode-hook 'visual-line-mode)
-
+  (require 'company-auctex)
+  (add-hook 'LaTeX-mode-hook 'company-auctex-init)
 #+END_SRC
    

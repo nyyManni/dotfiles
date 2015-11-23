@@ -13,6 +13,7 @@ alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 
 PATH=${PATH}:~/scripts:/opt/magicdraw/bin
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
 export PATH
 
 #PS1='[\u@\h \W]\$ '

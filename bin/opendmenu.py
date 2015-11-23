@@ -24,6 +24,5 @@ for workspace in MODEL:
 #call(["dmenu_run", "-b", "-o", "0.75", "-dim", "0.1",
 #      "-t", "-x", str(pos), "-w", str(width)])
 
-
 call(["bash", "-c", "i3-dmenu-desktop --dmenu='dmenu -b -i -o 0.75 -dim 0.1 -t -x %s -w %s'"
       % (str(pos), str(width))])

@@ -51,7 +51,9 @@ plugins=(git nodejs heroku dirhistory zsh-syntax-highlighting)
 
 # User configuration
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/bin:/opt/magicdraw/bin"
+PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/bin:/opt/magicdraw/bin"
+PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+export PATH
 # export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
