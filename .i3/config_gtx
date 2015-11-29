@@ -4,7 +4,7 @@
 
 
 # start dmenu (a program launcher) with workaround script
-bindsym $mod+d exec opendmenu.py
+bindsym $mod+d exec opendmenu.pl
 
 
 

@@ -92,5 +92,19 @@ alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r
 
 # Custom functions
 playsub() {
-  mpv --fs --sub-file $2 $1
+  lang=en
+  while getopts l: opt; do
+    case $opt in
+      l) lang=$OPTARG; shift;shift;;
+      *) echo "invalid args"; exit;;
+    esac
+  done
+  subfile=$2
+  if [ -z $subfile ]; then
+    subdir=`mktemp -d /tmp/playsub_subfile.XXXX`
+    subliminal download -d "$subdir" -l $lang "$1"
+    subfile=`echo $subdir/*`
+  fi
+  mpv --fs --sub-file $subfile $1
+  [ -d $subdir ] && rm -rf $subdir
 }
