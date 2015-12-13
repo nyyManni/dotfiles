@@ -4,6 +4,8 @@
 numlockx &
 setxkbmap "fi"
 
+# Set up custom keybindings
+xbindkeys
 
 # set custom keymapping
 if [ -s ~/.Xmodmap ]; then

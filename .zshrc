@@ -47,12 +47,12 @@ HIST_STAMPS="dd.mm.yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git nodejs heroku dirhistory zsh-syntax-highlighting)
+plugins=(git nodejs heroku dirhistory) # zsh-syntax-highlighting)
 
 # User configuration
 
 PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/bin:/opt/magicdraw/bin"
-PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+PATH="/overload:$(ruby -e 'print Gem.user_dir')/bin:$PATH"
 export PATH
 # export MANPATH="/usr/local/man:$MANPATH"
 
