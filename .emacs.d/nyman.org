@@ -415,7 +415,7 @@
      :defer t :ensure t
      :ensure helm-projectile)
 
-
+  (projectile-global-mode)
 #+END_SRC
 **** Company
 #+BEGIN_SRC emacs-lisp
