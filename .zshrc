@@ -73,7 +73,22 @@ export EDITOR='emacsclient -s cli -t -a ""'
 export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-alias ssh='ssh -A'
+alias ssh='ssh'
+alias tikasutunnel="ssh -f -N tikasutunnel"
+
+get_tikasutunnel_pid() {
+  ps aux |grep 'ssh.* -f -N tikasutunnel' |grep -v grep |awk '{print $2}'
+}
+
+tikasu() {
+  if [ -z "$(get_tikasutunnel_pid)" ]; then
+    ssh -f -N tikasutunnel
+  fi
+  ssh -p 7722 localhost
+}
+tikasutunnel_close() {
+  kill "$(get_tikasutunnel_pid)"
+}
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -99,6 +114,16 @@ alias tlg='DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off; nohup telegram &>
 
 
 # Custom functions
+
+# Workaround for ^L not working correctly with two-line prompt
+function clear_fixed {
+  zle -U $'clear\n'
+  zle push-line-or-edit
+}
+zle -N clear_fixed
+bindkey '^L' clear_fixed
+
+
 playsub() {
   lang=en
   while getopts l: opt; do
