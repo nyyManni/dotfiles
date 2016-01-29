@@ -84,7 +84,7 @@ tikasu() {
   if [ -z "$(get_tikasutunnel_pid)" ]; then
     ssh -f -N tikasutunnel
   fi
-  ssh -p 7722 localhost
+  ssh -A -p 7722 localhost
 }
 tikasutunnel_close() {
   kill "$(get_tikasutunnel_pid)"

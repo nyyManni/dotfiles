@@ -807,10 +807,11 @@
   (sp-local-pair 'c++-mode "/*" "*/" :post-handlers '((" | " "SPC")
                                                       ("* ||\n[i]" "RET")))
 
-  ;;; EJS
+  ;;; Web-mode
   (sp-with-modes '(web-mode)
     (sp-local-pair "<%" "%>")
-    (sp-local-pair "<%=" "%>"))
+    (sp-local-pair "<%=" "%>")
+    (sp-local-pair "<?php" "?>"))
 
   ;;; haskell mode
   (sp-with-modes '(haskell-mode)
@@ -995,7 +996,7 @@
   (use-package web-mode
     :ensure t
     :defer t
-    :mode "\\.html?\\'"
+    :mode "\\.\\(html?\\|php\\)\\'"
     :init
     (progn
       (setq web-mode-enable-current-element-highlight t)
