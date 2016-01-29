@@ -1085,7 +1085,8 @@
   (defalias 'perl-mode 'cperl-mode)
 
   (setq cperl-invalid-face nil)
-
+  (with-eval-after-load 'cperl-mode
+    (define-key cperl-mode-map "{" nil))
 
 #+END_SRC
 
@@ -1099,7 +1100,8 @@
 
 
 #+END_SRC
-** Latex
+** Other
+*** Latex
 #+BEGIN_SRC emacs-lisp
   (setq-default Tex-master nil)
   (setq Tex-parse-self t)
