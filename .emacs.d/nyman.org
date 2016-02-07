@@ -812,6 +812,7 @@
     (sp-local-pair "<%" "%>")
     (sp-local-pair "<%=" "%>")
     (sp-local-pair "<?php" "?>"))
+  (sp-local-pair 'web-mode "<" nil :when '(my/sp-web-mode-is-code-context))
 
   ;;; haskell mode
   (sp-with-modes '(haskell-mode)

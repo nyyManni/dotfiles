@@ -105,6 +105,7 @@ tikasutunnel_close() {
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias xclp="xclip -selection c"
+alias egrep="egrep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
 alias edit="emacsclient -s cli -t"
 alias sedit="sudo -e"
 alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r sound:remote winkkari:3389"
