@@ -1114,3 +1114,19 @@
   (add-hook 'LaTeX-mode-hook 'company-auctex-init)
 #+END_SRC
    
+*** XML
+#+BEGIN_SRC emacs-lisp
+  ;; Redefine xmllint checker to check for xml validity
+  (require 'flycheck)
+  (flycheck-define-checker xml-xmllint
+    "A XML syntax checker and validator using the xmllint utility.
+
+  The xmllint is part of libxml2, see URL
+  `http://www.xmlsoft.org/'."
+    :command ("xmllint" "--valid" "--noout" "-")
+    :standard-input t
+    :error-patterns
+    ((error line-start "-:" line ": " (message) line-end))
+    :modes (xml-mode nxml-mode))
+  ;;(add-to-list 'flycheck-checkers 'xml-xmllint-dtd 'append)
+#+END_SRC
