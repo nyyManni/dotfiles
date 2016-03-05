@@ -31,6 +31,22 @@
 #+END_SRC
 
 *** Common settings
+**** Custom functions
+#+BEGIN_SRC emacs-lisp
+  (setq my-app-config-files '((emacs . "~/.emacs.d/nyman.org")
+                              (zsh . "~/.zshrc")
+                              (ssh . "~/.ssh/config")
+                              (i3 . "~/.i3/config")))
+
+  (defun my-edit-config ()
+    "Visits or switches to applications config file"
+    (interactive)
+    (let ((application (completing-read "Select application: " my-app-config-files)))
+      (find-file (cdr (assoc (intern application) my-app-config-files)))))
+
+
+  (bind-key (kbd "<f9>") 'my-edit-config)
+#+END_SRC
 **** UI tweaks
 #+BEGIN_SRC emacs-lisp
   (setq ad-redefinition-action 'accept)
@@ -889,7 +905,7 @@
 
 **** TODO Git
 #+BEGIN_SRC emacs-lisp
-  (bind-key (kbd "C-c m g") 'magit-status)
+  (bind-key (kbd "C-c g") 'magit-status)
 #+END_SRC
 
 *** Emacs Lisp
@@ -1024,6 +1040,9 @@
      :defer t
      :config (add-hook 'web-mode-hook 'tagedit-mode))
 
+  ;; Use php-mode with php-files
+  (add-to-list 'auto-mode-alist '("\\.php\\'" . php-mode))
+
 
 #+END_SRC
 
@@ -1093,12 +1112,13 @@
 
 *** Python
 #+BEGIN_SRC emacs-lisp
-  (add-hook 'python-mode-hook
-            (lambda ()
-              (set (make-local-variable 'company-backends) '(company-anaconda))))
 
   (add-hook 'python-mode-hook 'anaconda-mode)
-
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (set (make-local-variable 'company-backends))))
+                       
+  (define-coding-system-alias 'UTF-8 'utf-8)
 
 #+END_SRC
 ** Other
