@@ -27,6 +27,11 @@ bindsym Print exec screenshot.py
 bindsym XF86Sleep exec togglescreensaver.sh
 
 
+# set thunderbird dialogs floating
+for_window [class="Thunderbird" window_role="EventDialog"] floating enable border normal 1
+for_window [class="Thunderbird" window_role="Preferences"] floating enable border normal 1
+for_window [class="Thunderbird" window_role="filterlist"] floating enable border normal 1
+
 
 mode "raspictrl" {
      # mpd controls

@@ -22,7 +22,7 @@ fi
 eval "$(cat ~/.fehbg)"
 
 # start comptositor
-compton -b --vsync opengl
+nohup compton --vsync opengl &
 
 # start unclutter to remove mouse cursor when typing
 unclutter -keystroke &

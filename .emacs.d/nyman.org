@@ -45,7 +45,7 @@
       (find-file (cdr (assoc (intern application) my-app-config-files)))))
 
 
-  (bind-key (kbd "<f9>") 'my-edit-config)
+  (bind-key (kbd "C-<f9>") 'my-edit-config)
 #+END_SRC
 **** UI tweaks
 #+BEGIN_SRC emacs-lisp
@@ -256,6 +256,10 @@
 
 ** Programming
 *** Common programming
+**** Commenting
+#+BEGIN_SRC emacs-lisp
+  (define-key prog-mode-map (kbd "C-{") 'comment-or-uncomment-region)
+#+END_SRC
 **** Line numbers
 #+BEGIN_SRC emacs-lisp
   (add-hook 'prog-mode-hook 'linum-mode)
@@ -1119,6 +1123,17 @@
               (set (make-local-variable 'company-backends))))
                        
   (define-coding-system-alias 'UTF-8 'utf-8)
+  (setq gud-pdb-command-name "python -m pdb")
+  (global-unset-key (kbd "<f11>"))
+
+  (define-key python-mode-map (kbd "C-S-<f5>") 'gud-run)
+
+  (define-key python-mode-map (kbd "<f9>") 'gud-break)
+  (define-key python-mode-map (kbd "S-<f9>") 'gud-remove)
+
+  (define-key python-mode-map (kbd "<f10>") 'gud-next)
+  (define-key python-mode-map (kbd "<f11>") 'gud-step)
+  (define-key python-mode-map (kbd "S-<f11>") 'gud-finish)
 
 #+END_SRC
 ** Other
