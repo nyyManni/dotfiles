@@ -5,7 +5,7 @@ After=ssh-agent.service
 [Service]
 Type=forking
 Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
-Environment=PATH=/overload:/home/nyman/.gem/ruby/2.3.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/home/nyman/bin
+Environment=PATH=/home/nyman/.pyenv/plugins/pyenv-virtualenv/shims:/home/nyman/.pyenv/shims:/home/nyman/.pyenv/bin:/home/nyman/.gem/ruby/2.3.0/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/home/nyman/bin
 ExecStart=/usr/bin/emacs --daemon
 ExecStop=/usr/bin/emacsclient --eval "(kill-emacs)"
 Restart=always

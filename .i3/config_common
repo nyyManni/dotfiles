@@ -41,7 +41,7 @@ bindsym $mod+Shift+c kill
 bindsym $mod+F1 exec chromium
 bindsym $mod+F2 exec vlc
 bindsym $mod+F3 exec emacsclient -c -e '(switch-to-buffer "*scratch*")'
-bindsym $mod+F4 exec telegram
+bindsym $mod+F4 exec telegram-desktop
 
 
 # Disable window borders

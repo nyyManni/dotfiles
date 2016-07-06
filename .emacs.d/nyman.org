@@ -1116,24 +1116,54 @@
 
 *** Python
 #+BEGIN_SRC emacs-lisp
+  ;;  (require 'virtualenvwrapper)
+  ;;  (venv-initialize-interactive-shells)
+  ;;  (venv-initialize-eshell)
+  ;;  (setq venv-location "~/.virtualenvs")
+    (pyenv-mode)
+    (require 'pyenv-mode-auto)
+    
+  (setq python-shell-interpreter "ipython"
+       python-shell-interpreter-args "-i")
+  (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
 
-  (add-hook 'python-mode-hook 'anaconda-mode)
-  (add-hook 'python-mode-hook
-            (lambda ()
-              (set (make-local-variable 'company-backends))))
-                       
-  (define-coding-system-alias 'UTF-8 'utf-8)
-  (setq gud-pdb-command-name "python -m pdb")
-  (global-unset-key (kbd "<f11>"))
+  (defun my-run-pdb-current-file ()
+    (interactive)
+    (let ((f (buffer-file-name))
+          (b (buffer-name)))
+      (if (string-suffix-p ".py" f)
+          (progn
+            (pdb (concat "python -m pdb " f))
+            (switch-to-buffer-other-window "*gud-pdb*")
+            (switch-to-buffer-other-window b))
+        (message "Not in a Python buffer, or not visiting a file."))))
 
-  (define-key python-mode-map (kbd "C-S-<f5>") 'gud-run)
+  (defun my-quit-pdb ()
+    (interactive)
+    (progn
+      (let ((p (get-process "gud-pdb")))
+        (if p
+        (kill-process (get-process p))
+      (message "No active debugging process")))
+      (kill-buffer "*gud-pdb*")))
 
-  (define-key python-mode-map (kbd "<f9>") 'gud-break)
-  (define-key python-mode-map (kbd "S-<f9>") 'gud-remove)
+    (add-hook 'python-mode-hook 'anaconda-mode)
+  ;;  (add-hook 'python-mode-hook
+  ;;            (lambda ()
+  ;;              (set (make-local-variable 'company-backends))))
+                         
+    (define-coding-system-alias 'UTF-8 'utf-8)
+    (setq gud-pdb-command-name "python -m pdb")
+    (global-unset-key (kbd "<f11>"))
 
-  (define-key python-mode-map (kbd "<f10>") 'gud-next)
-  (define-key python-mode-map (kbd "<f11>") 'gud-step)
-  (define-key python-mode-map (kbd "S-<f11>") 'gud-finish)
+    (add-hook 'python-mode-hook '(lambda ()
+      (define-key python-mode-map (kbd "<f5>") 'my-run-pdb-current-file)
+      (define-key python-mode-map (kbd "C-S-<f5>") 'my-quit-pdb)
+      (define-key python-mode-map (kbd "<f9>") 'gud-break)
+      (define-key python-mode-map (kbd "S-<f9>") 'gud-remove)
+      (define-key python-mode-map (kbd "<f10>") 'gud-next)
+      (define-key python-mode-map (kbd "<f11>") 'gud-step)
+      (define-key python-mode-map (kbd "C-<f11>") 'my-quit-pdb)))
 
 #+END_SRC
 ** Other

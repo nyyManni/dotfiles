@@ -4,7 +4,7 @@
 
 
 # start dmenu (a program launcher) with workaround script
-bindsym $mod+d exec opendmenu.pl
+bindsym $mod+d exec /home/nyman/bin/opendmenu.pl
 
 
 
@@ -16,15 +16,15 @@ bindsym XF86AudioMute        exec mpc stop
 bindsym XF86AudioLowerVolume exec mpc volume -5
 bindsym XF86AudioRaiseVolume exec mpc volume +5
 
-
+#
 # custom scripts
-bindsym XF86TouchpadToggle exec toggletouchpad.sh
+#
 
 # take a screenshot
-bindsym Print exec screenshot.py
+bindsym Print exec /home/nyman/bin/screenshot.py
 
 # turn off displays
-bindsym XF86Sleep exec togglescreensaver.sh
+bindsym XF86Sleep exec /home/nyman/bin/togglescreensaver.sh
 
 
 # set thunderbird dialogs floating

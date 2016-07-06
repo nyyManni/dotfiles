@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """ Simple python script to load and parse menu's from
 Tampere University of Technology restaurants"""
 
 from datetime import datetime, timedelta
 import re
 import requests
-
 
 
 DATE = datetime.now()
@@ -25,8 +25,8 @@ DATA = requests.get("http://api.ruoka.xyz/%s" % DATE)
 MODEL = DATA.json()
 
 # Do not give unnecessary vegetarian meals
-EXCLUDE = re.compile(r".*(wok|soup|salad|vitality|kasvis|bistro|ilta|jälki|salaatti|panini|aamiainen|vege|leipä).*", re.IGNORECASE)
-
+EXCLUDE = re.compile(r".*(wok|soup|salad|vitality|kasvis|bistro|ilta|\
+jälki|salaatti|panini|aamiainen|vege|leipä).*", re.IGNORECASE)
 
 for restaurant in MODEL["restaurants"]:
     print('<div class="restaurant">')

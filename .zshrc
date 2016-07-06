@@ -51,8 +51,8 @@ plugins=(git nodejs heroku dirhistory) # zsh-syntax-highlighting)
 
 # User configuration
 
-PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/home/nyman/scripts:/opt/magicdraw/bin:/home/nyman/bin:/opt/magicdraw/bin"
-PATH="/overload:$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+
+PATH="$PATH:$(ruby -e 'print Gem.user_dir')/bin"
 export PATH
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -73,22 +73,7 @@ export EDITOR='emacsclient -s cli -t -a ""'
 export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
-alias ssh='ssh'
-alias tikasutunnel="ssh -f -N tikasutunnel"
 
-get_tikasutunnel_pid() {
-  ps aux |grep 'ssh.* -f -N tikasutunnel' |grep -v grep |awk '{print $2}'
-}
-
-tikasu() {
-  if [ -z "$(get_tikasutunnel_pid)" ]; then
-    ssh -f -N tikasutunnel
-  fi
-  ssh -A -p 7722 localhost
-}
-tikasutunnel_close() {
-  kill "$(get_tikasutunnel_pid)"
-}
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -111,7 +96,7 @@ alias sedit="sudo -e"
 alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r sound:remote winkkari:3389"
 
 # Workaround for launching Telegram. Qt Applications spawn on wrong X Display.
-alias tlg='DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off; nohup telegram &> /dev/null &; sleep 1; DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900'
+alias tlg='DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off; nohup telegram-desktop &> /dev/null &; sleep 1; DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900'
 
 
 # Custom functions

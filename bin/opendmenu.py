@@ -5,6 +5,7 @@ a single display when using multiple X Screens """
 from subprocess import check_output, call
 import json
 
+
 # Read the workspace setup from i3-msg
 JSON_INPUT = check_output(["i3-msg", "-t", "get_workspaces"])
 MODEL = json.loads(JSON_INPUT.decode("utf-8"))
