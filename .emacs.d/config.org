@@ -1,0 +1,298 @@
+* Configuration
+<<babel-init>>
+** Common stuff
+*** Global settings
+#+begin_src emacs-lisp :tangle yes
+  ;;; -*- lexical-binding: t; -*-
+
+  (eval-when-compile
+    (require 'use-package))
+  (require 'diminish)
+  (require 'bind-key)
+
+  (setq inhibit-startup-screen t
+        sentence-end-double-space nil
+        ad-redefinition-action 'accept
+        backup-directory-alist '(("." . "~/.emacs.d/backups"))
+        auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t))
+        delete-old-versions -1
+        version-control t
+        vc-make-backup-files t)
+
+  (global-unset-key (kbd "C-z"))
+  (bind-key (kbd "C-S-k") 'kill-whole-line)
+
+  (blink-cursor-mode 0)
+  (global-hl-line-mode 1)
+
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+#+end_src
+
+*** Color theme
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+    (when window-system
+      (load-theme 'gotham t))
+
+    (if (daemonp)
+        (add-hook 'after-make-frame-functions
+                  (lambda (frame)
+                    (load-theme 'gotham t)
+                    (scroll-bar-mode -1)
+                    (powerline-reset))))
+
+  (use-package powerline
+    :ensure t
+    :init (powerline-center-theme))
+
+#+end_src
+*** Custom functions
+#+begin_src emacs-lisp :tangle yes
+  ;; Custom functions
+  (defvar my-app-config-files
+    '((emacs        . "~/.emacs.d/config.org")
+      (zshrc        . "~/.zshrc")
+      (zprofile     . "~/.zprofile")
+      (ssh          . "~/.ssh/config")
+      (sshd         . "/sudo::/etc/ssh/sshd_config")
+      (X11          . "/sudo::/etc/X11/xorg.conf")
+      (i3           . "~/.i3/config")
+      (bashrc       . "~/.bashrc")
+      (git          . "~/.gitconfig")
+      (pylint       . "~/.pylintrc")
+      (bash_profile . "~/.bash_profile")))
+
+  (defun my-edit-config ()
+    "Visit or switch to applications config file."
+    (interactive)
+    (let ((application (completing-read "Select application: " my-app-config-files)))
+      (find-file (cdr (assoc (intern application) my-app-config-files)))))
+
+  (bind-key (kbd "C-c <f9>") 'my-edit-config)
+
+  (defun my/smarter-move-beginning-of-line (arg)
+    "Move point back to indentation of beginning of line.
+
+  Move point to the first non-whitespace character on this line.
+  If point is already there, move to the beginning of the line.
+  Effectively toggle between the first non-whitespace character and
+  the beginning of the line.
+
+  If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+  point reaches the beginning or end of the buffer, stop there."
+    (interactive "^p")
+    (setq arg (or arg 1))
+
+    ;; Move lines first
+    (when (/= arg 1)
+      (let ((line-move-visual nil))
+        (forward-line (1- arg))))
+
+    (let ((orig-point (point)))
+      (back-to-indentation)
+      (when (= orig-point (point))
+        (move-beginning-of-line 1))))
+
+  ;; remap C-a to `smarter-move-beginning-of-line'
+  (global-set-key [remap move-beginning-of-line]
+                  'my/smarter-move-beginning-of-line)
+
+  (defun eval-and-replace ()
+    "Replace the preceding sexp with its value."
+    (interactive)
+    (backward-kill-sexp)
+    (condition-case nil
+        (prin1 (eval (read (current-kill 0)))
+               (current-buffer))
+      (error (message "Invalid expression")
+             (insert (current-kill 0)))))
+
+  (global-set-key (kbd "C-c e") 'eval-and-replace)
+
+  (defun my-vsplit-last-buffer (prefix)
+    "Split the window vertically and display the previous buffer."
+    (interactive "p")
+    (split-window-vertically)
+    (other-window 1 nil)
+    (if (= prefix 1)
+      (switch-to-next-buffer)))
+  (defun my-hsplit-last-buffer (prefix)
+    "Split the window horizontally and display the previous buffer."
+    (interactive "p")
+    (split-window-horizontally)
+    (other-window 1 nil)
+    (if (= prefix 1) (switch-to-next-buffer)))
+  (bind-key "C-x 2" 'my-vsplit-last-buffer)
+  (bind-key "C-x 3" 'my-hsplit-last-buffer)
+
+
+
+#+end_src
+
+*** Helm
+#+begin_src emacs-lisp :tangle yes
+  (use-package helm
+    :ensure helm
+    :diminish helm-mode
+    :init (setq helm-candidate-number-limit           100
+                helm-idle-delay                       0.0
+                helm-input-idle-delay                 0.01
+                helm-quick-update                     t
+                helm-M-x-requires-pattern             nil
+                helm-ff-skip-boring-files             t
+                helm-move-to-line-cycle-in-source     t
+                helm-split-window-in-side-p           t
+                helm-ff-search-library-in-sexp        t
+                helm-scroll-amount                    8
+                helm-ff-file-name-history-use-recentf t)
+    :config (progn
+              (require 'helm-config)
+              (global-set-key (kbd "C-c h") 'helm-command-prefix)
+              (global-unset-key (kbd "C-x c"))
+              (helm-mode 1)
+              (use-package helm-swoop
+                :bind (("C-S-s"   . helm-swoop)
+                       ("M-i"     . helm-swoop)
+                       ("M-s s"   . helm-swoop)
+                       ("M-s M-s" . helm-swoop)
+                       ("M-I"     . helm-swoop-back-to-last-point)
+                       ("C-c M-i" . helm-multi-swoop)
+                       ("C-x M-i" . helm-multi-swoop-all)
+                       :map helm-swoop-map
+                       ("M-i"     . helm-multi-swoop-all-from-helm-swoop))))
+    :bind (("C-c h m" . helm-mini)
+           ("C-h a"   . helm-apropos)
+           ("C-x C-b" . helm-buffers-list)
+           ("C-x b"   . helm-buffers-list)
+           ("M-y"     . helm-show-kill-ring)
+           ("M-x"     . helm-M-x)
+           ("C-x C-f" . helm-find-files)
+           ("C-c h o" . helm-occur)
+           ("C-c h s" . helm-swoop)
+           :map helm-map
+           ("[tab]"   . helm-execute-persistent-action)
+           ("C-i"     . helm-execute-persistent-action)
+           ("C-z"     . helm-select-action)))
+#+end_src
+*** Ace-window
+#+begin_src emacs-lisp :tangle yes
+  (use-package ace-window
+    :init (setq aw-dispatch-always 1)
+    :bind ("M-ö" . ace-window))
+#+end_src
+*** Expand-region
+#+begin_src emacs-lisp :tangle yes
+  (use-package expand-region
+    :ensure expand-region
+    :config (pending-delete-mode 1)
+    :bind ("C-=" . er/expand-region))
+#+end_src
+** Programming
+*** Global programming settings
+#+begin_src emacs-lisp :tangle yes
+  (add-hook 'prog-mode-hook 'linum-mode)
+  (bind-key (kbd "C-c g") 'magit-status)
+  (define-key prog-mode-map (kbd "C-#") 'comment-or-uncomment-region)
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 2)
+#+end_src
+*** Flycheck
+#+begin_src emacs-lisp :tangle yes
+  (use-package flycheck
+    :init (add-hook 'prog-mode-hook #'flycheck-mode)
+    :config
+    :diminish
+    (setq flycheck-standard-error-navigation t
+          flycheck-deferred-syntax-check nil
+          flycheck-completion-system nil))
+#+end_src
+*** Yasnippet
+#+begin_src emacs-lisp :tangle yes
+  (use-package yasnippet
+    :ensure t
+    :diminish yas-minor-mode
+    :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
+    :config (yas-global-mode 1))
+#+end_src
+*** Projectile
+#+begin_src emacs-lisp :tangle yes
+  (use-package projectile
+    :diminish projectile-mode
+    :init (setq projectile-keymap-prefix (kbd "C-c p")
+                projectile-completion-system 'default
+                projectile-enable-caching t)
+    :config (progn (projectile-global-mode)
+                   (use-package helm-projectile
+                     :ensure helm-projectile
+                     :defer t)))
+#+end_src
+*** Company
+#+begin_src emacs-lisp :tangle yes
+  (use-package company
+    :ensure t
+    :diminish company-mode
+    :init (progn
+            (add-hook 'prog-mode-hook 'company-mode)
+            (add-hook 'LaTeX-mode-hook 'company-mode))
+    :config (company-quickhelp-mode 1))
+
+#+end_src
+*** Smartparens
+#+begin_src emacs-lisp :tangle yes
+  (use-package smartparens
+    :ensure t
+    :diminish smartparens-mode
+    :config
+    (require 'smartparens-config)
+    (smartparens-global-mode 1)
+    (show-smartparens-global-mode 1))
+#+end_src
+*** Python
+#+begin_src emacs-lisp :tangle yes
+  (use-package python
+    :load-path "pydebug"
+    :mode ("\\.py\\'" . python-mode)
+    :interpreter ("python" . python-mode)
+    :init (progn
+            (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions)
+                  gud-pdb-command-name "python -m pdb")
+            (use-package pydebug))
+    :config
+    (define-coding-system-alias 'UTF-8 'utf-8)
+    (global-unset-key (kbd "<f11>"))
+    (pyenv-mode)
+    (require 'pyenv-mode-auto)   
+    (add-hook 'python-mode-hook 'anaconda-mode)
+    (add-hook 'python-mode-hook
+              (lambda ()
+                (set (make-local-variable 'company-backends) '(company-anaconda))))
+    :bind (
+           :map comint-mode-map
+           ("<f5>"     . pydebug-run-realgud-current-file)
+           ("C-<f5>"   . pydebug-quit-realgud)
+           ("<f9>"     . realgud:cmd-break)
+           ("S-<f9>"   . realgud:cmd-clear)
+           ("C-<f9>"   . realgud:cmd-until)
+           ("<f10>"    . realgud:cmd-next)
+           ("<f11>"    . realgud:cmd-step)
+           ("C-<f11>"  . realgud:cmd-continue)
+           :map python-mode-map
+           ("<f5>"     . pydebug-run-realgud-current-file)
+           ("C-<f5>"   . pydebug-quit-realgud)
+           ("<f9>"     . realgud:cmd-break)
+           ("S-<f9>"   . realgud:cmd-clear)
+           ("C-<f9>"   . realgud:cmd-until)
+           ("<f10>"    . realgud:cmd-next)
+           ("<f11>"    . realgud:cmd-step)
+           ("C-<f11>"  . realgud:cmd-continue)
+           ("C-c C-c"  . pydebug-eval-in-minibuffer)))
+#+end_src
+*** C/C++
+*** XML
+*** LaTeX
