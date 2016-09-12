@@ -44,14 +44,14 @@ if [ "$(cat /etc/hostname)" = "overkill" ]; then
     # specific to desktop
     
     # Set correct resolution to the monitor on the other X display
-    DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900
+#    DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900
 
     # append the rest of i3's settings
     cat ~/.i3/config_gtx >> ~/.i3/config
 
     # Open HUD view from raspi
-    DISPLAY="${DISPLAY}.1" awesome &
-    DISPLAY="${DISPLAY}.1" firefox http://raspi:3000 -profile=hud &
+#    DISPLAY="${DISPLAY}.1" awesome &
+#    DISPLAY="${DISPLAY}.1" firefox http://raspi:3000 -profile=hud &
 else
     # specific to laptop
 

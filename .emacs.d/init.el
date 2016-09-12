@@ -1,22 +1,49 @@
+;;; init.el --- Emacs configuration root
+
+;; Copyright (c) 2016 Henrik Nyman
+
+;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
+;; Maintainer : Henrik Nyman <henrikjohannesnyman@gmail.com>
+;; Created    : 10 Aug 2016
+;; Modified   : 10 Aug 2016
+;; Version    : 1.0
+
+;; The MIT License
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to
+;; deal in the Software without restriction, including without limitation the
+;; rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+;; sell copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in
+;; all copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+;; IN THE SOFTWARE.
+
+
+;;; Commentary:
+
+;; nyyManni's configuration for Emacs.
+;; init.el compiles andloads the configuration from an org-file
+
+;;; Code:
+
+;; Global settings
+(setq user-full-name "Henrik Nyman"
+      user-login-name "nyman"
+      user-mail-address "henrikjohannesnyman@gmail.com"
+      user-emacs-directory "~/.emacs.d")
+
 (package-initialize nil)
 (setq package-enable-at-startup nil)
-(org-babel-load-file "~/.emacs.d/nyman.org")
-(put 'upcase-region 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("f5ef7ddecf161a2951048c204c2c6d9d5be08745b136dce583056ad4b234b861" default))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(cperl-array-face ((t (:foreground "sea green" :weight bold))))
- '(cperl-hash-face ((t (:foreground "DeepSkyBlue4"))))
- '(cperl-nonoverridable-face ((t (:foreground "chocolate")))))
+(org-babel-load-file (concat user-emacs-directory "/config.org"))
+
+;;; init.el ends here

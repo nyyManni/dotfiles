@@ -3,8 +3,8 @@
 #
 
 
-# start dmenu (a program launcher) with workaround script
-bindsym $mod+d exec /home/nyman/bin/opendmenu.pl
+# Dmenu app launcher
+bindsym $mod+d exec i3-dmenu-desktop --dmenu='dmenu -b -i -dim 1 -t'
 
 
 
@@ -59,7 +59,7 @@ workspace 6 output DP-1
 workspace 7 output DVI-D-0
 workspace 8 output DVI-D-0
 workspace 9 output DVI-D-0
-workspace 10 output HDMI-0
+workspace 10 output DP-1
 
 
 assign [class="mpv"] 10
