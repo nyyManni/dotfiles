@@ -10,6 +10,9 @@
   (require 'diminish)
   (require 'bind-key)
 
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
+  (package-initialize)
+
   (setq inhibit-startup-screen t
         sentence-end-double-space nil
         ad-redefinition-action 'accept
@@ -198,7 +201,7 @@
 #+begin_src emacs-lisp :tangle yes
   (add-hook 'prog-mode-hook 'linum-mode)
   (bind-key (kbd "C-c g") 'magit-status)
-  (define-key prog-mode-map (kbd "C-#") 'comment-or-uncomment-region)
+  (global-set-key (kbd "C-#") 'comment-or-uncomment-region)
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 2)
 #+end_src
