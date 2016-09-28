@@ -1,7 +1,3 @@
-! output taken from:
-! xmodmap -pke | egrep '(Control|Super|Alt|Menu|Hyper|Caps)'
-! Use to set keycodes correctly below. List reordered to match
-! keys from left to right.
 
 ! keycode  66 = CapsLock
 ! keycode  37 = Control_L NoSymbol Control_L
@@ -36,9 +32,16 @@ keycode 135 = Alt_R Meta_R
 ! Right Ctrl is Alt Gr
 keycode 105 = ISO_Level3_Shift NoSymbol ISO_Level3_Shift
 
-
 ! We need to set keycodes first, as some programs (emacs!) read
 ! the key names and seem to ignore what's below.
 add mod1    = Alt_R Alt_L Meta_R Meta_L
 add mod4    = Super_R Super_L Menu
 add control = Control_R Control_L
+
+! Map ¤ -> $
+keycode 13 = 4 dollar 4 currency dollar guillemotleft currency
+
+! Disable dead keys
+keycode  21 = acute grave acute grave cedilla ogonek cedilla ogonek acute grave cedilla ogonek
+keycode  35 = diaeresis asciicircum diaeresis asciicircum asciitilde macron asciitilde macron diaeresis asciicircum asciitilde macron
+keycode  51 = apostrophe asterisk apostrophe asterisk caron breve caron breve apostrophe asterisk caron breve
