@@ -31,6 +31,7 @@ unclutter -keystroke &
 xset dpms 0 0 0
 xset -dpms
 xset s 0
+xset r rate 200 25
 
 # set cursor
 xsetroot -cursor_name left_ptr &
