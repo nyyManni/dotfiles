@@ -299,3 +299,11 @@
 *** C/C++
 *** XML
 *** LaTeX
+#+begin_src emacs-lisp :tangle yes
+  (use-package evil
+    :ensure t
+    :init
+    (setq evil-cross-lines t)
+    :config
+    (evil-mode 1))
+#+end_src
