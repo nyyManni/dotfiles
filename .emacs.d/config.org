@@ -305,5 +305,7 @@
     :init
     (setq evil-cross-lines t)
     :config
+    (use-package evil-magit
+      :ensure t)
     (evil-mode 1))
 #+end_src
