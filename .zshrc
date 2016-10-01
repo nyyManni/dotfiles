@@ -1,4 +1,12 @@
-[[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
+if [[ $TERM == "dumb" ]]; then
+    unsetopt zle
+    unsetopt prompt_cr
+    unsetopt prompt_subst
+    unfunction precmd
+    unfunction preexec
+    PS1='$ '
+    return
+fi
 
 # Path to your oh-my-zsh installation.
 export ZSH=/home/nyman/.oh-my-zsh
@@ -74,6 +82,7 @@ export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
+export LD_LIBRARY_PATH=/usr/local/lib
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -98,6 +107,8 @@ alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r
 # Workaround for launching Telegram. Qt Applications spawn on wrong X Display.
 alias tlg='DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off; nohup telegram-desktop &> /dev/null &; sleep 1; DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900'
 
+
+setopt autolist
 
 # Custom functions
 
