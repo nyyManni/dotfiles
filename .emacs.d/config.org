@@ -519,11 +519,11 @@
       :ensure t)
     (use-package evil-magit
       :ensure t)
-    (use-package evil-escape
-      :init
-      (setq-default evil-escape-key-sequence "jk")
+    (use-package key-chord
+      :ensure t
       :config
-      (evil-escape-mode))
+      (key-chord-mode 1)
+      (key-chord-define evil-insert-state-map "jk" 'evil-normal-state))
     (my-apply-evil-other-package-configs))
 
 
