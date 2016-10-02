@@ -335,6 +335,7 @@
     (evil-leader/set-key
       ","  (lambda () (interactive) (ansi-term (getenv "SHELL")))
       "."  'mode-line-other-buffer
+      "-"  'projectile-find-file
       ":"  'eval-expression
       "aa" 'align-regexp
       "a=" 'my-align-single-equals
