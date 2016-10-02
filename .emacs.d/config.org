@@ -196,6 +196,12 @@
     :config (pending-delete-mode 1)
     :bind ("C-=" . er/expand-region))
 #+end_src
+** OS X
+#+begin_src emacs-lisp :tangle yes
+  (when (eq system-type 'darwin)
+    (progn
+      ))
+#+end_src
 ** Programming
 *** Global programming settings
 #+begin_src emacs-lisp :tangle yes
