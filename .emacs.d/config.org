@@ -342,8 +342,10 @@
       ","  (lambda () (interactive) (ansi-term (getenv "SHELL")))
       "."  'mode-line-other-buffer
       "-"  'projectile-find-file
+      "_"  'projectile-switch-project
       ":"  'eval-expression
       "aa" 'align-regexp
+      "e"  'eval-last-sexp
       "a=" 'my-align-single-equals
       "b"  'helm-mini             ;; Switch to another buffer
       "B"  'magit-blame-toggle
@@ -357,6 +359,7 @@
       "nn" 'air-narrow-dwim       ;; Narrow to region and enter normal mode
       "nw" 'widen
       "o"  'delete-other-windows  ;; C-w o
+      "O"  'helm-occur
       "p"  'helm-show-kill-ring
       "s"  'ag-project            ;; Ag search from project's root
       "r"  'chrome-reload
