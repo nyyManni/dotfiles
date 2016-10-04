@@ -360,7 +360,10 @@
       "nw" 'widen
       "o"  'delete-other-windows  ;; C-w o
       "O"  'helm-occur
-      "p"  'helm-show-kill-ring
+      "Pd" 'anaconda-mode-find-definitions
+      "Pa" 'anaconda-mode-find-assignments
+      "Pr" 'anaconda-mode-find-references
+      "P?" 'anaconda-mode-show-doc
       "s"  'ag-project            ;; Ag search from project's root
       "r"  'chrome-reload
       "R"  (lambda () (interactive) (font-lock-fontify-buffer) (redraw-display))
@@ -462,8 +465,6 @@
 
     (advice-add 'evil-visual-line :before-while #'evil-visual-line--mark-org-element-when-heading)
 
-    ;; My own Ex commands.
-    (evil-ex-define-cmd "om" 'octopress-status))
 
   (defun my-apply-evil-other-package-configs ()
     "Apply evil-dependent settings specific to other packages."
