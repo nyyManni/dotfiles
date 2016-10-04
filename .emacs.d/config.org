@@ -463,7 +463,7 @@
           (not (org-mark-element))
         t))
 
-    (advice-add 'evil-visual-line :before-while #'evil-visual-line--mark-org-element-when-heading)
+    (advice-add 'evil-visual-line :before-while #'evil-visual-line--mark-org-element-when-heading))
 
 
   (defun my-apply-evil-other-package-configs ()
