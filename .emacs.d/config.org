@@ -1,5 +1,23 @@
 * Configuration
 <<babel-init>>
+** OS X
+#+begin_src emacs-lisp :tangle yes
+  (when (eq system-type 'darwin)
+    (progn
+      (setq with-editor-emacsclient-executable 
+            "/usr/local/Cellar/emacs/25.1/bin/emacsclient")
+      (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
+      (setenv "SHELL" "/bin/zsh")
+      (setq exec-path (append exec-path '("/usr/local/bin")))
+
+      (setq default-input-method "MacOSX")
+
+      (setq mac-command-modifier 'meta
+            mac-option-modifier nil
+            mac-allow-anti-aliasing t
+            mac-command-key-is-meta t)))
+
+#+end_src
 ** Common stuff
 *** Global settings
 #+begin_src emacs-lisp :tangle yes
@@ -195,12 +213,6 @@
     :ensure expand-region
     :config (pending-delete-mode 1)
     :bind ("C-=" . er/expand-region))
-#+end_src
-** OS X
-#+begin_src emacs-lisp :tangle yes
-  (when (eq system-type 'darwin)
-    (progn
-      ))
 #+end_src
 ** Programming
 *** Global programming settings
