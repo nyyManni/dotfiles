@@ -528,7 +528,6 @@
     :config
     (add-hook 'evil-mode-hook 'my-config-evil)
     (setq evil-move-beyond-eol t)
-    (evil-mode 1)
 
     (use-package evil-leader
       :ensure t
@@ -550,6 +549,7 @@
       :config
       (key-chord-mode 1)
       (key-chord-define evil-insert-state-map "jk" 'evil-normal-state))
+    (evil-mode 1)
     (my-apply-evil-other-package-configs))
 
 
