@@ -439,7 +439,6 @@
     (evil-define-key 'insert global-map (kbd "s-d")   'eval-last-sexp)
     (evil-define-key 'normal global-map (kbd "s-d")   'eval-defun)
 
-    (evil-define-key 'normal global-map (kbd "z d")   'dictionary-lookup-definition)
 
 
     (defun minibuffer-keyboard-quit ()
