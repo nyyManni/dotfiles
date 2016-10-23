@@ -526,7 +526,6 @@
     :commands (evil-mode evil-define-key)
     :config
     (add-hook 'evil-mode-hook 'my-config-evil)
-    (setq evil-move-beyond-eol t)
 
     (use-package evil-leader
       :ensure t
