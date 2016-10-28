@@ -317,10 +317,11 @@
     (define-coding-system-alias 'UTF-8 'utf-8)
     (global-unset-key (kbd "<f11>"))
     
-    (add-hook 'python-mode-hook 'anaconda-mode)
+    ;; (add-hook 'python-mode-hook 'anaconda-mode)
     (add-hook 'python-mode-hook
               (lambda ()
-                (set (make-local-variable 'company-backends) '(company-anaconda))))
+                (progn (set (make-local-variable 'company-backends) '(company-jedi))
+                       (jedi:install-server))))
     :bind (
            :map comint-mode-map
            ("<f5>"     . pydebug-run-realgud-current-file)
