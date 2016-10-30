@@ -401,7 +401,7 @@
   (defun is-empty-line-p ()
     (string-match "^[[:blank:]]*$"
           (buffer-substring (line-beginning-position)
-                            (line-end-position))))
+                            (point))))
 
   (defun my-complete-or-indent ()
     "On an empty (only whitespace) line, do an indent, otherwise auto-complete."
