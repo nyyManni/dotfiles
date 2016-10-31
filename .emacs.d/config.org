@@ -352,6 +352,15 @@
            ("C-<f11>"  . realgud:cmd-continue)
            ("C-c C-c"  . pydebug-eval-in-minibuffer)))
 #+end_src
+*** Shell Scripting
+#+begin_src emacs-lisp :tangle yes
+  (use-package company-shell
+    :ensure t
+    :init
+  (add-hook 'sh-mode-hook
+            (lambda ()
+              (progn (set (make-local-variable 'company-backends) '(company-shell))))))
+#+end_src
 *** C/C++
 *** XML
 *** LaTeX
