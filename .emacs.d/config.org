@@ -285,6 +285,7 @@
     :diminish company-mode
     :init (progn
             (add-hook 'prog-mode-hook 'company-mode)
+            (add-hook 'eshell-mode-hook 'company-mode)
             (add-hook 'LaTeX-mode-hook 'company-mode))
     :config (company-quickhelp-mode 1))
 
@@ -352,14 +353,27 @@
            ("C-<f11>"  . realgud:cmd-continue)
            ("C-c C-c"  . pydebug-eval-in-minibuffer)))
 #+end_src
-*** Shell Scripting
+*** Shell
 #+begin_src emacs-lisp :tangle yes
+
+  (defun my-eshell-insert-beginning-of-line ()
+    "Puts point to eshell-bol and enters insert mode"
+    (interactive)
+    (progn
+      (eshell-bol)
+      (evil-insert-state t)))
+
   (use-package company-shell
     :ensure t
     :init
   (add-hook 'sh-mode-hook
             (lambda ()
-              (progn (set (make-local-variable 'company-backends) '(company-files company-shell))))))
+              (progn (set (make-local-variable 'company-backends) '(company-files company-shell)))))
+  (add-hook 'eshell-mode-hook
+            (lambda ()
+              (progn (set (make-local-variable 'company-backends) '(company-files company-shell))
+                     (define-key evil-normal-state-map (kbd "0") 'eshell-bol)
+                     (define-key evil-normal-state-map (kbd "I") 'my-eshell-insert-beginning-of-line)))))
 #+end_src
 *** C/C++
 *** XML
