@@ -354,6 +354,13 @@
 *** LaTeX
 ** Evil
 #+begin_src emacs-lisp :tangle yes
+  (defun my-sudo-at-point ()
+    "Reopen current file as sudo, preserving location of point."
+    (interactive)
+    (let ((p (point)))
+      (find-alternate-file (concat "/sudo::" buffer-file-name))
+      (goto-char p)))
+
   (defun my-config-evil-leader ()
     "Configure evil leader mode."
     (evil-leader/set-leader "<SPC>")
@@ -381,7 +388,8 @@
       "O"  'helm-occur
       "pd" 'jedi:goto-definition
       "p?" 'jedi:show-doc
-      "s"  'ag-project            ;; Ag search from project's root
+      ;; "s"  'ag-project            ;; Ag search from project's root
+      "su" 'my-sudo-at-point
       "r"  'chrome-reload
       "R"  (lambda () (interactive) (font-lock-fontify-buffer) (redraw-display))
       "S"  'delete-trailing-whitespace
