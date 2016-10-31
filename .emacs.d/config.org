@@ -329,7 +329,7 @@
     ;; (add-hook 'python-mode-hook 'anaconda-mode)
     (add-hook 'python-mode-hook
               (lambda ()
-                (progn (set (make-local-variable 'company-backends) '(company-jedi))
+                (progn (set (make-local-variable 'company-backends) '(company-jedi company-files))
                        (jedi:install-server))))
     :bind (
            :map comint-mode-map
@@ -359,7 +359,7 @@
     :init
   (add-hook 'sh-mode-hook
             (lambda ()
-              (progn (set (make-local-variable 'company-backends) '(company-shell))))))
+              (progn (set (make-local-variable 'company-backends) '(company-files company-shell))))))
 #+end_src
 *** C/C++
 *** XML
