@@ -6,17 +6,20 @@
     (progn
       (setq with-editor-emacsclient-executable 
             "/usr/local/Cellar/emacs/25.1/bin/emacsclient")
+
       (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
       (setenv "SHELL" "/bin/zsh")
-      (setq exec-path (append exec-path '("/usr/local/bin")))
+      (setenv "LC_CTYPE" "UTF-8")
+      (setenv "LC_ALL" "en_US.UTF-8")
+      (setenv "LANG" "en_US.UTF-8")
 
+      (setq exec-path (append exec-path '("/usr/local/bin")))
       (setq default-input-method "MacOSX")
 
       (setq mac-command-modifier 'meta
             mac-option-modifier nil
             mac-allow-anti-aliasing t
             mac-command-key-is-meta t)))
-
 #+end_src
 ** Common stuff
 *** Global settings
@@ -33,6 +36,7 @@
 
   (setq inhibit-startup-screen t
         sentence-end-double-space nil
+        initial-scratch-message ""
         ad-redefinition-action 'accept
         backup-directory-alist '(("." . "~/.emacs.d/backups"))
         auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t))
