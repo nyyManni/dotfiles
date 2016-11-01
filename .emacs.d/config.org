@@ -289,7 +289,7 @@
     :diminish company-mode
     :init (progn
             (add-hook 'prog-mode-hook 'company-mode)
-            (add-hook 'eshell-mode-hook 'company-mode)
+            ;; (add-hook 'eshell-mode-hook 'company-mode)
             (add-hook 'LaTeX-mode-hook 'company-mode))
     :config (company-quickhelp-mode 1))
 
@@ -377,6 +377,7 @@
             (lambda ()
               (progn (set (make-local-variable 'company-backends) '(company-files company-shell))
                      (define-key evil-normal-state-map (kbd "0") 'eshell-bol)
+                     (define-key evil-insert-state-map (kbd "<tab>") 'eshell-pcomplete)
                      (define-key evil-normal-state-map (kbd "I") 'my-eshell-insert-beginning-of-line)))))
 #+end_src
 *** C/C++
