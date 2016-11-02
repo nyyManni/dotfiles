@@ -272,15 +272,36 @@
 #+end_src
 *** Projectile
 #+begin_src emacs-lisp :tangle yes
+  (defmacro append-to-list (l1 l2)
+    "Modify list L1 by appending L2 to it."
+    `(setq ,l1 (append ,l1 ,l2)))
+
+
+  (defvar my-list '(1 2 3))
+  ;; (defvar my-other-list '(4 5 6))
+  ;; (message my-list)
+
+  ;; (macroexpand (append-to-list my-list my-other-list))
+  (append-to-list my-list '(6 7 8 9))
+
   (use-package projectile
     :diminish projectile-mode
-    :init (setq projectile-keymap-prefix (kbd "C-c p")
-                projectile-completion-system 'default
-                projectile-enable-caching t)
-    :config (progn (projectile-global-mode)
-                   (use-package helm-projectile
-                     :ensure helm-projectile
-                     :defer t)))
+    :init
+    (setq projectile-keymap-prefix (kbd "C-c p")
+          projectile-completion-system 'default
+          projectile-enable-caching t)
+    :config
+    (progn
+      (projectile-global-mode)
+      (append-to-list projectile-globally-ignored-directories
+                      '(".git" "venv" "build" "dist"))
+      (append-to-list projectile-globally-ignored-file-suffixes
+                      '("pyc" "jpeg" "jpg" "png"))
+      (append-to-list projectile-globally-ignored-files
+                      '(".DS_Store"))
+      (use-package helm-projectile
+        :ensure helm-projectile
+        :defer t)))
 #+end_src
 *** Company
 #+begin_src emacs-lisp :tangle yes
