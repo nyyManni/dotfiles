@@ -381,8 +381,24 @@
 *** Shell
 #+begin_src emacs-lisp :tangle yes
 
+
+  ;; (defun company-eshell (command &optional arg &rest ignored)
+  ;;   "Custom company backend for Emacs shell."
+  ;;   (interactive (list 'interactive))
+
+  ;;   (cl-case command
+  ;;     (interactive (company-begin-backend 'company-eshell))
+  ;;     (prefix (and (eq major-mode 'python-mode)
+  ;;                  (company-grab "")))))
+
+
+  ;; (defun my-pcomplete ()
+  ;;   (interactive)
+  ;;   (message (pcomplete-completions)))
+
+
   (defun my-eshell-insert-beginning-of-line ()
-    "Puts point to eshell-bol and enters insert mode"
+    "Puts point to eshell-bol and enters insert mode."
     (interactive)
     (progn
       (eshell-bol)
@@ -397,9 +413,9 @@
   (add-hook 'eshell-mode-hook
             (lambda ()
               (progn (set (make-local-variable 'company-backends) '(company-files company-shell))
-                     (define-key evil-normal-state-map (kbd "0") 'eshell-bol)
-                     (define-key evil-insert-state-map (kbd "<tab>") 'eshell-pcomplete)
-                     (define-key evil-normal-state-map (kbd "I") 'my-eshell-insert-beginning-of-line)))))
+                     (evil-define-key 'normal eshell-mode-map (kbd "0") 'eshell-bol
+                                                              (kbd "I") 'my-eshell-insert-beginning-of-line)
+                     (evil-define-key 'insert eshell-mode-map (kbd "<tab>") 'eshell-pcomplete)))))
 #+end_src
 *** C/C++
 *** XML
