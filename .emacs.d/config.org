@@ -332,8 +332,6 @@
     (with-current-buffer buffer
       (message (buffer-string))))
 
-  (setq jedi:doc-display-buffer 'my-jedi-show-doc)
-
   (use-package virtualenvwrapper
     :ensure t
     :config
@@ -351,12 +349,18 @@
     :config
     (define-coding-system-alias 'UTF-8 'utf-8)
     (global-unset-key (kbd "<f11>"))
+    (evil-define-key 'insert python-mode-map (kbd "C-<tab>") 'jedi:get-in-function-call)
     
+    (setq jedi:doc-display-buffer 'my-jedi-show-doc)
+    (setq jedi:tooltip-method nil)
     ;; (add-hook 'python-mode-hook 'anaconda-mode)
     (add-hook 'python-mode-hook
               (lambda ()
                 (progn (set (make-local-variable 'company-backends) '(company-jedi company-files))
-                       (jedi:install-server))))
+                       (jedi:install-server)
+                       (set-face-attribute 'jedi:highlight-function-argument nil
+                                           :inherit 'bold
+                                           :foreground "chocolate"))))
     :bind (
            :map comint-mode-map
            ("<f5>"     . pydebug-run-realgud-current-file)
