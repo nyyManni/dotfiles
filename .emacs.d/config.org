@@ -250,6 +250,19 @@
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 2)
 #+end_src
+*** Elisp
+#+begin_src emacs-lisp :tangle yes
+(defun eval-sexp-or-region ()
+  "Evaluate an s-expression or a region."
+  (interactive)
+  (if (evil-visual-state-p)
+      (let ((r (evil-visual-range)))
+        (eval-region (car r) (cadr r)))
+    (eval-last-sexp nil)))
+
+(define-key emacs-lisp-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
+(define-key lisp-interaction-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
+#+end_src
 *** Flycheck
 #+begin_src emacs-lisp :tangle yes
   (use-package flycheck
