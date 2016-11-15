@@ -327,6 +327,8 @@
     :config
     (require 'smartparens-config)
     (smartparens-global-mode 1)
+    (define-key emacs-lisp-mode-map (kbd "C->") 'sp-forward-slurp-sexp)
+    (define-key lisp-interaction-mode-map (kbd "C->") 'sp-forward-slurp-sexp)
     (show-smartparens-global-mode 1))
 #+end_src
 *** Python
