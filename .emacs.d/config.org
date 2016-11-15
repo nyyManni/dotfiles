@@ -605,6 +605,15 @@
     ;; Dired
     (evil-define-key 'normal dired-mode-map (kbd "C-e") 'dired-toggle-read-only))
 
+
+  (defun my-save-and-normal-mode ()
+    (interactive)
+    (progn
+      (save-buffer)
+      (when (evil-insert-state-p)
+        (evil-normal-state))))
+
+
   (defmacro define-evil-or-global-key (key def &optional state)
     "Define a key KEY with DEF in an Evil map, or in the global map.
 
@@ -630,6 +639,7 @@
     :commands (evil-mode evil-define-key)
     :config
     (add-hook 'evil-mode-hook 'my-config-evil)
+    (global-set-key (kbd "C-x C-s") 'my-save-and-normal-mode)
 
     (use-package evil-leader
       :ensure t
