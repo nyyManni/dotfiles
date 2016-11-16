@@ -64,6 +64,7 @@ PATH="$PATH:$(ruby -e 'print Gem.user_dir')/bin"
 export PATH
 # export MANPATH="/usr/local/man:$MANPATH"
 
+fpath=(~/.zsh/completions $fpath)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -83,6 +84,8 @@ export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
 export LD_LIBRARY_PATH=/usr/local/lib
+
+export WORKON_HOME="$HOME/.virtualenvs"
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -147,3 +150,8 @@ close_hud() {
 restore_hud() {
   DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900;
 }
+
+workon() {
+  source "$WORKON_HOME/$1/bin/activate"
+}
+
