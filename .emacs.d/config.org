@@ -252,16 +252,18 @@
 #+end_src
 *** Elisp
 #+begin_src emacs-lisp :tangle yes
-(defun eval-sexp-or-region ()
-  "Evaluate an s-expression or a region."
-  (interactive)
-  (if (evil-visual-state-p)
-      (let ((r (evil-visual-range)))
-        (eval-region (car r) (cadr r)))
-    (eval-last-sexp nil)))
 
-(define-key emacs-lisp-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
-(define-key lisp-interaction-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
+  (defun eval-sexp-or-region ()
+    "Evaluate an s-expression or a region."
+    (interactive)
+    (if (evil-visual-state-p)
+        (let ((r (evil-visual-range)))
+          (eval-region (car r) (cadr r)))
+      (eval-last-sexp nil)))
+
+  (define-key emacs-lisp-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
+  (define-key lisp-interaction-mode-map (kbd "C-c C-c") 'eval-sexp-or-region)
+
 #+end_src
 *** Flycheck
 #+begin_src emacs-lisp :tangle yes
@@ -351,19 +353,26 @@
     (with-current-buffer buffer
       (message (buffer-string))))
 
+
+  ;; Setup virtual environments
   (use-package virtualenvwrapper
     :ensure t
     :config
     (venv-initialize-interactive-shells)
     (venv-initialize-eshell)
     (setq venv-location (expand-file-name "~/.virtualenvs")))
+
+
   (use-package python
     :load-path "pydebug"
     :mode ("\\.py\\'" . python-mode)
     :interpreter ("python" . python-mode)
     :init (progn
             (setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions)
-                  gud-pdb-command-name "python -m pdb")
+                  gud-pdb-command-name "python -m pdb"
+                  ; Workaround for Emacs 25.1 not working correctly with Python 3 native completion.
+                  python-shell-completion-native-enable nil
+                  realgud-safe-mode nil)
             (use-package pydebug))
     :config
     (define-coding-system-alias 'UTF-8 'utf-8)
@@ -372,34 +381,51 @@
     
     (setq jedi:doc-display-buffer 'my-jedi-show-doc)
     (setq jedi:tooltip-method nil)
-    ;; (add-hook 'python-mode-hook 'anaconda-mode)
+
     (add-hook 'python-mode-hook
               (lambda ()
-                (progn (set (make-local-variable 'company-backends) '(company-jedi company-files))
-                       (jedi:install-server)
-                       (set-face-attribute 'jedi:highlight-function-argument nil
-                                           :inherit 'bold
-                                           :foreground "chocolate"))))
+                (progn
+                  (set (make-local-variable 'company-backends) '(company-jedi company-files))
+                  (jedi:install-server)
+                  (set-face-attribute 'jedi:highlight-function-argument nil
+                                      :inherit 'bold
+                                      :foreground "chocolate"))))
+
+    ;; Disable regular realgud key bindings.
+    (add-hook 'realgud-short-key-mode-hook
+              (lambda ()
+                (local-set-key "\C-c" realgud:shortkey-mode-map)))
     :bind (
+           ;; Keymap for debugging
+           :map realgud:shortkey-mode-map
+           ("<f9>"     . pydebug-add-or-remove-bp)
+           ;; :map comint-mode-map
+           ;; ("M-<f5>"   . pydebug-run-realgud-current-file)
+           ("C-<f5>"   . pydebug-quit-realgud)
+           ;; ("<f9>"     . realgud:cmd-break)
+           ;; ("M-<f9>"   . realgud:cmd-clear)
+           ;; ("M-<f9>"   . realgud:cmd-until)
+           ("<f10>"    . realgud:cmd-next)
+           ("<f11>"    . realgud:cmd-step)
+           ("C-<f11>"  . realgud:cmd-continue)
+           ("S-<f11>"  . realgud:cmd-finish)
            :map comint-mode-map
-           ("<f5>"     . pydebug-run-realgud-current-file)
            ("C-<f5>"   . pydebug-quit-realgud)
-           ("<f9>"     . realgud:cmd-break)
-           ("S-<f9>"   . realgud:cmd-clear)
-           ("C-<f9>"   . realgud:cmd-until)
+           ("<f9>"     . pydebug-add-or-remove-bp)
            ("<f10>"    . realgud:cmd-next)
            ("<f11>"    . realgud:cmd-step)
            ("C-<f11>"  . realgud:cmd-continue)
+           ("S-<f11>"  . realgud:cmd-finish)
            :map python-mode-map
-           ("<f5>"     . pydebug-run-realgud-current-file)
+           ("M-<f5>"   . pydebug-run-realgud-current-file)
            ("C-<f5>"   . pydebug-quit-realgud)
-           ("<f9>"     . realgud:cmd-break)
-           ("S-<f9>"   . realgud:cmd-clear)
-           ("C-<f9>"   . realgud:cmd-until)
-           ("<f10>"    . realgud:cmd-next)
-           ("<f11>"    . realgud:cmd-step)
-           ("C-<f11>"  . realgud:cmd-continue)
-           ("C-c C-c"  . pydebug-eval-in-minibuffer)))
+           ;; ("<f9>"     . realgud:cmd-break)
+           ;; ("M-<f9>"   . realgud:cmd-clear)
+           ;; ("C-<f9>"   . realgud:cmd-until)
+           ;; ("<f10>"    . realgud:cmd-next)
+           ;; ("<f11>"    . realgud:cmd-step)
+           ;; ("C-<f11>"  . realgud:cmd-continue)
+           ("C-c C-c"  . pydebug-send-buffer-or-region)))
 #+end_src
 *** Shell
 #+begin_src emacs-lisp :tangle yes
