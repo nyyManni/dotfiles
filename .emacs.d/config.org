@@ -63,6 +63,30 @@
   ;; Fix linum-mode to not scale line-numbers while zooming
   (eval-after-load "linum"
     '(set-face-attribute 'linum nil :height 100))
+
+
+  (defun my-i3-split-vertical ()
+    "Open a new frame to the right of current."
+    (interactive)
+    (progn
+      (i3-command 0 "split vertical")
+      (new-frame)))
+
+  (defun my-i3-split-horizontal ()
+    "Open a new frame below current."
+    (interactive)
+    (progn
+      (i3-command 0 "split horizontal")
+      (new-frame)))
+
+  (use-package i3
+    :if (eq system-type 'gnu/linux)
+    :load-path "~/.emacs.d/i3-emacs"
+    :config
+    (require 'i3-integration)
+    (global-set-key (kbd "C-x 3") 'my-i3-split-horizontal)
+    (global-set-key (kbd "C-x 2") 'my-i3-split-vertical))
+
 #+end_src
 
 *** Color theme
@@ -147,21 +171,21 @@
 
   (global-set-key (kbd "C-c e") 'eval-and-replace)
 
-  (defun my-vsplit-last-buffer (prefix)
-    "Split the window vertically and display the previous buffer."
-    (interactive "p")
-    (split-window-vertically)
-    (other-window 1 nil)
-    (if (= prefix 1)
-      (switch-to-next-buffer)))
-  (defun my-hsplit-last-buffer (prefix)
-    "Split the window horizontally and display the previous buffer."
-    (interactive "p")
-    (split-window-horizontally)
-    (other-window 1 nil)
-    (if (= prefix 1) (switch-to-next-buffer)))
-  (bind-key "C-x 2" 'my-vsplit-last-buffer)
-  (bind-key "C-x 3" 'my-hsplit-last-buffer)
+  ;; (defun my-vsplit-last-buffer (prefix)
+  ;;   "Split the window vertically and display the previous buffer."
+  ;;   (interactive "p")
+  ;;   (split-window-vertically)
+  ;;   (other-window 1 nil)
+  ;;   (if (= prefix 1)
+  ;;     (switch-to-next-buffer)))
+  ;; (defun my-hsplit-last-buffer (prefix)
+  ;;   "Split the window horizontally and display the previous buffer."
+  ;;   (interactive "p")
+  ;;   (split-window-horizontally)
+  ;;   (other-window 1 nil)
+  ;;   (if (= prefix 1) (switch-to-next-buffer)))
+  ;; (bind-key "C-x 2" 'my-vsplit-last-buffer)
+  ;; (bind-key "C-x 3" 'my-hsplit-last-buffer)
 
 
 
