@@ -49,29 +49,29 @@
 # specify a mouse button
 #"xterm"
 #  control + b:2
-"mpc -h raspi toggle"
-    m:0x14 + c:172
-    Control+Mod2 + XF86AudioPlay
+"mpc -h 10.0.0.23 toggle"
+    m:0x18 + c:172
+    Alt+Mod2 + XF86AudioPlay
 
-"mpc -h raspi prev"
-    m:0x14 + c:173
-    Control+Mod2 + XF86AudioPrev
+"mpc -h 10.0.0.23 prev"
+    m:0x18 + c:173
+    Alt+Mod2 + XF86AudioPrev
 
-"mpc -h raspi next"
-    m:0x14 + c:171
-    Control+Mod2 + XF86AudioNext
+"mpc -h 10.0.0.23 next"
+    m:0x18 + c:171
+    Alt+Mod2 + XF86AudioNext
 
-"mpc -h raspi stop"
-    m:0x14 + c:121
-    Control+Mod2 + XF86Audiomute
+"mpc -h 10.0.0.23 stop"
+    m:0x18 + c:121
+    Alt+Mod2 + XF86Audiomute
 
-"mpc -h raspi volume -5"
-    m:0x14 + c:122
-    Control+Mod2 + XF86AudioLowerVolume
+"mpc -h 10.0.0.23 volume -5"
+    m:0x18 + c:122
+    Alt+Mod2 + XF86AudioLowerVolume
 
-"mpc -h raspi volume +5"
-    m:0x14 + c:123
-    Control+Mod2 + XF86AudioRaiseVolume
+"mpc -h 10.0.0.23 volume +5"
+    m:0x18 + c:123
+    Alt+Mod2 + XF86AudioRaiseVolume
 
 #"xterm -geom 50x20+20+20"
 #   Shift+Mod2+alt + s
