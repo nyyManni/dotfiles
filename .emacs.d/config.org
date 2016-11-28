@@ -502,6 +502,24 @@
       (find-alternate-file (concat "/sudo::" buffer-file-name))
       (goto-char p)))
 
+  ;; TODO: Find a way to evaluate which quotes are on the string
+  ;;       and call right function accordingly.
+  (defun my-split-string-single-quote ()
+    "Split a string delimited with single quotes at point."
+    (interactive)
+    (progn
+      (insert "''")
+      (backward-char)
+      (evil-insert-state)))
+
+  (defun my-split-string-double-quote ()
+    "Split a string delimited with double quotes at point."
+    (interactive)
+    (progn
+      (insert "\"\"")
+      (backward-char)
+      (evil-insert-state)))
+
   (defun my-config-evil-leader ()
     "Configure evil leader mode."
     (evil-leader/set-leader "<SPC>")
@@ -531,6 +549,8 @@
       "p?" 'jedi:show-doc
       ;; "s"  'ag-project            ;; Ag search from project's root
       "su" 'my-sudo-at-point
+      "s'" 'my-split-string-single-quote
+      "s\"" 'my-split-string-double-quote
       "r"  'chrome-reload
       "R"  (lambda () (interactive) (font-lock-fontify-buffer) (redraw-display))
       "S"  'delete-trailing-whitespace
