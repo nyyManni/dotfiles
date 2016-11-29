@@ -397,7 +397,15 @@
                   ; Workaround for Emacs 25.1 not working correctly with Python 3 native completion.
                   python-shell-completion-native-enable nil
                   realgud-safe-mode nil)
-            (use-package pydebug))
+            (use-package pydebug)
+            (use-package py-autopep8
+              :ensure t
+              :init
+              ;; Set the line-length for autopep to something large so that it
+              ;; does not touch too long lines, it usually cannot fix them properly
+              (setq py-autopep8-options '("--max-line-length=200"))
+              :config
+              (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)))
     :config
     (define-coding-system-alias 'UTF-8 'utf-8)
     (global-unset-key (kbd "<f11>"))
