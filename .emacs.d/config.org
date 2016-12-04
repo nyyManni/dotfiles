@@ -410,6 +410,7 @@
     (define-coding-system-alias 'UTF-8 'utf-8)
     (global-unset-key (kbd "<f11>"))
     (evil-define-key 'insert python-mode-map (kbd "C-<tab>") 'jedi:get-in-function-call)
+    (evil-define-key 'normal python-mode-map (kbd "C-<tab>") 'hs-toggle-hiding)
     
     (setq jedi:doc-display-buffer 'my-jedi-show-doc)
     (setq jedi:tooltip-method nil)
@@ -417,6 +418,7 @@
     (add-hook 'python-mode-hook
               (lambda ()
                 (progn
+                  (hs-minor-mode)
                   (set (make-local-variable 'company-backends) '(company-jedi company-files))
                   (jedi:install-server)
                   (set-face-attribute 'jedi:highlight-function-argument nil
@@ -749,6 +751,12 @@
       :ensure t)
     (use-package evil-magit
       :ensure t)
+    (use-package evil-visualstar
+      :ensure t
+      :init
+      (setq evil-visualstar/persistent t)
+      :config
+      (global-evil-visualstar-mode 1))
     (use-package key-chord
       :ensure t
       :config
