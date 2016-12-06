@@ -267,6 +267,7 @@
     :defer t
     :config
     (setq magit-branch-arguments nil)
+    (add-hook 'magit-mode-hook 'turn-off-evil-mc-mode)
     :bind
     (("C-c g" . magit-status)))
 
@@ -772,5 +773,10 @@
 
   ;; TODO: This line does not work in evil-mc :config for some reason
   (global-evil-mc-mode 1)
+  (require 'diminish)
+  (diminish 'evil-mc-mode)
+  (diminish 'undo-tree-mode)
+  (diminish 'hs-minor-mode)
+  (diminish 'auto-revert-mode)
 
 #+end_src
