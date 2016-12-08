@@ -257,6 +257,7 @@
     :config
     (hlinum-activate)
     (add-hook 'prog-mode-hook 'linum-mode)
+    (remove-hook 'post-command-hook 'hlinum-highlight-region)
     (set-face-attribute 'linum-highlight-face nil
                         :inherit 'linum
                         :foreground "#CAE682"
@@ -799,12 +800,22 @@
       (key-chord-define evil-visual-state-map "jk" 'evil-normal-state))
     (evil-mode 1)
     (my-apply-evil-other-package-configs)
-    (use-package evil-mc
-      :ensure t))
+    ;; TODO: Adding :config section for evil-mc does not work for some reason
+    (use-package evil-mc))
 
 
-  ;; TODO: This line does not work in evil-mc :config for some reason
   (global-evil-mc-mode 1)
+  (set-face-attribute 'evil-mc-cursor-default-face nil
+                      :inherit 'cursor
+                      :background "#777777"
+                      :box nil
+                      :underline nil)
+
+  (set-face-attribute 'evil-mc-cursor-bar-face nil
+                      :inherit 'cursor
+                      :background "#777777"
+                      :box nil
+                      :underline nil)
   (require 'diminish)
   (diminish 'evil-mc-mode)
   (diminish 'undo-tree-mode)
