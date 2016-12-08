@@ -105,7 +105,7 @@
 
   (use-package powerline
     :ensure t
-    :init (powerline-center-theme))
+    :config (powerline-center-evil-theme))
 
 #+end_src
 *** Custom functions
@@ -252,12 +252,16 @@
 ** Programming
 *** Global programming settings
 #+begin_src emacs-lisp :tangle yes
-  (use-package nlinum-relative
+  (use-package hlinum
     :ensure t
     :config
-    (nlinum-relative-setup-evil)
-    (setq nlinum-relative-redisplay-delay 0)
-    (add-hook 'prog-mode-hook #'nlinum-relative-mode))
+    (hlinum-activate)
+    (add-hook 'prog-mode-hook 'linum-mode)
+    (set-face-attribute 'linum-highlight-face nil
+                        :inherit 'linum
+                        :foreground "#CAE682"
+                        :background "#444444"
+                        :weight 'bold))
 
   (use-package comment-dwim-2
     :ensure t)
@@ -806,5 +810,6 @@
   (diminish 'undo-tree-mode)
   (diminish 'hs-minor-mode)
   (diminish 'auto-revert-mode)
+  (diminish 'abbrev-mode)
 
 #+end_src
