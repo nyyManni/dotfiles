@@ -16,6 +16,9 @@
       (setq exec-path (append exec-path '("/usr/local/bin")))
       (setq default-input-method "MacOSX")
 
+      ;; Default key-binding C-M-\ does not register correctly on OS X
+      (global-set-key (kbd "C-M-+") 'indent-region)
+
       (setq mac-command-modifier 'meta
             mac-option-modifier nil
             mac-allow-anti-aliasing t
