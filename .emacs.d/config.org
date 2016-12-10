@@ -606,7 +606,8 @@
       "T"  'gtags-find-tag
       "w"  'save-buffer
       "x"  'helm-M-x
-      "y"  'yank-to-x-clipboard)
+      "y"  'yank-to-x-clipboard
+      "<SPC>" 'ace-window)
 
     (defun magit-blame-toggle ()
       "Toggle magit-blame-mode on and off interactively."
