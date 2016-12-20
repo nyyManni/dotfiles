@@ -730,11 +730,11 @@
       (search-backward-regexp "\\(>>>>\\|====\\|<<<<\\)" (point-min) t)
       (move-beginning-of-line nil))
 
-    ;; PHP
-    (evil-define-key 'normal php-mode-map (kbd "]n") 'next-conflict-marker)
-    (evil-define-key 'normal php-mode-map (kbd "[n") 'previous-conflict-marker)
-    (evil-define-key 'visual php-mode-map (kbd "]n") 'next-conflict-marker)
-    (evil-define-key 'visual php-mode-map (kbd "[n") 'previous-conflict-marker)
+    ;; Moving around in merge conflicts.
+    (evil-define-key 'normal python-mode-map (kbd "]n") 'next-conflict-marker)
+    (evil-define-key 'normal python-mode-map (kbd "[n") 'previous-conflict-marker)
+    (evil-define-key 'visual python-mode-map (kbd "]n") 'next-conflict-marker)
+    (evil-define-key 'visual python-mode-map (kbd "[n") 'previous-conflict-marker)
 
     ;; Dired
     (require 'dired-x)
