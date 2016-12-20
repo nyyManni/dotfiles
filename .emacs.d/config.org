@@ -745,8 +745,6 @@
           (dired-up-directory)
           (kill-buffer old)))
     (evil-define-key 'normal dired-mode-map "h" 'my-dired-up-directory)
-    ;; (evil-define-key 'normal dired-mode-map "h" 'dired-up-directory)
-    (evil-define-key 'normal dired-mode-map "l" 'dired-find-alternate-file)
     (evil-define-key 'normal dired-mode-map "o" 'dired-sort-toggle-or-edit)
     (evil-define-key 'normal dired-mode-map "v" 'dired-toggle-marks)
     (evil-define-key 'normal dired-mode-map "m" 'dired-mark)
@@ -757,6 +755,7 @@
     (evil-define-key 'normal dired-mode-map "N" 'evil-search-previous)
     (evil-define-key 'normal dired-mode-map "q" 'kill-this-buffer)
     (evil-define-key 'normal dired-mode-map "V" 'evil-visual-line)
+    (evil-define-key 'normal dired-mode-map "-" 'find-file)
     (evil-define-key 'normal dired-mode-map (kbd "C-e") 'dired-toggle-read-only))
 
 
