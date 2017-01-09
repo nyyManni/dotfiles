@@ -862,7 +862,7 @@
           ("framesep" "2mm")
           ("fontsize" "\\scriptsize")
           ))
-  (setq org-latex-to-pdf-process
+  (setq org-latex-pdf-process
       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
           "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
           "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
