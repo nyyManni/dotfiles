@@ -853,26 +853,25 @@
 #+end_src
 ** Org
 #+begin_src emacs-lisp :tangle yes
-
   (defun my-org-latex-setup ()
-  (add-to-list 'org-latex-classes
-              '("specification"
-              "\\documentclass{specification}"
-              ("\\section{%s}" . "\\section*{%s}")
-              ("\\subsection{%s}" . "\\subsection*{%s}")
-              ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
-              )
-  (setq org-latex-listings 'minted)
-  (setq org-latex-minted-options
-      '(("frame" "lines")
-          ("framesep" "2mm")
-          ("fontsize" "\\scriptsize")
-          ))
-  (setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
+    (require 'ox-latex)
+    (add-to-list 'org-latex-classes
+                 '("specification"
+                   "\\documentclass{specification}"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+                 )
+    (setq org-latex-listings 'minted)
+    (setq org-latex-minted-options
+          '(("frame" "lines")
+            ("framesep" "2mm")
+            ("fontsize" "\\scriptsize")
+            ))
+    (setq org-latex-pdf-process
+          '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
 
   (add-hook 'org-mode-hook 'my-org-latex-setup)
-
 #+end_src
