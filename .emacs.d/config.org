@@ -541,6 +541,10 @@
 *** C/C++
 *** XML
 *** LaTeX
+*** CoffeeScript
+#+begin_src emacs-lisp :tangle yes
+  (setq flycheck-coffeelintrc "~/.coffeelint.json")
+#+end_src
 ** Evil
 #+begin_src emacs-lisp :tangle yes
   (defun my-sudo-at-point ()
@@ -849,6 +853,8 @@
 #+end_src
 ** Org
 #+begin_src emacs-lisp :tangle yes
+
+  (defun my-org-latex-setup ()
   (add-to-list 'org-latex-classes
               '("specification"
               "\\documentclass{specification}"
@@ -865,5 +871,8 @@
   (setq org-latex-pdf-process
       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
           "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
+
+  (add-hook 'org-mode-hook 'my-org-latex-setup)
+
 #+end_src
