@@ -868,6 +868,10 @@
             ("framesep" "2mm")
             ("fontsize" "\\scriptsize")
             ))
+
+    ;; This environment is required for pdflatex to find required resource files.
+    (setenv "TEXINPUTS" (concat ".:" (expand-file-name "~/texmf/tex/latex/local/") "::"))
+
     (setq org-latex-pdf-process
           '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
             "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"

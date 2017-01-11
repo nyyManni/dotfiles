@@ -87,6 +87,8 @@ export LD_LIBRARY_PATH=/usr/local/lib
 
 export WORKON_HOME="$HOME/.virtualenvs"
 
+export TEXINPUTS=".:$HOME/texmf/tex/latex/local/::"
+
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
