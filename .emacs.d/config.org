@@ -863,6 +863,24 @@
                    ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
                  )
     (setq org-latex-listings 'minted)
+
+    (setq org-latex-default-packages-alist
+          '(("T1" "fontenc" t)
+            ("" "fixltx2e" nil)
+            ("" "graphicx" t)
+            ("" "longtable" nil)
+            ("" "float" nil)
+            ("" "wrapfig" nil)
+            ("" "rotating" nil)
+            ("normalem" "ulem" t)
+            ("" "amsmath" t)
+            ("" "textcomp" t)
+            ("" "marvosym" t)
+            ("" "wasysym" t)
+            ("" "amssymb" t)
+            ("" "hyperref" nil)
+            "\\tolerance=1000"))
+
     (setq org-latex-minted-options
           '(("frame" "lines")
             ("framesep" "2mm")
@@ -873,9 +891,9 @@
     (setenv "TEXINPUTS" (concat ".:" (expand-file-name "~/texmf/tex/latex/local/") "::"))
 
     (setq org-latex-pdf-process
-          '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
+          '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
 
   (add-hook 'org-mode-hook 'my-org-latex-setup)
 #+end_src
