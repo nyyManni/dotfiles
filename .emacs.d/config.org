@@ -865,8 +865,8 @@
     (setq org-latex-listings 'minted)
 
     (setq org-latex-default-packages-alist
-          '(("T1" "fontenc" t)
-            ("" "fixltx2e" nil)
+          '(;;("T1" "fontenc" t)
+            ;; ("" "fixltx2e" nil)
             ("" "graphicx" t)
             ("" "longtable" nil)
             ("" "float" nil)
@@ -884,7 +884,8 @@
     (setq org-latex-minted-options
           '(("frame" "lines")
             ("framesep" "2mm")
-            ("fontsize" "\\scriptsize")
+            ("fontsize" "\\small")
+            ("fontfamily" "tt")
             ))
 
     ;; This environment is required for pdflatex to find required resource files.
