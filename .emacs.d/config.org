@@ -583,7 +583,7 @@
     (evil-leader/set-key
       ","  (lambda () (interactive) (ansi-term (getenv "SHELL")))
       "."  'mode-line-other-buffer
-      "-"  'projectile-find-file
+      "ö"  'projectile-find-file
       "_"  'projectile-switch-project
       ":"  'eval-expression
       "aa" 'align-regexp
@@ -592,8 +592,7 @@
       "b"  'helm-mini             ;; Switch to another buffer
       "B"  'magit-blame-toggle
       "c"  'comment-dwim-2
-      "d"  'kill-this-buffer
-      "D"  'open-current-line-in-codebase-search
+      "D"  'kill-this-buffer
       "f"  'helm-imenu            ;; Jump to function in buffer
       "g"  'magit-status
       "h"  'dired-jump
@@ -671,12 +670,14 @@
     ;; Global bindings.
     (define-key evil-normal-state-map (kbd "<down>")  'evil-next-visual-line)
     (define-key evil-normal-state-map (kbd "<up>")    'evil-previous-visual-line)
-    (define-key evil-normal-state-map (kbd "-")       'helm-find-files)
+
+    (define-key evil-normal-state-map (kbd "ö")       'helm-find-files)
+    (define-key evil-normal-state-map (kbd "ä")       'projectile-switch-project)
+
     (define-key evil-normal-state-map (kbd "C-]")     'gtags-find-tag-from-here)
     (define-key evil-normal-state-map (kbd "g/")      'occur-last-search)
     (define-key evil-normal-state-map (kbd "[i")      'show-first-occurrence)
-    (define-key evil-normal-state-map (kbd "S-SPC")   'air-pop-to-org-agenda)
-    (define-key evil-insert-state-map (kbd "C-e")     'end-of-line) ;; I know...
+    (define-key evil-insert-state-map (kbd "C-e")     'end-of-line)
 
     (evil-define-key 'normal global-map (kbd "C-p")   'helm-projectile)
     (evil-define-key 'normal global-map (kbd "C-S-p") 'helm-projectile-switch-project)
