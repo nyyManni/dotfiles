@@ -4,8 +4,9 @@
 #+begin_src emacs-lisp :tangle yes
   (when (eq system-type 'darwin)
     (progn
-      (setq with-editor-emacsclient-executable 
+      (setq with-editor-emacsclient-executable
             "/usr/local/Cellar/emacs/25.1/bin/emacsclient")
+
 
       (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
       (setenv "SHELL" "/bin/zsh")
@@ -14,6 +15,7 @@
       (setenv "LANG" "en_US.UTF-8")
 
       (setq exec-path (append exec-path '("/usr/local/bin")))
+      (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo")
       (setq default-input-method "MacOSX")
 
       ;; Default key-binding C-M-\ does not register correctly on OS X
@@ -22,7 +24,10 @@
       (setq mac-command-modifier 'meta
             mac-option-modifier nil
             mac-allow-anti-aliasing t
-            mac-command-key-is-meta t)))
+            mac-command-key-is-meta t))
+
+    (set-frame-parameter (selected-frame) 'alpha '(90 90))
+    (add-to-list 'default-frame-alist '(alpha 90 90)))
 #+end_src
 ** Common stuff
 *** Global settings
@@ -278,6 +283,9 @@
     :config
     (setq magit-branch-arguments nil)
     (add-hook 'magit-mode-hook 'turn-off-evil-mc-mode)
+    ;; Start the commit window in insert mode
+    (add-hook 'with-editor-mode-hook 'evil-insert-state)
+    ;; Add Evil bindings to accept/cancel commit
     :bind
     (("C-c g" . magit-status)))
 
@@ -426,7 +434,7 @@
     (global-unset-key (kbd "<f11>"))
     (evil-define-key 'insert python-mode-map (kbd "C-<tab>") 'jedi:get-in-function-call)
     (evil-define-key 'normal python-mode-map (kbd "C-<tab>") 'hs-toggle-hiding)
-    
+
     (setq jedi:doc-display-buffer 'my-jedi-show-doc)
     (setq jedi:tooltip-method nil)
 
@@ -804,6 +812,10 @@
     (add-hook 'evil-mode-hook 'my-config-evil)
     (global-set-key (kbd "C-x C-s") 'my-save-and-normal-mode)
 
+    (evil-define-key 'normal with-editor-mode-map
+      (kbd "RET") 'with-editor-finish
+      [escape] 'with-editor-cancel)
+
     (use-package evil-leader
       :ensure t
       :config
@@ -857,6 +869,7 @@
   (diminish 'abbrev-mode)
 
 #+end_src
+
 ** Org
 #+begin_src emacs-lisp :tangle yes
   (defun my-org-latex-setup ()
@@ -871,9 +884,7 @@
     (setq org-latex-listings 'minted)
 
     (setq org-latex-default-packages-alist
-          '(;;("T1" "fontenc" t)
-            ;; ("" "fixltx2e" nil)
-            ("" "graphicx" t)
+          '(("" "graphicx" t)
             ("" "longtable" nil)
             ("" "float" nil)
             ("" "wrapfig" nil)
@@ -901,6 +912,21 @@
           '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
             "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
+
+  (defun my-org-pdf-async ()
+    "Perform an async pdf export."
+    (interactive)
+    (org-latex-export-to-pdf t))
+
+  ;; When exporting asynchronously, use the export config.
+  (setq org-export-async-init-file (concat user-emacs-directory "/org-async-init.el"))
+
+  (define-key org-mode-map (kbd "S-<f3>") 'my-org-pdf-async)
+
+  ;; Pdf viewer
+  (use-package pdf-view
+    :config (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode)))
+
 
   (add-hook 'org-mode-hook 'my-org-latex-setup)
 #+end_src
