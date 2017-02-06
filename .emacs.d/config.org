@@ -401,14 +401,6 @@
       (message (buffer-string))))
 
 
-  ;; Setup virtual environments
-  (use-package virtualenvwrapper
-    :ensure t
-    :config
-    (venv-initialize-interactive-shells)
-    (venv-initialize-eshell)
-    (setq venv-location (expand-file-name "~/.virtualenvs")))
-
 
   (use-package python
     :load-path "pydebug"
@@ -419,6 +411,7 @@
                   gud-pdb-command-name "python -m pdb"
                   ; Workaround for Emacs 25.1 not working correctly with Python 3 native completion.
                   python-shell-completion-native-enable nil
+                  python-environment-directory "~/.virtualenvs"
                   realgud-safe-mode nil)
             (use-package pydebug)
             (use-package py-autopep8
@@ -452,6 +445,14 @@
     (add-hook 'realgud-short-key-mode-hook
               (lambda ()
                 (local-set-key "\C-c" realgud:shortkey-mode-map)))
+      ;; Setup virtual environments
+      (use-package virtualenvwrapper
+        :ensure t
+        :config
+        (venv-initialize-interactive-shells)
+        (venv-initialize-eshell)
+        (setq venv-location (expand-file-name "~/.virtualenvs")))
+
     :bind (
            ;; Keymap for debugging
            :map realgud:shortkey-mode-map
