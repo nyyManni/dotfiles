@@ -51,7 +51,7 @@
       ;; Disable custom-set-variable by pointing it's output to a file that is
       ;; never executed.
       custom-file                          (concat user-emacs-directory
-                                                   "/customize-ignored.el")
+					           "/customize-ignored.el")
 
       initial-scratch-message              ""
       ad-redefinition-action               'accept
@@ -60,19 +60,21 @@
       delete-old-versions                  -1
       version-control                      t
       vc-make-backup-files                 t
-      indent-tabs-mode                     nil
       tab-width                            2)
+
+(setq-default indent-tabs-mode nil)
 
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
         with-editor-emacsclient-executable "/usr/local/Cellar/emacs/25.1/bin/emacsclient"
-        pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
-        default-input-method               "MacOSX"
-        mac-command-modifier               'meta
-        mac-option-modifier                nil
-        mac-allow-anti-aliasing            t
-        mac-command-key-is-meta            t)
+	pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
+	default-input-method               "MacOSX"
+	mac-command-modifier               'meta
+	mac-option-modifier                nil
+	mac-allow-anti-aliasing            t
+	mac-command-key-is-meta            t
+	ns-use-srgb-colorspace             nil)
 
   ;; Environment variables
   (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
@@ -127,10 +129,10 @@
   (load-theme 'gotham t)
   (if (daemonp)
       (add-hook 'after-make-frame-functions
-        (lambda (frame)
-          (load-theme 'gotham t)
-          (scroll-bar-mode -1)
-          (powerline-reset)))))
+	(lambda (frame)
+	  (load-theme 'gotham t)
+	  (scroll-bar-mode -1)
+	  (powerline-reset)))))
 
 
 (defun my-sudo-at-point ()
@@ -207,9 +209,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "S"   'delete-trailing-whitespace
     "i"   'indent-region
     "0"   'delete-window
+    "1"   'delete-other-windows
     "2"   'split-window-below
-    "3"   'split-window-right
-    "m a" 'mark-whole-buffer))
+    "3"   'split-window-right))
 
 (use-package evil
   :after general
@@ -220,23 +222,25 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "<escape>" 'keyboard-quit)
   (general-define-key
     :keymaps '(minibuffer-local-map
-               minibuffer-local-ns-map
-               minibuffer-local-must-match-map
-               minibuffer-local-isearch-map)
+	       minibuffer-local-ns-map
+	       minibuffer-local-must-match-map
+	       minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
 
   (general-define-key
     :states '(visual)
     "<"       'my-evil-shift-left-visual
     ">"       'my-evil-shift-right-visual
+    "s '"     'my-split-string-single-quote
+    "s \""    'my-split-string-double-quote
     "S-<tab>" 'my-evil-shift-left-visual
     "<tab>"   'my-evil-shift-right-visual)
 
   ;; Disable C-k, it conflicts with company selecting.
   (eval-after-load "evil-maps"
     (dolist (map '(evil-motion-state-map
-                   evil-insert-state-map
-                   evil-emacs-state-map))
+		   evil-insert-state-map
+		   evil-emacs-state-map))
       (define-key (eval map) (kbd "C-k") nil)))
 
   (defun my-evil-shift-left-visual ()
@@ -252,6 +256,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (evil-shift-right (region-beginning) (region-end))
     (evil-normal-state)
     (evil-visual-restore))
+
+  (defun my-split-string-single-quote ()
+    "Split a string delimited with single quotes at point."
+    (interactive)
+    (insert "''")
+    (backward-char)
+    (evil-insert-state))
+
+  (defun my-split-string-double-quote ()
+    "Split a string delimited with double quotes at point."
+    (interactive)
+    (insert "\"\"")
+    (backward-char)
+    (evil-insert-state))
+
   (evil-mode t))
 
 (use-package key-chord
@@ -326,7 +345,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :functions (my-python-hook my-ipython-hook my-jedi-show-doc
-              my-python-change-venv)
+	      my-python-change-venv)
   :after (company evil)
   :init
   ;; Workaround for Emacs 25.1 not working correctly with Python 3 native
@@ -336,19 +355,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         jedi:tooltip-method      nil)
   (when (executable-find "ipython")
     (setq python-shell-interpreter "ipython"
-          python-shell-interpreter-args "--simple-prompt -i --no-confirm-exit"))
+          python-shell-interpreter-args (concat "--simple-prompt "
+						"-i --no-confirm-exit "
+						"--colors=NoColor")))
   :config
   (define-coding-system-alias 'UTF-8 'utf-8)
 
   (defun my-python-hook ()
     (set-face-attribute 'jedi:highlight-function-argument nil
-                        :inherit 'bold
-                        :foreground "chocolate")
+			:inherit 'bold
+			:foreground "chocolate")
     (set (make-local-variable 'company-backends)
-         '((company-jedi company-files))))
+	 '((company-jedi company-files))))
   (defun my-ipython-hook ()
     (set (make-local-variable 'company-backends)
-         '((company-capf company-jedi))))
+	 '((company-capf company-jedi))))
 
   (defun my-python-change-venv ()
     "Switches to a new virtualenv, and reloads flycheck and company."
@@ -357,45 +378,72 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (when (eq major-mode 'python-mode)
       ;; Reset flycheck and company to new venv.
       (flycheck-buffer)
-      (jedi:stop-server)))
+      (jedi:stop-server)
+      (pyvenv-restart-python)))
 
   (defun my-jedi-show-doc (buffer)
     (with-current-buffer buffer
       (message (buffer-string))))
 
+  (defun my-python-send-region-or-buffer ()
+    "Send buffer contents to an inferior Python process."
+    (interactive)
+    (if (evil-visual-state-p)
+        (let ((r (evil-visual-range)))
+          (python-shell-send-region (car r) (cadr r)))
+      (python-shell-send-buffer t)))
+
+  (define-key inferior-python-mode-map
+    [(control return)] 'my-ipython-follow-traceback)
+
+  (defun my-ipython-follow-traceback ()
+    "Open the file at the line where the exception was rised."
+    (interactive)
+    (backward-paragraph)
+    (forward-line)
+    (re-search-forward "^\\(.*\\) in .*$")
+    (let ((filename (match-string 1)))
+      (re-search-forward "^-+> \\([0-9]+\\)")
+      (let ((lineno (match-string 1)))
+	(forward-whitespace 1)
+	(find-file-existing filename)
+	(goto-char (point-min))
+	(forward-line (- (string-to-number lineno) 1))
+	(forward-whitespace 1)
+	(recenter))))
+
   (add-hook 'inferior-python-mode-hook #'company-mode)
   (add-hook 'inferior-python-mode-hook #'my-ipython-hook)
   (add-hook 'python-mode-hook #'my-python-hook)
-
-  (defun my-split-string-single-quote ()
-    "Split a string delimited with single quotes at point."
-    (interactive)
-    (insert "''")
-    (backward-char)
-    (evil-insert-state))
-
-  (defun my-split-string-double-quote ()
-    "Split a string delimited with double quotes at point."
-    (interactive)
-    (insert "\"\"")
-    (backward-char)
-    (evil-insert-state))
 
   (general-define-key
     :states '(insert)
     :keymaps '(python-mode-map)
     "C-<tab>" 'jedi:get-in-function-call)
 
+  (function-put #'font-lock-add-keywords 'lisp-indent-function 'defun)
+
+  ;; Syntax highlighting for ipython tracebacks.
+  (font-lock-add-keywords 'inferior-python-mode
+    '(("^-\\{3\\}-+$" . font-lock-comment-face)
+      ("^\\([a-zA-Z_0-9]+\\) +\\(Traceback (most recent call last)\\)$"
+       (1 font-lock-warning-face)
+       (2 font-lock-constant-face))
+      ("^\\(.*\\) in \\(<?[a-zA-Z_0-9]+>?\\)(.*)$"
+       (1 font-lock-constant-face)
+       (2 font-lock-function-name-face))
+      ("^-*> +[[:digit:]]+ .*$" . font-lock-builtin-face)
+      ("^   +[[:digit:]]+ " . font-lock-comment-face)))
+
   :general
   (space-leader
     :keymaps '(python-mode-map)
     "p v"  'my-python-change-venv
-    "s '"  'my-split-string-single-quote
-    "s \"" 'my-split-string-double-quote
     "p d"  'jedi:goto-definition
     "p ?"  'jedi:show-doc
     "p r"  'run-python
-    "m f"  'python-mark-defun))
+    "m f"  'python-mark-defun
+    "e"    'my-python-send-region-or-buffer))
 
 (use-package jedi-core
   :after python)
@@ -422,7 +470,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package slime
   :init
   (setq inferior-lisp-program "sbcl"
-        slime-default-lisp 'sbcl)
+        slime-default-lisp    'sbcl)
   :config
   (defun my-eval-sexp-or-region ()
     "Evaluate an s-expression or a region."
@@ -431,6 +479,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         (let ((r (evil-visual-range)))
           (eval-region (car r) (cadr r)))
       (eval-last-sexp nil)))
+  (defun my-eval-and-replace ()
+    "Replace the preceding sexp with its value."
+    (interactive)
+    (backward-kill-sexp)
+    (condition-case nil
+	(prin1 (eval (read (current-kill 0)))
+	       (current-buffer))
+      (error (message "Invalid expression")
+	     (insert (current-kill 0)))))
   :general
   (general-define-key
     :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map)
@@ -438,8 +495,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (space-leader
     :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map)
     "m f" 'mark-defun
-    "p d" 'find-function-at-point))
-
+    "p d" 'find-function-at-point
+    "E"   'my-eval-and-replace))
 (use-package hlinum
   :config
   (hlinum-activate)
@@ -454,7 +511,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package comment-dwim-2)
 
 (use-package magit
-  :after evil
+  :commands (magit-status)
   :init
   (setq magit-branch-arguments nil)
   :config
@@ -462,7 +519,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-hook 'with-editor-mode-hook 'evil-insert-state))
 
 (use-package evil-magit
-  :after evil)
+  :after magit)
 
 (use-package powerline
   :config (powerline-center-evil-theme))
@@ -475,7 +532,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         smooth-scroll-margin     5
         scroll-up-aggressively   0.0
         scroll-down-aggressively 0.0)
-  (setq-default scroll-up-aggressively 0.0)
+  (setq-default scroll-up-aggressively   0.0)
   (setq-default scroll-down-aggressively 0.0))
 
 (use-package helm
@@ -497,7 +554,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (require 'helm-config)
   (helm-mode 1)
   :bind
-  (("ö" . helm-find-files)
+  (:map evil-normal-state-map
+   ("ö" . helm-find-files)
    :map helm-map
    ("[tab]" . helm-execute-persistent-action)
    ("C-i"   . helm-execute-persistent-action)
@@ -522,9 +580,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package helm-projectile
   :after projectile
-  :bind
-  (("ä" . helm-projectile-switch-project))
   :general
+  (general-define-key :states '(normal) "ä" 'helm-projectile)
   (space-leader
     "ö" 'helm-projectile))
 
@@ -541,9 +598,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-evil-surround-mode))
 
 (use-package evil-indent-textobject
-  :after evil)
-
-(use-package evil-magit
   :after evil)
 
 (use-package evil-visualstar
@@ -578,6 +632,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :init
   (setq org-export-async-init-file (concat user-emacs-directory
                                            "/org-async-init.el"))
+  (add-hook 'org-mode-hook #'my-org-mode-hook)
   :config
   (defun my-org-pdf-async ()
     "Perform an async pdf export."
@@ -585,7 +640,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (org-latex-export-to-pdf t))
   (defun my-org-mode-hook ()
     (visual-line-mode 1))
-  (add-hook 'org-mode-hook #'my-org-mode-hook)
   :bind
   (:map org-mode-map
    ("S-<f3>" . my-org-pdf-async)))
@@ -599,16 +653,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :commands (fci-mode)
   :init
   (setq fci-rule-column 80
-        fci-rule-color "#195466")
+	fci-rule-color "#195466")
   (add-hook 'prog-mode-hook #'fci-mode)
   :config
   ;; fci-mode conflicts with company-dialogs. Temporarily disable fci when
   ;; company-dialog is visible.
-  (defun on-off-fci-before-company(command)
-    (when (string= "show" command)
-      (turn-off-fci-mode))
-    (when (string= "hide" command)
-      (turn-on-fci-mode)))
+  (defun on-off-fci-before-company (command)
+    (when (derived-mode-p 'prog-mode)
+      (when (string= "show" command)
+	(turn-off-fci-mode))
+      (when (string= "hide" command)
+	(turn-on-fci-mode))))
   (advice-add 'company-call-frontends :before #'on-off-fci-before-company))
 
 (use-package eshell
@@ -651,11 +706,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (eshell-life-is-too-much)
     (delete-window))
 
+  (defun my-eshell-within-command-p ()
+    "Check if point is at the command prompt."
+    (interactive)
+    (let ((p (point)))
+      (eshell-bol)
+      (let ((v (>= p (point))))
+        (goto-char p)
+        v)))
+
   (defun my-eshell-go-to-prompt ()
     "Puts point to the end of the prompt."
     (interactive)
-    (evil-goto-line)
-    (evil-append-line 1))
+    (if (my-eshell-within-command-p)
+        (evil-insert-state)
+      (progn
+        (evil-goto-line)
+        (evil-append-line 1))))
 
   (defun my-eshell-insert-beginning-of-line ()
     "Puts point to eshell-bol and enters insert mode."
@@ -668,18 +735,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
 
   (defun my-eshell-hook ()
-    (set (make-local-variable 'company-backends) '((company-shell company-capf company-files))))
+    (set (make-local-variable 'company-backends)
+	 '((company-shell company-capf company-files))))
 
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
+
+(add-hook 'java-mode-hook
+  #'(lambda ()
+    (set (make-local-variable 'indent-tabs-mode) nil)))
 (use-package eclim
-  :disabled t
+  :disabled t  ; Disabled until Adnroid support lib issues resolved.
   :init
-  (setq eclimd-executable "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-        eclim-executable "/Applications/Eclipse.app/Contents/Eclipse/eclim"
-        help-at-pt-display-when-idle t
-        help-at-pt-timer-delay 0.1)
+  (setq eclimd-executable            "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
+	eclim-executable             "/Applications/Eclipse.app/Contents/Eclipse/eclim"
+	help-at-pt-display-when-idle t
+	help-at-pt-timer-delay       0.1)
   :config
   (help-at-pt-set-timer)
   (defun my-java-hook ()
@@ -697,9 +769,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package rtags
   :functions (my-c-mode-hook)
   :init
-  (setq rtags-use-helm t
-        rtags-enable-unsaved-reparsing t
-        rtags-rc-log-enabled nil)  ; Set to t to enable logging
+  (setq rtags-use-helm                 t
+	rtags-enable-unsaved-reparsing t
+	rtags-rc-log-enabled           nil)  ; Set to t to enable logging
   :config
   (require 'rtags-helm)
   (defun my-c-mode-hook ()
@@ -718,5 +790,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "p s t" 'rtags-symbol-type
     "p s i" 'rtags-symbol-info
     "m f"   'c-mark-function))
+
+(use-package ttymenu
+  :ensure nil
+  :load-path "~/projects/elisp/ttymenu"
+  :commands (ttymenu-display-menus)
+  :config
+  (evil-define-key 'normal ttymenu-mode-map (kbd "l") 'ttymenu-next-day)
+  (evil-define-key 'normal ttymenu-mode-map (kbd "h") 'ttymenu-previous-day)
+  (evil-define-key 'normal ttymenu-mode-map (kbd "q") 'ttymenu-close))
+
+(use-package dired
+  :ensure nil
+  :general
+  (space-leader
+    :keymaps '(dired-mode-map)
+    "E" 'dired-toggle-read-only))
 
 ;;; init.el ends here
