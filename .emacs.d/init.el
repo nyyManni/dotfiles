@@ -163,6 +163,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   "Modify list L1 by appending L2 to it."
   `(setq ,l1 (append ,l1 ,l2)))
 
+(defmacro setq-mode-local (mode &rest args)
+  "Add a hook to MODE and set mode-local values for ARGS.
+
+Allows for setting mode-local variables like:
+   (setq-mode-local mode-name
+                    (variable  . value)
+                    (variable2 . value2)
+                     ...
+                    (variableN . valueN))"
+  `(add-hook ',(intern (concat (symbol-name mode) "-hook"))
+     (lambda ()
+       ,@(mapcar #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg))) args))))
+
 (defun is-current-file-tramp ()
   "Check if the file is a remote tramp file."
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
@@ -213,6 +226,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "2"   'split-window-below
     "3"   'split-window-right))
 
+
 (use-package evil
   :after general
   :config
@@ -226,6 +240,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	       minibuffer-local-must-match-map
 	       minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
+
+  ;; Activating window with mouse turning on visual state is super annoying.
+  ;; Still keeping up-mouse-1 to be able to move cursor by clicking.
+  (global-unset-key [drag-mouse-1])
+  (global-unset-key [down-mouse-1])
 
   (general-define-key
     :states '(visual)
@@ -277,7 +296,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :after general
   :config
   (general-define-key
-    :keymaps 'evil-insert-state-map
+    :keymaps '(evil-insert-state-map evil-visual-state-map)
     (general-chord "jk") 'evil-normal-state
     (general-chord "kj") 'evil-normal-state)
   (key-chord-mode t))
@@ -387,15 +406,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (define-coding-system-alias 'UTF-8 'utf-8)
 
+  (setq-mode-local python-mode
+                   (company-backends . '((company-jedi company-capf))))
+  (setq-mode-local inferior-python-mode
+                   (company-backends . '((company-capf company-jedi))))
+
   (defun my-python-hook ()
     (set-face-attribute 'jedi:highlight-function-argument nil
 			:inherit 'bold
-			:foreground "chocolate")
-    (set (make-local-variable 'company-backends)
-	 '((company-jedi company-files))))
-  (defun my-ipython-hook ()
-    (set (make-local-variable 'company-backends)
-	 '((company-capf company-jedi))))
+			:foreground "chocolate"))
 
   (defun my-python-change-venv ()
     "Switches to a new virtualenv, and reloads flycheck and company."
@@ -439,7 +458,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	(recenter))))
 
   (add-hook 'inferior-python-mode-hook #'company-mode)
-  (add-hook 'inferior-python-mode-hook #'my-ipython-hook)
   (add-hook 'python-mode-hook #'my-python-hook)
 
   (general-define-key
@@ -701,16 +719,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :functions (my-eshell-hook)
   :defines (eshell-banner-message)
   :init
-  (setq eshell-banner-message ""
-        pcomplete-cycle-completions nil)
+  (setq eshell-banner-message         ""
+        eshell-cmpl-cycle-completions nil
+        pcomplete-cycle-completions   nil)
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
   :config
+  ;; bug#18951: complete-at-point removes an asterisk when it tries to
+  ;;            complete. Disable idle completion until resolved.
+  (setq-mode-local eshell-mode
+                   (company-idle-delay . nil)
+                   (company-backends   . '((company-shell company-capf))))
+
   (defun my-eshell-hook ()
-    (setq eshell-cmpl-cycle-completions nil)
-    (set (make-local-variable 'company-idle-delay) nil)
-    (set (make-local-variable 'company-backends)
-	 '((company-shell company-capf)))
     (general-define-key
       :keymaps 'eshell-mode-map
       "C-S-q" 'my-quit-eshell)
@@ -769,16 +790,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :after eshell
   :config
 
-  (defun my-eshell-hook ()
-    (set (make-local-variable 'company-backends)
-	 '((company-shell company-capf company-files))))
-
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
-(add-hook 'java-mode-hook
-  #'(lambda ()
-    (set (make-local-variable 'indent-tabs-mode) nil)))
+(setq-mode-local java-mode
+                 (indent-tabs-mode . nil)
+                 (tab-width        . 4)
+                 (company-backends . '((company-eclim))))
+
 (use-package eclim
   :disabled t  ; Disabled until Adnroid support lib issues resolved.
   :init
@@ -789,8 +808,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (help-at-pt-set-timer)
   (defun my-java-hook ()
-    (eclim-mode)
-    (set (make-local-variable 'company-backends) '((company-eclim))))
+    (eclim-mode))
+    ;; (set (make-local-variable 'company-backends) '((company-eclim))))
   (add-hook 'java-mode-hook #'eclim-mode)
   :general
   (space-leader
@@ -810,10 +829,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (require 'rtags-helm)
   (defun my-c-mode-hook ()
     (require 'flycheck-rtags)
-    (flycheck-select-checker 'rtags)
-    (setq-local flycheck-highlighting-mode nil)
-    (setq-local flycheck-check-syntax-automatically nil)
-    (set (make-local-variable 'company-backends) '((company-rtags))))
+    (flycheck-select-checker 'rtags))
+
+  (setq-mode-local c-mode-common
+                   (indent-tabs-mode                    . nil)
+                   (tab-width                           . 4)
+                   (flycheck-highlighting-mode          . nil)
+                   (flycheck-highlighting-mode          . nil)
+                   (flycheck-check-syntax-automatically . '((company-rtags))))
   (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :general
   (space-leader
