@@ -172,9 +172,11 @@ Allows for setting mode-local variables like:
                     (variable2 . value2)
                      ...
                     (variableN . valueN))"
+  ;; TODO: use make-symbol for arg.
   `(add-hook ',(intern (concat (symbol-name mode) "-hook"))
      (lambda ()
-       ,@(mapcar #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg))) args))))
+       ,@(mapcar
+          #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg))) args))))
 
 (defun is-current-file-tramp ()
   "Check if the file is a remote tramp file."
@@ -204,27 +206,29 @@ Allows for setting mode-local variables like:
   (general-define-key
     :prefix "SPC"
     :states '(normal visual)
-    "x"   'helm-M-x
-    "b"   'helm-mini
-    "c"   'comment-dwim-2
-    "O"   'helm-occur
-    "A"   'helm-apropos
-    "e"   'eval-last-sexp
-    "w"   'save-buffer
-    "SPC" 'ace-window
-    "D"   'kill-this-buffer
-    "a a" 'align-regexp
-    "s u" 'my-sudo-at-point
-    "s h" 'my-eshell-here
-    "r"   'my-reload-file
-    "f"   'helm-imenu
-    "g"   'magit-status
-    "S"   'delete-trailing-whitespace
-    "i"   'indent-region
-    "0"   'delete-window
-    "1"   'delete-other-windows
-    "2"   'split-window-below
-    "3"   'split-window-right))
+    "x"    'helm-M-x
+    "b"    'helm-mini
+    "c"    'comment-dwim-2
+    "O"    'helm-occur
+    "A"    'helm-apropos
+    "e"    'eval-last-sexp
+    "w"    'save-buffer
+    "SPC"  'ace-window
+    "D"    'kill-this-buffer
+    "a a"  'align-regexp
+    "s u"  'my-sudo-at-point
+    "s h"  'my-eshell-here
+    "s '"  'my-split-string-single-quote
+    "s \"" 'my-split-string-double-quote
+    "r"    'my-reload-file
+    "f"    'helm-imenu
+    "g"    'magit-status
+    "S"    'delete-trailing-whitespace
+    "i"    'indent-region
+    "0"    'delete-window
+    "1"    'delete-other-windows
+    "2"    'split-window-below
+    "3"    'split-window-right))
 
 
 (use-package evil
@@ -250,8 +254,6 @@ Allows for setting mode-local variables like:
     :states '(visual)
     "<"       'my-evil-shift-left-visual
     ">"       'my-evil-shift-right-visual
-    "s '"     'my-split-string-single-quote
-    "s \""    'my-split-string-double-quote
     "S-<tab>" 'my-evil-shift-left-visual
     "<tab>"   'my-evil-shift-right-visual)
 
