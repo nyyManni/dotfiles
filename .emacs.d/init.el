@@ -375,7 +375,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; completion.
   (setq python-shell-completion-native-enable nil
         jedi:doc-display-buffer               'my-jedi-show-doc
-        jedi:tooltip-method                   nil)
+        jedi:tooltip-method                   nil
+        realgud:pdb-command-name              "python -m pdb"
+        realgud:trepan3k-command-name         "trepan3k --highlight=plain")
+
   (when (executable-find "ipython")
     (setq python-shell-interpreter      "ipython"
           python-shell-interpreter-args (concat "--simple-prompt "
@@ -698,11 +701,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :functions (my-eshell-hook)
   :defines (eshell-banner-message)
   :init
-  (setq eshell-banner-message "")
+  (setq eshell-banner-message ""
+        pcomplete-cycle-completions nil)
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
   :config
   (defun my-eshell-hook ()
+    (setq eshell-cmpl-cycle-completions nil)
+    (set (make-local-variable 'company-idle-delay) nil)
+    (set (make-local-variable 'company-backends)
+	 '((company-shell company-capf)))
     (general-define-key
       :keymaps 'eshell-mode-map
       "C-S-q" 'my-quit-eshell)
