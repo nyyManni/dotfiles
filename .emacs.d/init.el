@@ -324,18 +324,41 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-hook 'prog-mode-hook #'yas-minor-mode)
   :config
   (yas-reload-all)
-  ;; Disable expanding with <tab>, expand with S-<tab> instead, and only in
-  ;; insert state.
+
+  ;; Disable tab key for yasnippet, so that it does not cause confusion with
+  ;; company-mode.
   (dolist (keymap '(yas-minor-mode-map yas-keymap))
-    (define-key (eval keymap) (kbd "TAB") nil)
-    (define-key (eval keymap) [(tab)] nil))
+    (define-key (eval keymap) (kbd "<tab>") nil)
+    (define-key (eval keymap) [(tab)] nil)
+    (define-key (eval keymap) (kbd "S-<tab>") nil)
+    (define-key (eval keymap) [(shift tab)] nil)
+    (define-key (eval keymap) [backtab] nil))
+
+  ;; Add hooks for disabling fill-column-indicator while expanding a snippet.
+  (defun my-yas-begin-hook ()
+    (setq my-yas-expanding t)
+    (message "enabling yas-expand-mode")
+    (when (and (derived-mode-p 'prog-mode)
+               (functionp 'turn-off-fci-mode))
+      (turn-off-fci-mode)))
+  (defun my-yas-end-hook ()
+    (setq my-yas-expanding nil)
+    (when (and (derived-mode-p 'prog-mode)
+               (functionp 'turn-off-fci-mode))
+      (turn-on-fci-mode)))
+
+  (add-hook 'yas-before-expand-snippet-hook 'my-yas-begin-hook)
+  (add-hook 'yas-after-exit-snippet-hook 'my-yas-end-hook)
+
+  ;; Use C-' and C-* for going through the fields, since they are positioned
+  ;; nicely on a nordic keyboard.
   (general-define-key
     :states '(insert)
-    "S-<tab>" 'yas-expand)
+    "C-'" 'yas-expand)
   (general-define-key
-    :states '(insert)
     :keymaps '(yas-keymap)
-    "S-<tab>" 'yas-next-field-or-maybe-expand))
+    "C-'" 'yas-next-field-or-maybe-expand
+    "C-*" 'yas-prev-field))
 
 (use-package flycheck
   :diminish
@@ -351,10 +374,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Workaround for Emacs 25.1 not working correctly with Python 3 native
   ;; completion.
   (setq python-shell-completion-native-enable nil
-        jedi:doc-display-buffer 'my-jedi-show-doc
-        jedi:tooltip-method      nil)
+        jedi:doc-display-buffer               'my-jedi-show-doc
+        jedi:tooltip-method                   nil)
   (when (executable-find "ipython")
-    (setq python-shell-interpreter "ipython"
+    (setq python-shell-interpreter      "ipython"
           python-shell-interpreter-args (concat "--simple-prompt "
 						"-i --no-confirm-exit "
 						"--colors=NoColor")))
@@ -659,11 +682,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; fci-mode conflicts with company-dialogs. Temporarily disable fci when
   ;; company-dialog is visible.
   (defun on-off-fci-before-company (command)
-    (when (derived-mode-p 'prog-mode)
-      (when (string= "show" command)
-	(turn-off-fci-mode))
-      (when (string= "hide" command)
-	(turn-on-fci-mode))))
+
+    ;; While yasnippet is expanding, the fci-mode is already disabled, and it
+    ;; should not be enabled before snippet expanding is done.
+    (unless (and (boundp 'my-yas-expanding) my-yas-expanding)
+      (when (derived-mode-p 'prog-mode)
+        (when (string= "show" command)
+          (turn-off-fci-mode))
+        (when (string= "hide" command)
+          (turn-on-fci-mode)))))
   (advice-add 'company-call-frontends :before #'on-off-fci-before-company))
 
 (use-package eshell
@@ -740,7 +767,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
-
 
 (add-hook 'java-mode-hook
   #'(lambda ()
