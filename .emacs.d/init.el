@@ -600,7 +600,8 @@ Allows for setting mode-local variables like:
   (require 'helm-config)
   (helm-mode 1)
   :bind
-  (:map evil-normal-state-map
+  (("M-x" . helm-M-x)
+   :map evil-normal-state-map
    ("ö" . helm-find-files)
    :map helm-map
    ("[tab]" . helm-execute-persistent-action)
@@ -699,7 +700,8 @@ Allows for setting mode-local variables like:
   :commands (fci-mode)
   :init
   (setq fci-rule-column 80
-	fci-rule-color "#195466")
+	fci-rule-color "#195466"
+        fci-rule-image-format 'pbm)
   (add-hook 'prog-mode-hook #'fci-mode)
   :config
   ;; fci-mode conflicts with company-dialogs. Temporarily disable fci when
@@ -826,19 +828,46 @@ Allows for setting mode-local variables like:
   :init
   (setq rtags-use-helm                 t
 	rtags-enable-unsaved-reparsing t
-	rtags-rc-log-enabled           nil)  ; Set to t to enable logging
+	rtags-rc-log-enabled           t) ; Set to t to enable logging
+  (setq-default c-basic-offset         4)
   :config
   (require 'rtags-helm)
   (defun my-c-mode-hook ()
     (require 'flycheck-rtags)
     (flycheck-select-checker 'rtags))
 
+  (defun my-rtags-switch-to-project ()
+    "Set active project."
+    (interactive)
+    (let ((projects nil)
+          (project nil)
+          (current ""))
+      (with-temp-buffer
+        (rtags-call-rc :path t "-w")
+        (goto-char (point-min))
+        (while (not (eobp))
+          (let ((line (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
+            (cond ((string-match "^\\([^ ]+\\)[^<]*<=$" line)
+                   (let ((name (match-string-no-properties 1 line)))
+                     (setq projects (add-to-list 'projects name t))
+                     (setq current name)))
+                  ((string-match "^\\([^ ]+\\)[^<]*$" line)
+                   (setq projects (add-to-list 'projects (match-string-no-properties 1 line))))
+                  (t)))
+          (forward-line)))
+      (setq project (completing-read
+                     (format "RTags select project (current is %s): " current)
+                     projects))
+      (when project
+        (with-temp-buffer
+          (rtags-call-rc :path t "-w" project)))))
+
   (setq-mode-local c-mode-common
                    (indent-tabs-mode                    . nil)
                    (tab-width                           . 4)
                    (flycheck-highlighting-mode          . nil)
-                   (flycheck-highlighting-mode          . nil)
-                   (flycheck-check-syntax-automatically . '((company-rtags))))
+                   (flycheck-check-syntax-automatically . nil)
+                   (company-backends                    . '((company-rtags))))
   (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :general
   (space-leader
@@ -848,6 +877,7 @@ Allows for setting mode-local variables like:
     "p u"   'rtags-find-references-at-point
     "p s t" 'rtags-symbol-type
     "p s i" 'rtags-symbol-info
+    "p v"   'my-rtags-switch-to-project
     "m f"   'c-mark-function))
 
 (use-package ttymenu
