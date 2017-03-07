@@ -230,7 +230,6 @@ Allows for setting mode-local variables like:
     "2"    'split-window-below
     "3"    'split-window-right))
 
-
 (use-package evil
   :after general
   :config
@@ -249,6 +248,7 @@ Allows for setting mode-local variables like:
   ;; Still keeping up-mouse-1 to be able to move cursor by clicking.
   (global-unset-key [drag-mouse-1])
   (global-unset-key [down-mouse-1])
+  (general-define-key :keymaps '(evil-motion-state-map) [down-mouse-1] nil)
 
   (general-define-key
     :states '(visual)
@@ -687,9 +687,10 @@ Allows for setting mode-local variables like:
     (org-latex-export-to-pdf t))
   (defun my-org-mode-hook ()
     (visual-line-mode 1))
-  :bind
-  (:map org-mode-map
-   ("S-<f3>" . my-org-pdf-async)))
+  :general
+  (space-leader
+    :keymaps '(org-mode-map)
+    "E" 'my-org-pdf-async))
 
 (use-package undo-tree
   :diminish undo-tree-mode)
@@ -728,6 +729,10 @@ Allows for setting mode-local variables like:
         pcomplete-cycle-completions   nil)
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
+  :general
+  (space-leader
+    :keymaps '(eshell-mode-map)
+    "h" 'helm-eshell-history)
   :config
   ;; bug#18951: complete-at-point removes an asterisk when it tries to
   ;;            complete. Disable idle completion until resolved.
@@ -735,7 +740,18 @@ Allows for setting mode-local variables like:
                    (company-idle-delay . nil)
                    (company-backends   . '((company-shell company-capf))))
 
+  (defun my-eshell-history ()
+    (interactive)
+    (my-eshell-go-to-prompt)
+    (eshell-bol)
+    (kill-line nil)
+    (call-interactively 'helm-eshell-history))
   (defun my-eshell-hook ()
+    (general-define-key
+      :states '(normal)
+      :keymaps '(eshell-mode-map)
+      :prefix "SPC"
+      "h" 'my-eshell-history)
     (general-define-key
       :keymaps 'eshell-mode-map
       "C-S-q" 'my-quit-eshell)
@@ -797,28 +813,27 @@ Allows for setting mode-local variables like:
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
-(setq-mode-local java-mode
-                 (indent-tabs-mode . nil)
-                 (tab-width        . 4)
-                 (company-backends . '((company-eclim))))
 
 (use-package eclim
-  :disabled t  ; Disabled until Adnroid support lib issues resolved.
   :init
   (setq eclimd-executable            "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
 	eclim-executable             "/Applications/Eclipse.app/Contents/Eclipse/eclim"
 	help-at-pt-display-when-idle t
+        eclim-print-debug-messages   nil ; Set to t to enable logging
 	help-at-pt-timer-delay       0.1)
-  :config
-  (help-at-pt-set-timer)
+  (setq-mode-local java-mode
+                   (indent-tabs-mode . nil)
+                   (tab-width        . 4)
+                   (company-backends . '((company-emacs-eclim))))
   (defun my-java-hook ()
+    (help-at-pt-set-timer)
     (eclim-mode))
-    ;; (set (make-local-variable 'company-backends) '((company-eclim))))
-  (add-hook 'java-mode-hook #'eclim-mode)
+  (add-hook 'java-mode-hook #'my-java-hook)
   :general
   (space-leader
     :keymaps '(java-mode-map)
-    "p d" 'eclim-java-find-declaration))
+    "p d"   'eclim-java-find-declaration
+    "p r r" 'eclim-java-refactor-rename-symbol-at-point))
 
 (use-package company-emacs-eclim
   :after eclim)
@@ -862,12 +877,19 @@ Allows for setting mode-local variables like:
         (with-temp-buffer
           (rtags-call-rc :path t "-w" project)))))
 
-  (setq-mode-local c-mode-common
+  (setq-mode-local c++-mode
                    (indent-tabs-mode                    . nil)
                    (tab-width                           . 4)
                    (flycheck-highlighting-mode          . nil)
                    (flycheck-check-syntax-automatically . nil)
                    (company-backends                    . '((company-rtags))))
+  (setq-mode-local c-mode
+                   (indent-tabs-mode                    . nil)
+                   (tab-width                           . 4)
+                   (flycheck-highlighting-mode          . nil)
+                   (flycheck-check-syntax-automatically . nil)
+                   (company-backends                    . '((company-rtags))))
+
   (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :general
   (space-leader
@@ -895,5 +917,40 @@ Allows for setting mode-local variables like:
   (space-leader
     :keymaps '(dired-mode-map)
     "E" 'dired-toggle-read-only))
+
+(use-package compilation
+  :ensure nil
+  :after helm
+  :general
+  (general-define-key
+    :keymaps '(compilation-mode-map)
+    "SPC" nil
+    "h"   nil
+    "g"   nil)
+
+  ;; Compilation-mode maps need to be filled separately, since it overrides
+  ;; most of the keybindings.
+  (general-define-key
+    :keymaps '(compilation-mode-map)
+    "ö" 'helm-find-files
+    "ä" 'helm-projectile-switch-project)
+  (general-define-key
+    :keymaps '(compilation-mode-map)
+    :prefix "SPC"
+    "b"   'helm-mini
+    "x"   'helm-M-x
+    "ö"   'helm-projectile
+    "O"   'helm-occur
+    "A"   'helm-apropos
+    "w"   'save-buffer
+    "SPC" 'ace-window
+    "D"   'kill-this-buffer
+    "s h" 'my-eshell-here
+    "r"   'compilation-recompile
+    "g"   'magit-status
+    "0"   'delete-window
+    "1"   'delete-other-windows
+    "2"   'split-window-below
+    "3"   'split-window-right))
 
 ;;; init.el ends here
