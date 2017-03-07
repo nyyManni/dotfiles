@@ -744,7 +744,9 @@ Allows for setting mode-local variables like:
     (interactive)
     (my-eshell-go-to-prompt)
     (eshell-bol)
-    (kill-line nil)
+    ;; If the lien is not empty, kill the rest of the line.
+    (when (not (looking-at "$"))
+      (kill-line nil))
     (call-interactively 'helm-eshell-history))
   (defun my-eshell-hook ()
     (general-define-key
