@@ -675,6 +675,9 @@ Allows for setting mode-local variables like:
     "+" 'evil-numbers/inc-at-pt
     "-" 'evil-numbers/dec-at-pt))
 
+(use-package evil-ediff
+  :after evil)
+
 (use-package smartparens
   :diminish smartparens-mode
   :after general
