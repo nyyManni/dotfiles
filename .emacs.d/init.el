@@ -4,7 +4,7 @@
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
-;; Modified   : 26 Feb 2017
+;; Modified   : 9 Mar 2017
 ;; Version    : 1.0
 
 ;; The MIT License
@@ -31,9 +31,16 @@
 ;;; Commentary:
 
 ;; nyyManni's configuration for Emacs.
+;;
+;; Main packages:
+;; - evil for movement
+;; - general for keybindings
+;; - helm for searching and narrowing
+;; - company for completion
+;; - flycheck for syntax-checking
+
 
 ;;; Code:
-
 
 ;; Global settings
 (setq user-full-name                       "Henrik Nyman"
@@ -861,7 +868,7 @@ Allows for setting mode-local variables like:
   :init
   (setq rtags-use-helm                 t
 	rtags-enable-unsaved-reparsing t
-	rtags-rc-log-enabled           t) ; Set to t to enable logging
+	rtags-rc-log-enabled           nil) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
   :config
   (require 'rtags-helm)
