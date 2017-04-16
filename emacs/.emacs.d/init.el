@@ -187,6 +187,7 @@ Allows for setting mode-local variables like:
 
 (defun is-current-file-tramp ()
   "Check if the file is a remote tramp file."
+  (require 'tramp)
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
 ;; Disable backup's with tramp files.
@@ -219,6 +220,7 @@ Allows for setting mode-local variables like:
     "O"    'helm-occur
     "A"    'helm-apropos
     "e"    'eval-last-sexp
+    "m h"  'mark-whole-buffer
     "w"    'save-buffer
     "SPC"  'ace-window
     "D"    'kill-this-buffer
@@ -229,13 +231,21 @@ Allows for setting mode-local variables like:
     "s \"" 'my-split-string-double-quote
     "r"    'my-reload-file
     "f"    'helm-imenu
-    "g"    'magit-status
+    "g g"  'magit-status
     "S"    'delete-trailing-whitespace
     "i"    'indent-region
     "0"    'delete-window
     "1"    'delete-other-windows
     "2"    'split-window-below
     "3"    'split-window-right))
+
+(use-package org
+  :ensure nil
+  :init
+  (space-leader
+    :keymaps '(org-mode-map)
+    "o t c" 'org-table-create
+    "o t d" 'org-todo))
 
 (use-package evil
   :after general
@@ -299,7 +309,7 @@ Allows for setting mode-local variables like:
     (backward-char)
     (evil-insert-state))
 
-  (evil-mode t))
+  (evil-mode 1))
 
 (use-package key-chord
   :after general
@@ -388,10 +398,22 @@ Allows for setting mode-local variables like:
     "C-'" 'yas-next-field-or-maybe-expand
     "C-*" 'yas-prev-field))
 
+(use-package expand-region
+  :after evil
+  :init
+  (general-define-key
+    :states '(normal visual)
+    "C-+" 'er/expand-region))
+
 (use-package flycheck
   :diminish
   :init
-  (add-hook 'prog-mode-hook #'flycheck-mode))
+  (add-hook 'prog-mode-hook #'flycheck-mode)
+  :config
+  (general-define-key
+    :states '(normal visual)
+    "[ e" 'flycheck-previous-error
+    "] e" 'flycheck-next-error))
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
@@ -416,7 +438,7 @@ Allows for setting mode-local variables like:
   (define-coding-system-alias 'UTF-8 'utf-8)
 
   (setq-mode-local python-mode
-                   (company-backends . '((company-jedi company-capf))))
+                   (company-backends . '((company-jedi))))
   (setq-mode-local inferior-python-mode
                    (company-backends . '((company-capf company-jedi))))
 
@@ -474,6 +496,19 @@ Allows for setting mode-local variables like:
     :keymaps '(python-mode-map)
     "C-<tab>" 'jedi:get-in-function-call)
 
+  (general-define-key
+    :keymaps '(python-mode-map)
+    "C->" 'sp-forward-slurp-sexp
+    "C-<" 'sp-forward-barf-sexp)
+
+  (general-define-key
+    :keymaps '(python-mode-map)
+    :states '(normal visual)
+    "[ f" 'python-nav-backward-defun
+    "] f" 'python-nav-forward-defun
+    "[ b" 'python-nav-backward-block
+    "] b" 'python-nav-forward-block)
+
   (function-put #'font-lock-add-keywords 'lisp-indent-function 'defun)
 
   ;; Syntax highlighting for ipython tracebacks.
@@ -488,15 +523,30 @@ Allows for setting mode-local variables like:
       ("^-*> +[[:digit:]]+ .*$" . font-lock-builtin-face)
       ("^   +[[:digit:]]+ " . font-lock-comment-face)))
 
+  (use-package pydebug
+    :ensure nil
+    :load-path "~/projects/elisp/pydebug"
+    :config
+    (defun my-shortkey-mode-hook ()
+      (evil-insert-state 1))
+    (add-hook 'realgud-short-key-mode-hook #'my-shortkey-mode-hook)
+    :general
+    (space-leader
+      :keymaps '(python-mode-map)
+      "p b r" 'pydebug-run-realgud-current-file))
+
   :general
   (space-leader
-    :keymaps '(python-mode-map)
-    "p v"  'my-python-change-venv
-    "p d"  'jedi:goto-definition
-    "p ?"  'jedi:show-doc
-    "p r"  'run-python
-    "m f"  'python-mark-defun
-    "e"    'my-python-send-region-or-buffer))
+    :keymaps '(python-mode-map realgud-mode-map)
+    "p v"   'my-python-change-venv
+    "p d"   'jedi:goto-definition
+    "p b a" 'realgud-short-key-mode
+    "p u"   'helm-jedi-related-names
+    "p ?"   'jedi:show-doc
+    "p r"   'run-python
+    "m f"   'python-mark-defun
+    "e"     'my-python-send-region-or-buffer))
+
 
 (use-package jedi-core
   :after python)
@@ -567,9 +617,15 @@ Allows for setting mode-local variables like:
   :commands (magit-status)
   :init
   (setq magit-branch-arguments nil)
+  (when (eq system-type 'darwin)
+    (setq magit-git-executable "/usr/local/bin/git"))
   :config
   ;; Start the commit window in insert mode
-  (add-hook 'with-editor-mode-hook 'evil-insert-state))
+  (add-hook 'with-editor-mode-hook 'evil-insert-state)
+  :general
+  (space-leader
+    "g b"   'magit-blame
+    "g f h" 'magit-log-buffer-file))
 
 (use-package evil-magit
   :after magit)
@@ -621,13 +677,15 @@ Allows for setting mode-local variables like:
   (advice-add #'helm-ff-move-to-first-real-candidate :around #'helm-skip-dots)
   :bind
   (("M-x" . helm-M-x)
-   :map evil-normal-state-map
-   ("ö" . helm-find-files)
    :map helm-map
    ("[tab]" . helm-execute-persistent-action)
    ("C-i"   . helm-execute-persistent-action)
    ("C-k"   . helm-previous-line)
-   ("C-j"   . helm-next-line)))
+   ("C-j"   . helm-next-line)
+   ("C-l"   . helm-next-source))
+  :general
+  (space-leader
+    ";" 'helm-find-files))
 
 (use-package projectile
   :after helm
@@ -637,7 +695,7 @@ Allows for setting mode-local variables like:
         projectile-enable-caching    t
         projectile-use-git-grep      t)
   :config
-  (projectile-global-mode)
+  (projectile-mode)
   (append-to-list projectile-globally-ignored-directories
                   '(".git" "venv" "build" "dist"))
   (append-to-list projectile-globally-ignored-file-suffixes
@@ -648,9 +706,9 @@ Allows for setting mode-local variables like:
 (use-package helm-projectile
   :after projectile
   :general
-  (general-define-key :states '(normal) "ä" 'helm-projectile)
   (space-leader
-    "ö" 'helm-projectile))
+    "'" 'projectile-switch-project
+    "\"" 'helm-projectile))
 
 (use-package windmove
   :bind
@@ -683,7 +741,24 @@ Allows for setting mode-local variables like:
     "-" 'evil-numbers/dec-at-pt))
 
 (use-package evil-ediff
-  :after evil)
+  :after evil
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally))
+
+(use-package evil-indent-plus
+  :after evil
+  :general
+  (general-define-key
+    :keymaps '(evil-inner-text-objects-map)
+    "i" 'evil-indent-plus-i-indent
+    "I" 'evil-indent-plus-i-indent-up
+    "J" 'evil-indent-plus-i-indent-up-down)
+  (general-define-key
+    :keymaps '(evil-outer-text-objects-map)
+    "i" 'evil-indent-plus-a-indent
+    "I" 'evil-indent-plus-a-indent-up
+    "J" 'evil-indent-plus-a-indent-up-down))
 
 (use-package smartparens
   :diminish smartparens-mode
@@ -838,14 +913,15 @@ Allows for setting mode-local variables like:
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
-
 (use-package eclim
   :init
-  (setq eclimd-executable            "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-	eclim-executable             "/Applications/Eclipse.app/Contents/Eclipse/eclim"
-	help-at-pt-display-when-idle t
-        eclim-print-debug-messages   nil ; Set to t to enable logging
-	help-at-pt-timer-delay       0.1)
+  (setq eclimd-executable               "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
+	eclim-executable                "/Applications/Eclipse.app/Contents/Eclipse/eclim"
+        eclimd-default-workspace        "~/Documents/workspace"
+	help-at-pt-display-when-idle    t
+        company-emacs-eclim-ignore-case nil
+        eclim-print-debug-messages      nil ; Set to t to enable logging
+	help-at-pt-timer-delay          0.1)
   (setq-mode-local java-mode
                    (indent-tabs-mode . nil)
                    (tab-width        . 4)
@@ -858,6 +934,7 @@ Allows for setting mode-local variables like:
   (space-leader
     :keymaps '(java-mode-map)
     "p d"   'eclim-java-find-declaration
+    "p r f" 'eclim-problems-correct
     "p r r" 'eclim-java-refactor-rename-symbol-at-point))
 
 (use-package company-emacs-eclim
@@ -868,16 +945,16 @@ Allows for setting mode-local variables like:
   :init
   (setq rtags-use-helm                 t
 	rtags-enable-unsaved-reparsing t
-	rtags-rc-log-enabled           nil) ; Set to t to enable logging
+	rtags-rc-log-enabled           t) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
   :config
-  (require 'rtags-helm)
+  (require 'helm-rtags)
   (defun my-c-mode-hook ()
     (require 'flycheck-rtags)
     (flycheck-select-checker 'rtags))
 
   (defun my-rtags-switch-to-project ()
-    "Set active project."
+    "Set active project without finding a file."
     (interactive)
     (let ((projects nil)
           (project nil)
@@ -886,13 +963,16 @@ Allows for setting mode-local variables like:
         (rtags-call-rc :path t "-w")
         (goto-char (point-min))
         (while (not (eobp))
-          (let ((line (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
+          (let ((line (buffer-substring-no-properties
+                       (point-at-bol) (point-at-eol))))
             (cond ((string-match "^\\([^ ]+\\)[^<]*<=$" line)
                    (let ((name (match-string-no-properties 1 line)))
                      (setq projects (add-to-list 'projects name t))
                      (setq current name)))
                   ((string-match "^\\([^ ]+\\)[^<]*$" line)
-                   (setq projects (add-to-list 'projects (match-string-no-properties 1 line))))
+                   (setq projects
+                         (add-to-list 'projects
+                                      (match-string-no-properties 1 line))))
                   (t)))
           (forward-line)))
       (setq project (completing-read
@@ -932,9 +1012,12 @@ Allows for setting mode-local variables like:
   :load-path "~/projects/elisp/ttymenu"
   :commands (ttymenu-display-menus)
   :config
-  (evil-define-key 'normal ttymenu-mode-map (kbd "l") 'ttymenu-next-day)
-  (evil-define-key 'normal ttymenu-mode-map (kbd "h") 'ttymenu-previous-day)
-  (evil-define-key 'normal ttymenu-mode-map (kbd "q") 'ttymenu-close))
+  (general-define-key
+    :keymaps '(ttymenu-mode-map)
+    :states '(normal)
+    "l" 'ttymenu-next-day
+    "h" 'ttymenu-previous-day
+    "q" 'ttymenu-close))
 
 (use-package dired
   :ensure nil
@@ -957,8 +1040,8 @@ Allows for setting mode-local variables like:
   ;; most of the keybindings.
   (general-define-key
     :keymaps '(compilation-mode-map)
-    "ö" 'helm-find-files
-    "ä" 'helm-projectile-switch-project)
+    ";" 'helm-find-files
+    "'" 'helm-projectile-switch-project)
   (general-define-key
     :keymaps '(compilation-mode-map)
     :prefix "SPC"
@@ -977,5 +1060,35 @@ Allows for setting mode-local variables like:
     "1"   'delete-other-windows
     "2"   'split-window-below
     "3"   'split-window-right))
+
+(use-package json-mode)
+
+(use-package neotree
+  :general
+  (space-leader
+    "n t" 'neotree-projectile-action)
+  :init
+  (setq neo-window-width 45
+        neo-theme 'ascii
+        neo-hidden-regexp-list '("^.$" "^..$" "\\.pyc$" "~$" "^#.*#$" "\\.elc$"))
+  (general-define-key
+    :states '(normal)
+    :keymaps '(neotree-mode-map)
+    "C"  'neotree-change-root
+    "U"  'neotree-select-up-node
+    "r"  'neotree-refresh
+    "o"  'neotree-enter
+    (kbd "<return>") 'neotree-enter
+    "i"  'neotree-enter-horizontal-split
+    "s"  'neotree-enter-vertical-split
+    "n"  'evil-search-next
+    "N"  'evil-search-previous
+    "ma" 'neotree-create-node
+    "mc" 'neotree-copy-file
+    "md" 'neotree-delete-node
+    "mm" 'neotree-rename-node
+    "gg" 'evil-goto-first-line)
+  :bind
+  (("<f8>" . neotree-toggle)))
 
 ;;; init.el ends here
