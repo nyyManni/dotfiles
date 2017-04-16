@@ -1,1 +1,6 @@
-*
+emacs/.emacs.d/elpa
+emacs/.emacs.d/auto-save-list
+emacs/.emacs.d/backups
+emacs/.emacs.d/customize-ignored.el
+emacs/.emacs.d/projectile-bookmarks.eld
+
