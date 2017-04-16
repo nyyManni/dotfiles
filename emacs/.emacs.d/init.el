@@ -1070,7 +1070,8 @@ Allows for setting mode-local variables like:
   :init
   (setq neo-window-width 45
         neo-theme 'ascii
-        neo-hidden-regexp-list '("^.$" "^..$" "\\.pyc$" "~$" "^#.*#$" "\\.elc$"))
+        neo-hidden-regexp-list '("^\\.$" "^\\.\\.$" "\\.pyc$" "~$" "^#.*#$" "\\.elc$"
+                                 "^\\.git"))
   (general-define-key
     :states '(normal)
     :keymaps '(neotree-mode-map)
