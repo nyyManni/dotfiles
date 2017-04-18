@@ -4,7 +4,7 @@
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
-;; Modified   : 9 Mar 2017
+;; Modified   : 18 Mar 2017
 ;; Version    : 1.0
 
 ;; The MIT License
@@ -326,6 +326,7 @@ Allows for setting mode-local variables like:
   :diminish company-mode
   :init
   (add-hook 'prog-mode-hook #'company-mode)
+  (setq company-tooltip-align-annotations t)
   :config
   (general-define-key
     :states '(insert)
@@ -632,6 +633,7 @@ Allows for setting mode-local variables like:
 
 (use-package powerline
   :config (powerline-center-evil-theme))
+
 
 (use-package smooth-scrolling
   :config
@@ -1062,6 +1064,7 @@ Allows for setting mode-local variables like:
     "3"   'split-window-right))
 
 (use-package json-mode)
+(use-package gitignore-mode)
 
 (use-package neotree
   :general
@@ -1070,8 +1073,8 @@ Allows for setting mode-local variables like:
   :init
   (setq neo-window-width 45
         neo-theme 'ascii
-        neo-hidden-regexp-list '("^\\.$" "^\\.\\.$" "\\.pyc$" "~$" "^#.*#$" "\\.elc$"
-                                 "^\\.git"))
+        neo-hidden-regexp-list '("^\\.$" "^\\.\\.$" "\\.pyc$" "~$" "^#.*#$"
+                                 "\\.elc$" "^\\.git"))
   (general-define-key
     :states '(normal)
     :keymaps '(neotree-mode-map)
