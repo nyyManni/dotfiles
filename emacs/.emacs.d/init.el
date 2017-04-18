@@ -1075,23 +1075,24 @@ Allows for setting mode-local variables like:
         neo-theme 'ascii
         neo-hidden-regexp-list '("^\\.$" "^\\.\\.$" "\\.pyc$" "~$" "^#.*#$"
                                  "\\.elc$" "^\\.git"))
+  :general
   (general-define-key
     :states '(normal)
     :keymaps '(neotree-mode-map)
-    "C"  'neotree-change-root
-    "U"  'neotree-select-up-node
-    "r"  'neotree-refresh
-    "o"  'neotree-enter
-    (kbd "<return>") 'neotree-enter
-    "i"  'neotree-enter-horizontal-split
-    "s"  'neotree-enter-vertical-split
-    "n"  'evil-search-next
-    "N"  'evil-search-previous
-    "ma" 'neotree-create-node
-    "mc" 'neotree-copy-file
-    "md" 'neotree-delete-node
-    "mm" 'neotree-rename-node
-    "gg" 'evil-goto-first-line)
+    "C"        'neotree-change-root
+    "U"        'neotree-select-up-node
+    "r"        'neotree-refresh
+    "o"        'neotree-enter
+    "<return>" 'neotree-enter
+    "i"        'neotree-enter-horizontal-split
+    "s"        'neotree-enter-vertical-split
+    "n"        'evil-search-next
+    "N"        'evil-search-previous
+    "m a"      'neotree-create-node
+    "m c"      'neotree-copy-file
+    "m d"      'neotree-delete-node
+    "m m"      'neotree-rename-node
+    "g g"      'evil-goto-first-line)
   :bind
   (("<f8>" . neotree-toggle)))
 
