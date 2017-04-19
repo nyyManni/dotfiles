@@ -645,7 +645,8 @@ Allows for setting mode-local variables like:
         scroll-up-aggressively   0.0
         scroll-down-aggressively 0.0)
   (setq-default scroll-up-aggressively   0.0)
-  (setq-default scroll-down-aggressively 0.0))
+  (setq-default scroll-down-aggressively 0.0)
+  (smooth-scrolling-mode t))
 
 (use-package helm
   :after evil
