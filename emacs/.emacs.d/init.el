@@ -183,7 +183,8 @@ Allows for setting mode-local variables like:
   `(add-hook ',(intern (concat (symbol-name mode) "-hook"))
      (lambda ()
        ,@(mapcar
-          #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg))) args))))
+          #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg)))
+          args))))
 
 (defun is-current-file-tramp ()
   "Check if the file is a remote tramp file."
@@ -389,14 +390,14 @@ Allows for setting mode-local variables like:
   (add-hook 'yas-before-expand-snippet-hook 'my-yas-begin-hook)
   (add-hook 'yas-after-exit-snippet-hook 'my-yas-end-hook)
 
-  ;; Use C-' and C-* for going through the fields, since they are positioned
-  ;; nicely on a nordic keyboard.
+  ;; Use C-& and C-* for going through the fields, since they are positioned
+  ;; nicely on a US keyboard.
   (general-define-key
     :states '(insert)
-    "C-'" 'yas-expand)
+    "C-&" 'yas-expand)
   (general-define-key
     :keymaps '(yas-keymap)
-    "C-'" 'yas-next-field-or-maybe-expand
+    "C-&" 'yas-next-field-or-maybe-expand
     "C-*" 'yas-prev-field))
 
 (use-package expand-region
