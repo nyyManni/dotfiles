@@ -262,11 +262,12 @@ Allows for setting mode-local variables like:
 	       minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
 
-  ;; Activating window with mouse turning on visual state is super annoying.
-  ;; Still keeping up-mouse-1 to be able to move cursor by clicking.
+  ;; Completely disable the mouse.
   (global-unset-key [drag-mouse-1])
   (global-unset-key [down-mouse-1])
+  (global-unset-key [mouse-1])
   (general-define-key :keymaps '(evil-motion-state-map) [down-mouse-1] nil)
+  (general-define-key :keymaps '(evil-motion-state-map) [mouse-1] nil)
 
   (general-define-key
     :states '(visual)
@@ -639,8 +640,8 @@ Allows for setting mode-local variables like:
   :config
   (setq scroll-step              1
         scroll-conservatively    10000
-        scroll-margin            5
-        smooth-scroll-margin     5
+        scroll-margin            1
+        smooth-scroll-margin     1
         scroll-up-aggressively   0.0
         scroll-down-aggressively 0.0)
   (setq-default scroll-up-aggressively   0.0)
