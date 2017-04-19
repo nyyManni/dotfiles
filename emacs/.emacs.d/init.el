@@ -314,10 +314,10 @@ Allows for setting mode-local variables like:
 (use-package key-chord
   :after general
   :config
-  (general-define-key
-    :keymaps '(evil-insert-state-map evil-visual-state-map)
-    (general-chord "jk") 'evil-normal-state
-    (general-chord "kj") 'evil-normal-state)
+  (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
+    (general-define-key
+      :keymaps '(evil-insert-state-map evil-visual-state-map)
+      (general-chord chord) 'evil-normal-state))
   (key-chord-mode t))
 
 (use-package company
