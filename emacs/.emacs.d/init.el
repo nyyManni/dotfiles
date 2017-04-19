@@ -635,7 +635,6 @@ Allows for setting mode-local variables like:
 (use-package powerline
   :config (powerline-center-evil-theme))
 
-
 (use-package smooth-scrolling
   :config
   (setq scroll-step              1
@@ -670,12 +669,15 @@ Allows for setting mode-local variables like:
   (defun helm-skip-dots (old-func &rest args)
     "Skip . and .. initially in helm-find-files.  First call OLD-FUNC with ARGS."
     (apply old-func args)
-    (let ((sel (helm-get-selection)))
-      (if (and (stringp sel) (string-match "/\\.$" sel))
-          (helm-next-line 2)))
-    (let ((sel (helm-get-selection))) ; if we reached .. move back
-      (if (and (stringp sel) (string-match "/\\.\\.$" sel))
-          (helm-previous-line 1))))
+
+    ;; When doing rgrepping, it is usually preferred to select '.'
+    (when (not (equal (buffer-name) "*helm-mode-rgrep*"))
+      (let ((sel (helm-get-selection)))
+        (if (and (stringp sel) (string-match "/\\.$" sel))
+            (helm-next-line 2)))
+      (let ((sel (helm-get-selection))) ; if we reached .. move back
+        (if (and (stringp sel) (string-match "/\\.\\.$" sel))
+            (helm-previous-line 1)))))
 
   (advice-add #'helm-preselect :around #'helm-skip-dots)
   (advice-add #'helm-ff-move-to-first-real-candidate :around #'helm-skip-dots)
