@@ -714,6 +714,16 @@ Allows for setting mode-local variables like:
     "\"" 'helm-projectile))
 
 (use-package windmove
+  :config
+  (defun my-windmove-advice (orig-fun dir &rest args)
+    (condition-case err
+        (apply orig-fun dir (cons dir args))
+      (user-error
+       (if (or (eq dir 'left) (eq dir 'right))
+           (other-frame 1)
+         (signal (car err) (cdr err))))))
+  (advice-add 'windmove-do-window-select :around #'my-windmove-advice)
+
   :bind
   (("C-S-j" . windmove-down)
    ("C-S-k" . windmove-up)
