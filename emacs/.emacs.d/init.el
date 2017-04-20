@@ -191,6 +191,73 @@ Allows for setting mode-local variables like:
   (require 'tramp)
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
+(defun my-inside-range-p (value lower-bound upper-bound)
+  "Check if VALUE is between LOWER-BOUND and UPPER-BOUND.
+VALUE being equal to either of the bounds is considered inside."
+  (and (<= value upper-bound) (>= value lower-bound)))
+
+(defun my-detect-quotes ()
+  "Detects whether point is inside a quoted string.
+If it is, then the type of the quotes is returned (double|single)."
+  ;; Verify that we are inside a quoted string.
+  (when (nth 3 (syntax-ppss))
+    (let* ((line (buffer-substring (line-beginning-position) (line-end-position)))
+           (dbl-match (string-match "\"[^\\\\\"]+\\(?:\\\\.[^\\\\\"]*\\)*\"" line))
+           (dbl-begin (if dbl-match (match-beginning 0) nil))
+           (dbl-end (if dbl-match (match-end 0) nil))
+           (sgl-match (string-match "'[^\\\\']+\\(?:\\\\.[^\\\\']*\\)*'" line))
+           (sgl-begin (if sgl-match (match-beginning 0) nil))
+           (sgl-end (if sgl-match (match-end 0) nil))
+           (point-pos (- (point) (line-beginning-position))))
+
+      (cond ((and dbl-match sgl-match)
+             ;; The line contains both double- and single-quotes, need to
+             ;; further analyze.
+             (cond ((and (my-inside-range-p point-pos dbl-begin dbl-end)
+                         (not (my-inside-range-p point-pos sgl-begin sgl-end)))
+                    ;; Point is inside double-quotes, but not inside single-
+                    ;; quotes.
+                    ;;         " |  "     '    '
+                    'double)
+                   ((and (my-inside-range-p point-pos sgl-begin sgl-end)
+                         (not (my-inside-range-p point-pos dbl-begin dbl-end)))
+
+                    ;; Point is inside single-quotes, but not inside double-
+                    ;; quotes.
+                    ;;         "    "     ' |  '
+                    'single)
+                   ((and (my-inside-range-p sgl-begin dbl-begin dbl-end)
+                         (my-inside-range-p sgl-end dbl-begin dbl-end))
+                    ;; Single-quotes nested inside double-quotes.
+                    ;;          "    '  |  '    "
+                    'double)
+                   ((and (my-inside-range-p dbl-begin sgl-begin sgl-end)
+                         (my-inside-range-p dbl-end sgl-begin sgl-end))
+                    ;; Double-quotes nested inside single-quotes.
+                    ;;          '    "  |  "    '
+                    'double)
+                   (t
+                    ;; Quotations are too complex to be analyzed.
+                    nil)))
+            (dbl-match
+             ;; Line contains only double quotes.
+             'double)
+            (sgl-match
+             ;; Line contains only single quotes.
+             'single)
+            (t nil)))))
+
+(defun my-split-string ()
+  "Split a string delimited with single or double quotes at point."
+  (interactive)
+  (let ((quote-type (my-detect-quotes)))
+    (when (not quote-type) (error "Point is not inside a string"))
+    (progn
+      (insert (if (equal quote-type 'double) "\"\"" "''"))
+      (backward-char)
+      (when (commandp 'evil-insert-state)
+        (evil-insert-state)))))
+
 ;; Disable backup's with tramp files.
 (add-hook 'find-file-hook
   (lambda ()
@@ -228,8 +295,7 @@ Allows for setting mode-local variables like:
     "a a"  'align-regexp
     "s u"  'my-sudo-at-point
     "s h"  'my-eshell-here
-    "s '"  'my-split-string-single-quote
-    "s \"" 'my-split-string-double-quote
+    "s '"  'my-split-string
     "r"    'my-reload-file
     "f"    'helm-imenu
     "g g"  'magit-status
@@ -296,20 +362,6 @@ Allows for setting mode-local variables like:
     (evil-shift-right (region-beginning) (region-end))
     (evil-normal-state)
     (evil-visual-restore))
-
-  (defun my-split-string-single-quote ()
-    "Split a string delimited with single quotes at point."
-    (interactive)
-    (insert "''")
-    (backward-char)
-    (evil-insert-state))
-
-  (defun my-split-string-double-quote ()
-    "Split a string delimited with double quotes at point."
-    (interactive)
-    (insert "\"\"")
-    (backward-char)
-    (evil-insert-state))
 
   (evil-mode 1))
 
