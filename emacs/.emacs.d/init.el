@@ -1,10 +1,10 @@
 ;;; init.el --- Emacs configuration
 
-;; Copyright (c) 2016 Henrik Nyman
+;; Copyright (c) 2016 - 2017 Henrik Nyman
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
-;; Modified   : 18 Mar 2017
+;; Modified   : 20 Mar 2017
 ;; Version    : 1.0
 
 ;; The MIT License
