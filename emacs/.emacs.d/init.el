@@ -1080,6 +1080,7 @@ Allows for setting mode-local variables like:
 
 (use-package json-mode)
 (use-package gitignore-mode)
+(use-package coffee-mode)
 
 (use-package neotree
   :general
