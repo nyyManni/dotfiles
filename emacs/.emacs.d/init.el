@@ -328,12 +328,12 @@ If it is, then the type of the quotes is returned (double|single)."
 	       minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
 
-  ;; Completely disable the mouse.
-  (global-unset-key [drag-mouse-1])
-  (global-unset-key [down-mouse-1])
-  (global-unset-key [mouse-1])
-  (general-define-key :keymaps '(evil-motion-state-map) [down-mouse-1] nil)
-  (general-define-key :keymaps '(evil-motion-state-map) [mouse-1] nil)
+  ;; Completely disable the mouse
+  (dolist (key '([drag-mouse-1] [down-mouse-1] [mouse-1]
+                 [drag-mouse-2] [down-mouse-2] [mouse-2]
+                 [drag-mouse-3] [down-mouse-3] [mouse-3]))
+    (global-unset-key key)
+    (general-define-key :keymaps '(evil-motion-state-map) key nil))
 
   (general-define-key
     :states '(visual)
