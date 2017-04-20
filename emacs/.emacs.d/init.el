@@ -1086,6 +1086,8 @@ If it is, then the type of the quotes is returned (double|single)."
     :states '(normal)
     "l" 'ttymenu-next-day
     "h" 'ttymenu-previous-day
+    "j" 'ttymenu-next-restaurant
+    "k" 'ttymenu-previous-restaurant
     "q" 'ttymenu-close))
 
 (use-package dired
