@@ -247,13 +247,17 @@ If it is, then the type of the quotes is returned (double|single)."
              'single)
             (t nil)))))
 
-(defun my-split-string ()
-  "Split a string delimited with single or double quotes at point."
+(defun my-split-string (&optional invert)
+  "Split a string delimited with single or double quotes at point.
+When INVERT equals to t, the return value is set to the other type of quote.
+That is for situations where the function detects wrong quotes, and thus the
+user can manually override it to use the correct ones."
   (interactive)
   (let ((quote-type (my-detect-quotes)))
     (when (not quote-type) (error "Point is not inside a string"))
     (progn
-      (insert (if (equal quote-type 'double) "\"\"" "''"))
+      (insert (if (or (and (equal quote-type 'single) invert)
+                      (equal quote-type 'double)) "\"\"" "''"))
       (backward-char)
       (when (commandp 'evil-insert-state)
         (evil-insert-state)))))
@@ -296,6 +300,7 @@ If it is, then the type of the quotes is returned (double|single)."
     "s u"  'my-sudo-at-point
     "s h"  'my-eshell-here
     "s '"  'my-split-string
+    "s l"  'sort-lines
     "r"    'my-reload-file
     "f"    'helm-imenu
     "g g"  'magit-status
@@ -769,15 +774,60 @@ If it is, then the type of the quotes is returned (double|single)."
     "'" 'projectile-switch-project
     "\"" 'helm-projectile))
 
+
 (use-package windmove
   :config
+  (defun my-frame-pos-x (frame)
+    "Get the x position of the FRAME is display.
+On multi-monitor systems the display spans across all the monitors."
+    (+ (car (frame-position frame))
+       (cadaar
+        (display-monitor-attributes-list frame))))
+
+  (defun my-frame-not-current-but-visible-p (frame)
+    ;; TODO: frame-visible-p does not work on OS X, so this function returns
+    ;;       also frames that are on other virtual desktops.
+    (and (frame-visible-p frame)
+         (not (eq frame (selected-frame)))))
+
+  (defun my-frame-to (direction)
+    "Find next frame to DIRECTION or nil."
+    (let* ((current-frame-pos (my-frame-pos-x (selected-frame)))
+           (frame-candidates
+            (cl-remove-if-not #'my-frame-not-current-but-visible-p
+                              (frame-list)))
+           (frame-to-left
+            (car
+             (sort
+              (cl-remove-if-not (lambda (frame) (< (my-frame-pos-x frame)
+                                                   current-frame-pos))
+                                frame-candidates)
+              (lambda (a b) (> (my-frame-pos-x a) (my-frame-pos-x b))))))
+           (frame-to-right
+            (car
+             (sort
+              (cl-remove-if-not (lambda (frame) (> (my-frame-pos-x frame)
+                                                   current-frame-pos))
+                                frame-candidates)
+              (lambda (a b) (< (my-frame-pos-x a) (my-frame-pos-x b)))))))
+
+      (cond ((eq direction 'left)
+             frame-to-left)
+            ((eq direction 'right)
+             frame-to-right)
+            (t (error "Unknown direction")))))
+
   (defun my-windmove-advice (orig-fun dir &rest args)
+    "Extend the range of windmove to go to next and previous frames."
     (condition-case err
         (apply orig-fun dir (cons dir args))
       (user-error
        (if (or (eq dir 'left) (eq dir 'right))
-           (other-frame 1)
+           (select-frame-set-input-focus
+            (or (my-frame-to dir)
+                (signal (car err) (cdr err))))
          (signal (car err) (cdr err))))))
+
   (advice-add 'windmove-do-window-select :around #'my-windmove-advice)
 
   :bind
