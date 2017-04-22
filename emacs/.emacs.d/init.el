@@ -823,9 +823,18 @@ On multi-monitor systems the display spans across all the monitors."
         (apply orig-fun dir (cons dir args))
       (user-error
        (if (or (eq dir 'left) (eq dir 'right))
-           (select-frame-set-input-focus
-            (or (my-frame-to dir)
-                (signal (car err) (cdr err))))
+           (progn
+             (select-frame-set-input-focus
+              (or (my-frame-to dir)
+                  (signal (car err) (cdr err))))
+             (condition-case err
+                 (let ((inverted-dir (if (eq dir 'right) 'left 'right)))
+                   (while t
+                     ;; Switched frame, go as far as possible to the other
+                     ;; direction, user-error is signaled when it hits the frame
+                     ;; boundary.
+                     (apply orig-fun inverted-dir (cons inverted-dir args))))
+               (user-error nil)))
          (signal (car err) (cdr err))))))
 
   (advice-add 'windmove-do-window-select :around #'my-windmove-advice)
@@ -961,7 +970,7 @@ On multi-monitor systems the display spans across all the monitors."
     (interactive)
     (my-eshell-go-to-prompt)
     (eshell-bol)
-    ;; If the lien is not empty, kill the rest of the line.
+    ;; If the line is not empty, kill the rest of the line.
     (when (not (looking-at "$"))
       (kill-line nil))
     (call-interactively 'helm-eshell-history))
