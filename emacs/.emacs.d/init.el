@@ -69,7 +69,8 @@
       vc-make-backup-files                 t
       tab-width                            2)
 
-(setq-default indent-tabs-mode nil)
+(setq-default indent-tabs-mode             nil
+              fill-column                  80)
 
 ;; OS X specific settings
 (when (eq system-type 'darwin)
