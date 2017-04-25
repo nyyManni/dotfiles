@@ -4,3 +4,9 @@ emacs/.emacs.d/backups
 emacs/.emacs.d/customize-ignored.el
 emacs/.emacs.d/projectile-bookmarks.eld
 
+/emacs/.emacs.d/projectile.cache
+/emacs/.emacs.d/.DS_Store
+/emacs/.emacs.d/tramp
+/emacs/.emacs.d/recentf
+/emacs/.emacs.d/.python-environments
+/emacs/.emacs.d/eshell
