@@ -49,9 +49,6 @@
       user-emacs-directory                 "~/.emacs.d"
       vc-follow-symlinks                   t
 
-      use-package-always-ensure            t
-      use-package-check-before-init        t
-
       inhibit-startup-screen               t
       sentence-end-double-space            nil
 
@@ -106,7 +103,9 @@
   (package-install 'use-package))
 
 (eval-when-compile
-  (require 'use-package))
+  (require 'use-package)
+  (setq use-package-always-ensure     t
+        use-package-check-before-init t))
 
 (require 'diminish)
 (require 'bind-key)
