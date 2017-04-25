@@ -75,13 +75,13 @@
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
         with-editor-emacsclient-executable "/usr/local/Cellar/emacs/25.1/bin/emacsclient"
-	pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
-	default-input-method               "MacOSX"
-	mac-command-modifier               'meta
-	mac-option-modifier                nil
-	mac-allow-anti-aliasing            t
-	mac-command-key-is-meta            t
-	ns-use-srgb-colorspace             nil)
+        pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
+        default-input-method               "MacOSX"
+        mac-command-modifier               'meta
+        mac-option-modifier                nil
+        mac-allow-anti-aliasing            t
+        mac-command-key-is-meta            t
+        ns-use-srgb-colorspace             nil)
 
   ;; Environment variables
   (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
