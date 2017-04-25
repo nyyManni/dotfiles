@@ -1225,4 +1225,20 @@ On multi-monitor systems the display spans across all the monitors."
   :bind
   (("<f8>" . neotree-toggle)))
 
+(use-package nxml-mode
+  :mode "\\.xml\\'"
+  :ensure nil
+  :config
+  (defun my-xml-format ()
+    "Format an XML buffer with `xmllint'."
+    (interactive)
+    (shell-command-on-region (point-min) (point-max)
+                             "xmllint -format -"
+                             (current-buffer) t
+                             "*Xmllint Error Buffer*" t))
+  :general
+  (space-leader
+    :keymaps '(nxml-mode-map)
+    "I" 'my-xml-format))
+
 ;;; init.el ends here
