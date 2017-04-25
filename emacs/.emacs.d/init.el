@@ -78,7 +78,6 @@
         mac-command-modifier               'meta
         mac-option-modifier                nil
         mac-allow-anti-aliasing            t
-        mac-command-key-is-meta            t
         ns-use-srgb-colorspace             nil)
 
   ;; Environment variables
