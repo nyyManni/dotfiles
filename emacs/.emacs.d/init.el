@@ -72,7 +72,7 @@
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
-        with-editor-emacsclient-executable "/usr/local/Cellar/emacs/25.1/bin/emacsclient"
+        with-editor-emacsclient-executable "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
         pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
         default-input-method               "MacOSX"
         mac-command-modifier               'meta
