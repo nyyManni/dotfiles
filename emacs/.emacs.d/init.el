@@ -246,17 +246,19 @@ If it is, then the type of the quotes is returned (double|single)."
              'single)
             (t nil)))))
 
-(defun my-split-string (&optional invert)
+
+(defun my-split-string (invert)
   "Split a string delimited with single or double quotes at point.
 When INVERT equals to t, the return value is set to the other type of quote.
 That is for situations where the function detects wrong quotes, and thus the
 user can manually override it to use the correct ones."
-  (interactive)
+  (interactive "P")
   (let ((quote-type (my-detect-quotes)))
     (when (not quote-type) (error "Point is not inside a string"))
     (progn
-      (insert (if (or (and (equal quote-type 'single) invert)
-                      (equal quote-type 'double)) "\"\"" "''"))
+      (insert (if (or (and (equal quote-type 'single) (eq invert 4))
+                      (and (equal quote-type 'double) (not invert)))
+                  "\"\"" "''"))
       (backward-char)
       (when (commandp 'evil-insert-state)
         (evil-insert-state)))))
