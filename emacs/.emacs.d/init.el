@@ -290,6 +290,7 @@ user can manually override it to use the correct ones."
     "c"    'comment-dwim-2
     "O"    'helm-occur
     "A"    'helm-apropos
+    "y"    'helm-show-kill-ring
     "e"    'eval-last-sexp
     "m h"  'mark-whole-buffer
     "w"    'save-buffer
