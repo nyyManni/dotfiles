@@ -133,17 +133,16 @@
 
 (use-package gotham-theme
   :demand
-  :if window-system
+  :if (or (daemonp) window-system)
   :init
   (global-unset-key (kbd "C-z"))
   :config
   (load-theme 'gotham t)
-  (if (daemonp)
-      (add-hook 'after-make-frame-functions
-	(lambda (frame)
-	  (load-theme 'gotham t)
-	  (scroll-bar-mode -1)
-	  (powerline-reset)))))
+  (add-hook 'after-make-frame-functions
+    (lambda (frame)
+      (load-theme 'gotham t)
+      (scroll-bar-mode -1)
+      (powerline-reset))))
 
 
 (defun my-sudo-at-point ()
@@ -943,7 +942,7 @@ On multi-monitor systems the display spans across all the monitors."
   :diminish undo-tree-mode)
 
 (use-package fill-column-indicator
-  :if window-system
+  :if (or (daemonp) window-system)
   :functions (on-off-fci-before-company)
   :commands (fci-mode)
   :init
