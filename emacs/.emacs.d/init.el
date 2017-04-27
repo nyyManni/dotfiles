@@ -44,8 +44,8 @@
 
 ;; Global settings
 (setq user-full-name                       "Henrik Nyman"
-      user-login-name                      "hnyman"
-      user-mail-address                    "henrik.nyman@optofidelity.com"
+      user-login-name                      "nyman"
+      user-mail-address                    "henrikjohannesnyman@gmail.com"
       user-emacs-directory                 "~/.emacs.d"
       vc-follow-symlinks                   t
 
@@ -91,6 +91,11 @@
   (set-frame-parameter (selected-frame) 'alpha '(90 90))
   (add-to-list 'default-frame-alist '(alpha 90 90)))
 
+;; Load customizations that cannot be put under public VCS. Do not die if the
+;; file does not exist.
+(condition-case err
+    (load-file (concat user-emacs-directory "/work-config.el"))
+  (error nil))
 
 ;; Setup use-package
 (require 'package)
