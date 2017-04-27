@@ -438,6 +438,10 @@ user can manually override it to use the correct ones."
     (define-key (eval keymap) [(shift tab)] nil)
     (define-key (eval keymap) [backtab] nil))
 
+  (defvar my-yas-expanding nil
+    "A flag that is t when a yasnippet expansion is in progress. It is used to
+    not load fci-mode with yasnippet expansion.")
+
   ;; Add hooks for disabling fill-column-indicator while expanding a snippet.
   (defun my-yas-begin-hook ()
     (setq my-yas-expanding t)
