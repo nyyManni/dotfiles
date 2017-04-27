@@ -555,6 +555,11 @@ user can manually override it to use the correct ones."
 	(forward-whitespace 1)
 	(recenter))))
 
+  (defun my-run-unittests ()
+    (interactive)
+    (let ((compilation-read-command nil))
+      (call-interactively 'projectile-test-project)))
+
   (add-hook 'inferior-python-mode-hook #'company-mode)
   (add-hook 'python-mode-hook #'my-python-hook)
 
@@ -611,6 +616,7 @@ user can manually override it to use the correct ones."
     "p u"   'helm-jedi-related-names
     "p ?"   'jedi:show-doc
     "p r"   'run-python
+    "p t"   'my-run-unittests
     "m f"   'python-mark-defun
     "e"     'my-python-send-region-or-buffer))
 
