@@ -246,7 +246,6 @@ If it is, then the type of the quotes is returned (double|single)."
              'single)
             (t nil)))))
 
-
 (defun my-split-string (invert)
   "Split a string delimited with single or double quotes at point.
 When INVERT equals to t, the return value is set to the other type of quote.
@@ -256,8 +255,8 @@ user can manually override it to use the correct ones."
   (let ((quote-type (my-detect-quotes)))
     (when (not quote-type) (error "Point is not inside a string"))
     (progn
-      (insert (if (or (and (equal quote-type 'single) (eq invert 4))
-                      (and (equal quote-type 'double) (not invert)))
+      (insert (if (or (and (equal quote-type 'double) (not invert))
+                      (and (equal quote-type 'single) invert))
                   "\"\"" "''"))
       (backward-char)
       (when (commandp 'evil-insert-state)
@@ -296,7 +295,6 @@ user can manually override it to use the correct ones."
     "e"    'eval-last-sexp
     "m h"  'mark-whole-buffer
     "w"    'save-buffer
-    "SPC"  'ace-window
     "D"    'kill-this-buffer
     "a a"  'align-regexp
     "s u"  'my-sudo-at-point
@@ -332,6 +330,8 @@ user can manually override it to use the correct ones."
     :keymaps '(minibuffer-local-map
 	       minibuffer-local-ns-map
 	       minibuffer-local-must-match-map
+
+
 	       minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
 
