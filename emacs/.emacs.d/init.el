@@ -1228,6 +1228,7 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package json-mode)
 (use-package gitignore-mode)
 (use-package coffee-mode)
+(use-package jade-mode)
 
 (use-package neotree
   :general
