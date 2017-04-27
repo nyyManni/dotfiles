@@ -1122,8 +1122,7 @@ On multi-monitor systems the display spans across all the monitors."
                    (indent-tabs-mode                    . nil)
                    (tab-width                           . 4)
                    (flycheck-highlighting-mode          . nil)
-                   (flycheck-check-syntax-automatically . nil)
-                   (company-backends                    . '((company-rtags))))
+                   (flycheck-check-syntax-automatically . nil))
 
   (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :general
@@ -1136,6 +1135,22 @@ On multi-monitor systems the display spans across all the monitors."
     "p s i" 'rtags-symbol-info
     "p v"   'my-rtags-switch-to-project
     "m f"   'c-mark-function))
+
+(use-package irony
+  :init
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+(use-package company-irony
+  :after 'irony
+  :config
+  (setq-mode-local c++-mode
+                   (company-backends . '((company-irony))))
+  (setq-mode-local c-mode
+                   (company-backends . '((company-irony)))))
+
 
 (use-package ttymenu
   :ensure nil
