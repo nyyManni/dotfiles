@@ -555,9 +555,11 @@ user can manually override it to use the correct ones."
 	(forward-whitespace 1)
 	(recenter))))
 
-  (defun my-run-unittests ()
-    (interactive)
-    (let ((compilation-read-command nil))
+  (defun my-run-unittests (arg)
+    "Run unittests in the current project. Use prefix-argument ARG to specify
+the command to run the tests with."
+    (interactive "P")
+    (let ((compilation-read-command arg))
       (call-interactively 'projectile-test-project)))
 
   (add-hook 'inferior-python-mode-hook #'company-mode)
