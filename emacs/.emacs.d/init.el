@@ -765,6 +765,8 @@ user can manually override it to use the correct ones."
   (setq projectile-completion-system 'default
         projectile-enable-caching    t
         projectile-use-git-grep      t)
+  (put 'projectile-test-command 'safe-local-variable 'stringp)
+  (put 'projectile-compilation-command 'safe-local-variable 'stringp)
   :config
   (projectile-mode)
   (append-to-list projectile-globally-ignored-directories
@@ -778,8 +780,12 @@ user can manually override it to use the correct ones."
   :after projectile
   :general
   (space-leader
-    "'" 'projectile-switch-project
-    "\"" 'helm-projectile))
+    "G p" 'projectile-grep
+    "G P" 'helm-projectile-grep
+    "G r" 'rgrep
+    "'"   'projectile-switch-project
+    ":"   'helm-projectile-find-file
+    "\""  'helm-projectile))
 
 
 (use-package windmove
