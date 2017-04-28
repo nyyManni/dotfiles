@@ -489,6 +489,10 @@ user can manually override it to use the correct ones."
   :mode ("\\.py\\'" . python-mode)
   :functions (my-python-hook my-ipython-hook my-jedi-show-doc
 	      my-python-change-venv)
+  :defines (jedi:doc-display-buffer
+            jedi:tooltip-method
+            realgud:pdb-command-name
+            realgud:trepan3k-command-name)
   :after (company evil)
   :init
   ;; Workaround for Emacs 25.1 not working correctly with Python 3 native
@@ -645,6 +649,7 @@ the command to run the tests with."
 
 (use-package ace-window
   :after general
+  :defines (aw-dispatch-always)
   :init
   (setq aw-dispatch-always 1))
 
@@ -725,6 +730,12 @@ the command to run the tests with."
 
 (use-package helm
   :after evil
+  :defines (helm-idle-delay
+            helm-quick-update
+            helm-M-x-requires-pattern
+            helm-ff-skip-boring-files
+            helm-ff-search-library-in-sexp
+            helm-ff-file-name-history-use-recentf)
   :diminish helm-mode
   :init
   (setq helm-candidate-number-limit           100
@@ -771,6 +782,9 @@ the command to run the tests with."
 
 (use-package projectile
   :after helm
+  :defines (projectile-completion-system
+            projectile-enable-caching
+            projectile-use-git-grep)
   :diminish projectile-mode
   :init
   (setq projectile-completion-system 'default
@@ -879,6 +893,7 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package evil-visualstar
   :after evil
+  :defines (evil-visualstar/persistent)
   :init
   (setq evil-visualstar/persistent t)
   :config
@@ -926,6 +941,7 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package org
   :functions (my-org-mode-hook)
+  :defines (org-export-async-init-file)
   :init
   (setq org-export-async-init-file (concat user-emacs-directory
                                            "/org-async-init.el"))
@@ -972,7 +988,7 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package eshell
   :commands (my-eshell-here)
   :functions (my-eshell-hook)
-  :defines (eshell-banner-message)
+  :defines (eshell-banner-message eshell-cmpl-cycle-completions)
   :init
   (setq eshell-banner-message         ""
         eshell-cmpl-cycle-completions nil
@@ -1066,6 +1082,9 @@ On multi-monitor systems the display spans across all the monitors."
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
 (use-package eclim
+  :defines (company-emacs-eclim-ignore-case
+            eclim-print-debug-messages
+            help-at-pt-timer-delay)
   :init
   (setq eclimd-executable               "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
 	eclim-executable                "/Applications/Eclipse.app/Contents/Eclipse/eclim"
@@ -1094,11 +1113,14 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package rtags
   :functions (my-c-mode-hook)
+  :defines (rtags-use-helm)
+  :commands (my-c-mode-hook)
   :init
   (setq rtags-use-helm                 t
 	rtags-enable-unsaved-reparsing t
 	rtags-rc-log-enabled           t) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
+  (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :config
   (require 'helm-rtags)
   (defun my-c-mode-hook ()
@@ -1146,7 +1168,6 @@ On multi-monitor systems the display spans across all the monitors."
                    (flycheck-highlighting-mode          . nil)
                    (flycheck-check-syntax-automatically . nil))
 
-  (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :general
   (space-leader
     :keymaps '(c++-mode-map c-mode-map)
