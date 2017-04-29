@@ -65,7 +65,7 @@
       version-control                      t
       vc-make-backup-files                 t
       tab-width                            2
-      frame-title-format                   "emacs")
+      frame-title-format                   '("" "Emacs v" emacs-version))
 
 (setq-default indent-tabs-mode             nil
               fill-column                  80)
@@ -129,6 +129,8 @@
 
 
 (function-put #'add-hook 'lisp-indent-function 'defun)
+
+;; Package configurations
 
 (use-package gotham-theme
   :demand
@@ -1307,5 +1309,12 @@ On multi-monitor systems the display spans across all the monitors."
   :init
   (setq with-editor-emacsclient-executable "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
         pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"))
+
+(use-package zoom-frm
+  :init
+  (define-key ctl-x-map [(control ?+)] 'zoom-in/out)
+  (define-key ctl-x-map [(control ?-)] 'zoom-in/out)
+  (define-key ctl-x-map [(control ?=)] 'zoom-in/out)
+  (define-key ctl-x-map [(control ?0)] 'zoom-in/out))
 
 ;;; init.el ends here
