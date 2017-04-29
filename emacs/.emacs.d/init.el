@@ -72,8 +72,6 @@
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
-        with-editor-emacsclient-executable "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
-        pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"
         default-input-method               "MacOSX"
         mac-command-modifier               'meta
         mac-option-modifier                nil
@@ -1194,7 +1192,6 @@ On multi-monitor systems the display spans across all the monitors."
   (setq-mode-local c-mode
                    (company-backends . '((company-irony)))))
 
-
 (use-package ttymenu
   :ensure nil
   :load-path "~/projects/elisp/ttymenu"
@@ -1301,5 +1298,11 @@ On multi-monitor systems the display spans across all the monitors."
   (space-leader
     :keymaps '(nxml-mode-map)
     "I" 'my-xml-format))
+
+(use-package pdf-tools
+  :defines (pdf-info-epdfinfo-program)
+  :init
+  (setq with-editor-emacsclient-executable "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
+        pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"))
 
 ;;; init.el ends here
