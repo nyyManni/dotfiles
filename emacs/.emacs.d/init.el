@@ -55,7 +55,7 @@
       ;; Disable custom-set-variable by pointing it's output to a file that is
       ;; never executed.
       custom-file                          (concat user-emacs-directory
-					           "/customize-ignored.el")
+                                                   "/customize-ignored.el")
 
       initial-scratch-message              ""
       ad-redefinition-action               'accept
@@ -64,7 +64,8 @@
       delete-old-versions                  -1
       version-control                      t
       vc-make-backup-files                 t
-      tab-width                            2)
+      tab-width                            2
+      frame-title-format                   "emacs")
 
 (setq-default indent-tabs-mode             nil
               fill-column                  80)
@@ -330,11 +331,9 @@ user can manually override it to use the correct ones."
     "<escape>" 'keyboard-quit)
   (general-define-key
     :keymaps '(minibuffer-local-map
-	       minibuffer-local-ns-map
-	       minibuffer-local-must-match-map
-
-
-	       minibuffer-local-isearch-map)
+               minibuffer-local-ns-map
+               minibuffer-local-must-match-map
+               minibuffer-local-isearch-map)
     "<escape>" 'minibuffer-keyboard-quit)
 
   ;; Completely disable the mouse
@@ -354,8 +353,8 @@ user can manually override it to use the correct ones."
   ;; Disable C-k, it conflicts with company selecting.
   (eval-after-load "evil-maps"
     (dolist (map '(evil-motion-state-map
-		   evil-insert-state-map
-		   evil-emacs-state-map))
+       evil-insert-state-map
+       evil-emacs-state-map))
       (define-key (eval map) (kbd "C-k") nil)))
 
   (defun my-evil-shift-left-visual ()
@@ -486,7 +485,7 @@ user can manually override it to use the correct ones."
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :functions (my-python-hook my-ipython-hook my-jedi-show-doc
-	      my-python-change-venv)
+                             my-python-change-venv)
   :defines (jedi:doc-display-buffer
             jedi:tooltip-method
             realgud:pdb-command-name
@@ -504,8 +503,8 @@ user can manually override it to use the correct ones."
   (when (executable-find "ipython")
     (setq python-shell-interpreter      "ipython"
           python-shell-interpreter-args (concat "--simple-prompt "
-						"-i --no-confirm-exit "
-						"--colors=NoColor")))
+                                                "-i --no-confirm-exit "
+                                                "--colors=NoColor")))
   :config
   (define-coding-system-alias 'UTF-8 'utf-8)
 
@@ -516,8 +515,8 @@ user can manually override it to use the correct ones."
 
   (defun my-python-hook ()
     (set-face-attribute 'jedi:highlight-function-argument nil
-			:inherit 'bold
-			:foreground "chocolate"))
+                        :inherit 'bold
+                        :foreground "chocolate"))
 
   (defun my-python-change-venv ()
     "Switches to a new virtualenv, and reloads flycheck and company."
@@ -553,12 +552,12 @@ user can manually override it to use the correct ones."
     (let ((filename (match-string 1)))
       (re-search-forward "^-+> \\([0-9]+\\)")
       (let ((lineno (match-string 1)))
-	(forward-whitespace 1)
-	(find-file-existing filename)
-	(goto-char (point-min))
-	(forward-line (- (string-to-number lineno) 1))
-	(forward-whitespace 1)
-	(recenter))))
+        (forward-whitespace 1)
+        (find-file-existing filename)
+        (goto-char (point-min))
+        (forward-line (- (string-to-number lineno) 1))
+        (forward-whitespace 1)
+        (recenter))))
 
   (defun my-run-unittests (arg)
     "Run unittests in the current project. Use prefix-argument ARG to specify
@@ -672,11 +671,11 @@ the command to run the tests with."
     (interactive)
     (backward-kill-sexp)
     (condition-case nil
-	(prin1 (eval (read (current-kill 0)))
-	       (current-buffer))
+        (prin1 (eval (read (current-kill 0)))
+               (current-buffer))
       (error (message "Invalid expression")
-	     (insert (current-kill 0)))))
-  :general
+             (insert (current-kill 0)))))
+:general
   (general-define-key
     :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map)
     "C-c C-c" 'my-eval-sexp-or-region)
@@ -969,7 +968,7 @@ On multi-monitor systems the display spans across all the monitors."
   :commands (fci-mode)
   :init
   (setq fci-rule-column 80
-	fci-rule-color "#195466"
+        fci-rule-color "#195466"
         fci-rule-image-format 'pbm)
   (add-hook 'prog-mode-hook #'fci-mode)
   :config
@@ -1089,12 +1088,12 @@ On multi-monitor systems the display spans across all the monitors."
             help-at-pt-timer-delay)
   :init
   (setq eclimd-executable               "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-	eclim-executable                "/Applications/Eclipse.app/Contents/Eclipse/eclim"
+        eclim-executable                "/Applications/Eclipse.app/Contents/Eclipse/eclim"
         eclimd-default-workspace        "~/Documents/workspace"
-	help-at-pt-display-when-idle    t
+        help-at-pt-display-when-idle    t
         company-emacs-eclim-ignore-case nil
         eclim-print-debug-messages      nil ; Set to t to enable logging
-	help-at-pt-timer-delay          0.1)
+        help-at-pt-timer-delay          0.1)
   (setq-mode-local java-mode
                    (indent-tabs-mode . nil)
                    (tab-width        . 4)
@@ -1119,8 +1118,8 @@ On multi-monitor systems the display spans across all the monitors."
   :commands (my-c-mode-hook)
   :init
   (setq rtags-use-helm                 t
-	rtags-enable-unsaved-reparsing t
-	rtags-rc-log-enabled           t) ; Set to t to enable logging
+        rtags-enable-unsaved-reparsing t
+        rtags-rc-log-enabled           t) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
   (add-hook 'c-mode-common-hook #'my-c-mode-hook)
   :config
