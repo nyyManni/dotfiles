@@ -602,6 +602,10 @@ the command to run the tests with."
       ("^-*> +[[:digit:]]+ .*$" . font-lock-builtin-face)
       ("^   +[[:digit:]]+ " . font-lock-comment-face)))
 
+  ;; Recenter the buffer after following the symbol under cursor.
+  (defun my-recenter (&rest args) (recenter))
+  (advice-add #'jedi:goto-definition--nth :after #'my-recenter)
+
   (use-package pydebug
     :ensure nil
     :load-path "~/projects/elisp/pydebug"
