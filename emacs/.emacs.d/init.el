@@ -319,10 +319,19 @@ user can manually override it to use the correct ones."
 (use-package org
   :ensure nil
   :init
+  (setq org-use-fast-todo-selection t)
+  :general
   (space-leader
     :keymaps '(org-mode-map)
     "o t c" 'org-table-create
-    "o t d" 'org-todo))
+
+    ;; Task management keybindings.
+    "o a"   'org-agenda
+    "o c"   'org-capture
+    "o t i" 'org-clock-clock-in
+    "o t o" 'org-clock-clock-out
+    "o s"   'org-todo
+    ))
 
 (use-package evil
   :after general
@@ -793,8 +802,6 @@ the command to run the tests with."
   (setq projectile-completion-system 'default
         projectile-enable-caching    t
         projectile-use-git-grep      t)
-  (put 'projectile-test-command 'safe-local-variable 'stringp)
-  (put 'projectile-compilation-command 'safe-local-variable 'stringp)
   :config
   (projectile-mode)
   (append-to-list projectile-globally-ignored-directories
