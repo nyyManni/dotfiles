@@ -267,6 +267,19 @@ user can manually override it to use the correct ones."
       (when (commandp 'evil-insert-state)
         (evil-insert-state)))))
 
+(defun my-open-lower-third (command &rest args)
+  "Open a buffer and run a COMMAND with ARGS in the lower third of the window."
+  (interactive)
+  (let* ((parent (if (buffer-file-name)
+                     (file-name-directory (buffer-file-name))
+                   default-directory))
+         (height (/ (window-total-height) 3))
+         (name   (car (last (split-string parent "/" t)))))
+    (split-window-vertically (- height))
+    (other-window 1)
+    (apply command args)
+    (rename-buffer (concat (symbol-name command) name "*"))))
+
 ;; Disable backup's with tramp files.
 (add-hook 'find-file-hook
   (lambda ()
@@ -303,7 +316,8 @@ user can manually override it to use the correct ones."
     "D"    'kill-this-buffer
     "a a"  'align-regexp
     "s u"  'my-sudo-at-point
-    "s h"  'my-eshell-here
+    "s e"  'my-eshell-here
+    "s h"  'my-shell-here
     "s '"  'my-split-string
     "s l"  'sort-lines
     "r"    'my-reload-file
@@ -996,6 +1010,28 @@ On multi-monitor systems the display spans across all the monitors."
           (turn-on-fci-mode)))))
   (advice-add 'company-call-frontends :before #'on-off-fci-before-company))
 
+(use-package term
+  :ensure nil
+  :functions (my-shell-here)
+  :config
+  (add-hook 'term-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
+  (defun my-shell-here ()
+    "Open a ANSI term in the lower third."
+    (interactive)
+    (my-open-lower-third 'ansi-term "/bin/zsh"))
+
+  (defun my-quit-shell ()
+    "Kill the current shell."
+    (interactive)
+    (let ((kill-buffer-query-functions (delq 'process-kill-buffer-query-function
+                                             kill-buffer-query-functions)))
+      (kill-buffer)
+      (delete-window)))
+
+  (general-define-key
+    :keymaps 'term-raw-map
+    "C-S-q" 'my-quit-shell))
+
 (use-package eshell
   :commands (my-eshell-here)
   :functions (my-eshell-hook)
@@ -1046,15 +1082,7 @@ On multi-monitor systems the display spans across all the monitors."
   current buffer's file. The eshell is renamed to match that
   directory to make multiple eshell windows easier."
     (interactive)
-    (let* ((parent (if (buffer-file-name)
-                       (file-name-directory (buffer-file-name))
-                     default-directory))
-           (height (/ (window-total-height) 3))
-           (name   (car (last (split-string parent "/" t)))))
-      (split-window-vertically (- height))
-      (other-window 1)
-      (eshell "new")
-      (rename-buffer (concat "*eshell: " name "*"))))
+    (my-open-lower-third 'eshell "new"))
 
   (defun my-quit-eshell ()
     (interactive)
