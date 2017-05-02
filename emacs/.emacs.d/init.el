@@ -123,11 +123,6 @@
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
-;; Fix linum-mode to not scale line-numbers while zooming
-(eval-after-load "linum"
-  '(set-face-attribute 'linum nil :height 100))
-
-
 (function-put #'add-hook 'lisp-indent-function 'defun)
 
 ;; Package configurations
