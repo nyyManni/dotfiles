@@ -382,6 +382,7 @@ user can manually override it to use the correct ones."
     (evil-normal-state)
     (evil-visual-restore))
 
+  (evil-set-initial-state 'term-mode 'emacs)
   (evil-mode 1))
 
 (use-package key-chord
