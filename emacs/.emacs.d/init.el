@@ -50,6 +50,7 @@
       vc-follow-symlinks                   t
 
       inhibit-startup-screen               t
+      inhibit-startup-message              t
       sentence-end-double-space            nil
 
       ;; Disable custom-set-variable by pointing it's output to a file that is
@@ -273,7 +274,7 @@ user can manually override it to use the correct ones."
     (split-window-vertically (- height))
     (other-window 1)
     (apply command args)
-    (rename-buffer (concat (symbol-name command) name "*"))))
+    (rename-buffer (concat (symbol-name command) " " name "*"))))
 
 ;; Disable backup's with tramp files.
 (add-hook 'find-file-hook
@@ -327,20 +328,36 @@ user can manually override it to use the correct ones."
 
 (use-package org
   :ensure nil
+  :defines org-capture-templates
   :init
-  (setq org-use-fast-todo-selection t)
+
+  (add-hook 'org-capture-mode-hook 'evil-insert-state)
   :general
+  (general-define-key
+    :keymaps '(org-agenda-mode-map)
+    "j"   'evil-next-line
+    "k"   'evil-previous-line
+    "SPC" nil)
   (space-leader
     :keymaps '(org-mode-map)
     "o t c" 'org-table-create
 
     ;; Task management keybindings.
+    "o t i" 'org-clock-in
+    "o s"   'org-todo
+    "o r f" 'org-refile
+    "o t s" 'org-clock-display)
+
+  ;; Global org bindings
+  (space-leader
     "o a"   'org-agenda
     "o c"   'org-capture
-    "o t i" 'org-clock-clock-in
-    "o t o" 'org-clock-clock-out
-    "o s"   'org-todo
-    ))
+    "o t r" 'org-clock-in-last
+    "o p i" 'my-punch-in
+    "o t o" 'org-clock-out
+    "o t t" 'org-clock-goto
+    "o p o" 'my-punch-out
+    "o t e" 'my-org-export-hourlog))
 
 (use-package evil
   :after general
@@ -513,10 +530,7 @@ user can manually override it to use the correct ones."
             realgud:trepan3k-command-name)
   :after (company evil)
   :init
-  ;; Workaround for Emacs 25.1 not working correctly with Python 3 native
-  ;; completion.
-  (setq python-shell-completion-native-enable nil
-        jedi:doc-display-buffer               'my-jedi-show-doc
+  (setq jedi:doc-display-buffer               'my-jedi-show-doc
         jedi:tooltip-method                   nil
         realgud:pdb-command-name              "python -m pdb"
         realgud:trepan3k-command-name         "trepan3k --highlight=plain")
@@ -1348,4 +1362,7 @@ On multi-monitor systems the display spans across all the monitors."
   (define-key ctl-x-map [(control ?=)] 'zoom-in/out)
   (define-key ctl-x-map [(control ?0)] 'zoom-in/out))
 
+;; Local Variables:
+;; byte-compile-warnings: (not free-vars)
+;; End:
 ;;; init.el ends here
