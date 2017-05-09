@@ -359,6 +359,10 @@ user can manually override it to use the correct ones."
     "o p o" 'my-punch-out
     "o t e" 'my-org-export-hourlog))
 
+(use-package adaptive-wrap
+  :init
+  (add-hook 'org-mode-hook #'adaptive-wrap-prefix-mode))
+
 (use-package evil
   :after general
   :config
@@ -538,6 +542,7 @@ user can manually override it to use the correct ones."
   (when (executable-find "ipython")
     (setq python-shell-interpreter      "ipython"
           python-shell-interpreter-args (concat "--simple-prompt "
+                                                "--no-banner "
                                                 "-i --no-confirm-exit "
                                                 "--colors=NoColor")))
   :config
