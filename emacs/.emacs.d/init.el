@@ -78,6 +78,7 @@
         mac-command-modifier               'meta
         mac-option-modifier                nil
         mac-allow-anti-aliasing            t
+        frame-resize-pixelwise             t
         ns-use-srgb-colorspace             nil)
 
   ;; Environment variables
@@ -1366,6 +1367,35 @@ On multi-monitor systems the display spans across all the monitors."
   (define-key ctl-x-map [(control ?-)] 'zoom-in/out)
   (define-key ctl-x-map [(control ?=)] 'zoom-in/out)
   (define-key ctl-x-map [(control ?0)] 'zoom-in/out))
+
+(use-package pip-requirements
+  :mode ("requirements.txt" . pip-requirements-mode))
+
+(use-package git-gutter
+  :config
+  (defun my-toggle-linum-gutter ()
+    "Toggles between git-gutter and linum-modes."
+    (interactive)
+    (if (bound-and-true-p linum-mode)
+        (progn
+          (linum-mode -1)
+          (git-gutter-mode 1))
+      (git-gutter-mode -1)
+      (linum-mode 1)))
+
+  (set-face-attribute 'git-gutter:deleted nil
+                      :weight 'bold
+                      :foreground (face-attribute 'error :foreground))
+  (set-face-attribute 'git-gutter:added nil
+                      :weight 'bold
+                      :foreground
+                      (face-attribute 'font-lock-string-face :foreground))
+  (set-face-attribute 'git-gutter:modified nil
+                      :weight 'bold
+                      :foreground "chocolate")
+  :general
+  (space-leader
+    "g l" 'my-toggle-linum-gutter))
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
