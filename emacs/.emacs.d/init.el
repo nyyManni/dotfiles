@@ -1,5 +1,4 @@
 ;;; init.el --- Emacs configuration
-
 ;; Copyright (c) 2016 - 2017 Henrik Nyman
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
@@ -1140,8 +1139,10 @@ On multi-monitor systems the display spans across all the monitors."
             eclim-print-debug-messages
             help-at-pt-timer-delay)
   :init
-  (setq eclimd-executable               "/Applications/Eclipse.app/Contents/Eclipse/eclimd"
-        eclim-executable                "/Applications/Eclipse.app/Contents/Eclipse/eclim"
+  (setq eclimd-executable               (concat "/Applications/Eclipse.app/"
+                                                "Contents/Eclipse/eclimd")
+        eclim-executable                (concat "/Applications/Eclipse.app/"
+                                                "Contents/Eclipse/eclim")
         eclimd-default-workspace        "~/Documents/workspace"
         help-at-pt-display-when-idle    t
         company-emacs-eclim-ignore-case nil
@@ -1358,7 +1359,8 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package pdf-tools
   :defines (pdf-info-epdfinfo-program)
   :init
-  (setq with-editor-emacsclient-executable "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
+  (setq with-editor-emacsclient-executable (concat "/Applications/Emacs.app/"
+                                                   "Contents/MacOS/bin/emacsclient")
         pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"))
 
 (use-package zoom-frm
