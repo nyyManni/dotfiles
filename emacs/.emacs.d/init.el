@@ -1395,9 +1395,11 @@ On multi-monitor systems the display spans across all the monitors."
                       :foreground "chocolate")
   :general
   (space-leader
-    "g l" 'my-toggle-linum-gutter))
+    "g l" 'my-toggle-linum-gutter
+    "g d" 'git-gutter:popup-hunk
+    "g u" 'git-gutter:revert-hunk))
 
 ;; Local Variables:
-;; byte-compile-warnings: (not free-vars)
+;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
 ;;; init.el ends here
