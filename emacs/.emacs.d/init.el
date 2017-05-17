@@ -1,4 +1,4 @@
-;;; init.el --- Emacs configuration
+;; init.el --- Emacs configuration
 ;; Copyright (c) 2016 - 2017 Henrik Nyman
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
@@ -310,6 +310,7 @@ user can manually override it to use the correct ones."
     "m h"  'mark-whole-buffer
     "w"    'save-buffer
     "D"    'kill-this-buffer
+    "h"    'evil-ex-nohighlight
     "a a"  'align-regexp
     "s u"  'my-sudo-at-point
     "s e"  'my-eshell-here
@@ -365,6 +366,11 @@ user can manually override it to use the correct ones."
 
 (use-package evil
   :after general
+  :init
+  (setq evil-search-module   'evil-search
+        evil-want-C-d-scroll t
+        evil-want-C-u-scroll t
+        evil-want-C-i-jump   t)
   :config
   ;; Make escape quit everything, whenever possible.
   (general-define-key
@@ -424,6 +430,12 @@ user can manually override it to use the correct ones."
       (general-chord chord) 'evil-normal-state))
   (key-chord-mode t))
 
+(use-package which-key
+  :after evil
+  :diminish which-key-mode
+  :config
+  (which-key-mode))
+
 (use-package company
   :after evil
   :functions (is-empty-line-p my-complete-or-indent)
@@ -447,6 +459,11 @@ user can manually override it to use the correct ones."
         (indent-for-tab-command)
       (company-complete)))
   (company-quickhelp-mode 1)
+  :general
+  (general-define-key
+    :keymaps '(company-template-nav-map)
+    "<tab>"   nil
+    "C-<tab>" 'company-template-forward-field)
   :bind
   (:map company-active-map
         ("C-j" . company-select-next)
@@ -551,7 +568,8 @@ user can manually override it to use the correct ones."
   (setq-mode-local python-mode
                    (company-backends . '((company-jedi))))
   (setq-mode-local inferior-python-mode
-                   (company-backends . '((company-capf company-jedi))))
+                   (comint-process-echoes . nil)
+                   (company-backends .      '((company-capf company-jedi))))
 
   (defun my-python-hook ()
     (set-face-attribute 'jedi:highlight-function-argument nil
@@ -758,6 +776,7 @@ the command to run the tests with."
   :config (powerline-center-evil-theme))
 
 (use-package smooth-scrolling
+  :disabled t
   :config
   (setq scroll-step              1
         scroll-conservatively    10000
@@ -767,7 +786,7 @@ the command to run the tests with."
         scroll-down-aggressively 0.0)
   (setq-default scroll-up-aggressively   0.0)
   (setq-default scroll-down-aggressively 0.0)
-  (smooth-scrolling-mode t))
+  (smooth-scrolling-mode 1))
 
 (use-package helm
   :after evil
@@ -965,6 +984,41 @@ On multi-monitor systems the display spans across all the monitors."
     "i" 'evil-indent-plus-a-indent
     "I" 'evil-indent-plus-a-indent-up
     "J" 'evil-indent-plus-a-indent-up-down))
+
+(use-package evil-nerd-commenter
+  :after evil
+  :config
+  ;; Just using nerd-commenter for the text objects.
+  (define-key evil-inner-text-objects-map "c" 'evilnc-inner-comment)
+  (define-key evil-outer-text-objects-map "c" 'evilnc-outer-commenter))
+
+(use-package evil-exchange
+  :after evil
+  :config
+  (evil-exchange-install))
+
+(use-package evil-textobj-anyblock
+  :after evil
+  :config
+  (define-key evil-inner-text-objects-map "b" 'evil-textobj-anyblock-inner-block)
+  (define-key evil-outer-text-objects-map "b" 'evil-textobj-anyblock-a-block)
+
+  (evil-define-text-object my-python-inner-docstring
+    (count &optional beg end type)
+    "Select the closest outer quote."
+    (let ((evil-textobj-anyblock-blocks
+           '(("'''" . "'''")
+             ("\"\"\"" . "\"\"\""))))
+      (evil-textobj-anyblock--make-textobj beg end type count nil)))
+  (evil-define-text-object my-python-a-docstring
+    (count &optional beg end type)
+    (let ((evil-textobj-anyblock-blocks
+           '(("'''" . "'''")
+             ("\"\"\"" . "\"\"\""))))
+      (evil-textobj-anyblock--make-textobj beg end type count t)))
+  (define-key evil-inner-text-objects-map "D" 'my-python-inner-docstring)
+  (define-key evil-outer-text-objects-map "D" 'my-python-a-docstring))
+
 
 (use-package smartparens
   :diminish smartparens-mode
@@ -1372,6 +1426,10 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package pip-requirements
   :mode ("requirements.txt" . pip-requirements-mode))
+
+;; Windows setup files.
+(use-package iss-mode
+  :mode ("\\.iss\\'" . iss-mode))
 
 (use-package git-gutter
   :config
