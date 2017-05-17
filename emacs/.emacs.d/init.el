@@ -306,6 +306,7 @@ user can manually override it to use the correct ones."
     "O"    'helm-occur
     "A"    'helm-apropos
     "y"    'helm-show-kill-ring
+    "u"    'undo-tree-visualize
     "e"    'eval-last-sexp
     "m h"  'mark-whole-buffer
     "w"    'save-buffer
@@ -674,6 +675,43 @@ the command to run the tests with."
     (space-leader
       :keymaps '(python-mode-map)
       "p b r" 'pydebug-run-realgud-current-file))
+
+  ;; Function and class text objects
+  (evil-define-text-object my-python-a-function (count &optional beg end type)
+    :type line
+    (save-excursion
+      (python-mark-defun)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (evil-define-text-object my-python-inner-function (count &optional beg end type)
+    (save-excursion
+      (python-mark-defun)
+      (re-search-forward "(")
+      (evil-jump-item)
+      (evil-next-line-first-non-blank)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (evil-define-text-object my-python-a-class (count &optional beg end type)
+    :type line
+    (save-excursion
+      (re-search-backward "[[:space:]]*class[[:space:]]+")
+      (python-mark-defun)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (evil-define-text-object my-python-inner-class (count &optional beg end type)
+    (save-excursion
+      (re-search-backward "[[:space:]]*class[[:space:]]+")
+      (python-mark-defun)
+      (re-search-forward ":$")
+      (evil-next-line-first-non-blank)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (define-key evil-inner-text-objects-map "f" 'my-python-inner-function)
+  (define-key evil-outer-text-objects-map "f" 'my-python-a-function)
+
+  (define-key evil-inner-text-objects-map "C" 'my-python-inner-class)
+  (define-key evil-outer-text-objects-map "C" 'my-python-a-class)
+
 
   :general
   (space-leader
