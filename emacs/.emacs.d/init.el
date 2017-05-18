@@ -730,7 +730,12 @@ the command to run the tests with."
       (set-mark (point))
       (re-search-forward "\\(([^=:)(]*)\\)?[),]")
       (evil-backward-char)
-      (unless (looking-at-p ")")
+      (if (looking-at-p ")")
+          (progn
+            (exchange-point-and-mark)
+            (re-search-backward "[(,]")
+            (when (looking-at-p "(")
+              (evil-forward-char)))
         (evil-forward-char))
       (when (looking-at-p " ")
         (evil-forward-char))
