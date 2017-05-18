@@ -694,16 +694,46 @@ the command to run the tests with."
   (evil-define-text-object my-python-a-class (count &optional beg end type)
     :type line
     (save-excursion
-      (re-search-backward "[[:space:]]*class[[:space:]]+")
+      (re-search-backward "^[[:space:]]*class[[:space:]]+")
       (python-mark-defun)
       (evil-range (region-beginning) (region-end) type :expanded t)))
 
   (evil-define-text-object my-python-inner-class (count &optional beg end type)
     (save-excursion
-      (re-search-backward "[[:space:]]*class[[:space:]]+")
+      (re-search-backward "^[[:space:]]*class[[:space:]]+")
       (python-mark-defun)
       (re-search-forward ":$")
       (evil-next-line-first-non-blank)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (evil-define-text-object my-python-inner-arg (count &optional beg end type)
+    (save-excursion
+      (re-search-backward "[(,]")
+      (evil-forward-char)
+      (when (looking-at-p " ")
+        (evil-forward-char))
+      (when (looking-at-p "\n")
+        (evil-next-line-first-non-blank))
+      (set-mark (point))
+      (re-search-forward "\\(([^=:)(]*)\\)?[),]")
+      (evil-backward-char)
+      (evil-range (region-beginning) (region-end) type :expanded t)))
+
+  (evil-define-text-object my-python-a-arg (count &optional beg end type)
+    (save-excursion
+      (re-search-backward "[(,]")
+      (evil-forward-char)
+      (when (looking-at-p " ")
+        (evil-forward-char))
+      (when (looking-at-p "\n")
+        (evil-next-line-first-non-blank))
+      (set-mark (point))
+      (re-search-forward "\\(([^=:)(]*)\\)?[),]")
+      (evil-backward-char)
+      (unless (looking-at-p ")")
+        (evil-forward-char))
+      (when (looking-at-p " ")
+        (evil-forward-char))
       (evil-range (region-beginning) (region-end) type :expanded t)))
 
   (define-key evil-inner-text-objects-map "f" 'my-python-inner-function)
@@ -711,6 +741,9 @@ the command to run the tests with."
 
   (define-key evil-inner-text-objects-map "C" 'my-python-inner-class)
   (define-key evil-outer-text-objects-map "C" 'my-python-a-class)
+
+  (define-key evil-inner-text-objects-map "a" 'my-python-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'my-python-a-arg)
 
 
   :general
@@ -1468,6 +1501,8 @@ On multi-monitor systems the display spans across all the monitors."
 ;; Windows setup files.
 (use-package iss-mode
   :mode ("\\.iss\\'" . iss-mode))
+
+(use-package cmake-mode)
 
 (use-package git-gutter
   :config
