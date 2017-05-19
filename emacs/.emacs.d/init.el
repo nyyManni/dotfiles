@@ -142,6 +142,12 @@
       (powerline-reset))))
 
 
+(defvar re-dbl-quote-str "\"[^\\\\\"]+\\(?:\\\\.[^\\\\\"]*\\)*\""
+  "A regular expression matching a double-quoted string.")
+
+(defvar re-sgl-quote-str "'[^\\\\']+\\(?:\\\\.[^\\\\']*\\)*'"
+  "A regular expression matching a single-quoted string.")
+
 (defun my-sudo-at-point ()
   "Reopen current file as sudo, preserving location of point."
   (interactive)
@@ -202,10 +208,10 @@ If it is, then the type of the quotes is returned (double|single)."
   ;; Verify that we are inside a quoted string.
   (when (nth 3 (syntax-ppss))
     (let* ((line (buffer-substring (line-beginning-position) (line-end-position)))
-           (dbl-match (string-match "\"[^\\\\\"]+\\(?:\\\\.[^\\\\\"]*\\)*\"" line))
+           (dbl-match (string-match re-dbl-quote-str line))
            (dbl-begin (if dbl-match (match-beginning 0) nil))
            (dbl-end (if dbl-match (match-end 0) nil))
-           (sgl-match (string-match "'[^\\\\']+\\(?:\\\\.[^\\\\']*\\)*'" line))
+           (sgl-match (string-match re-sgl-quote-str line))
            (sgl-begin (if sgl-match (match-beginning 0) nil))
            (sgl-end (if sgl-match (match-end 0) nil))
            (point-pos (- (point) (line-beginning-position))))
@@ -390,6 +396,11 @@ user can manually override it to use the correct ones."
                  [drag-mouse-3] [down-mouse-3] [mouse-3]))
     (global-unset-key key)
     (general-define-key :keymaps '(evil-motion-state-map) key nil))
+
+  ;; Disable the arrow keys
+  (dolist (key '("<left>" "<right>" "<up>" "<down>"))
+    (general-define-key :keymaps '(evil-motion-state-map) key nil)
+    (global-unset-key (kbd key)))
 
   (general-define-key
     :states '(visual)
@@ -715,7 +726,8 @@ the command to run the tests with."
       (when (looking-at-p "\n")
         (evil-next-line-first-non-blank))
       (set-mark (point))
-      (re-search-forward "\\(([^=:)(]*)\\)?[),]")
+      (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
+                                 "\\|([^=:)(]*)\\)?[),]"))
       (evil-backward-char)
       (evil-range (region-beginning) (region-end) type :expanded t)))
 
@@ -728,7 +740,8 @@ the command to run the tests with."
       (when (looking-at-p "\n")
         (evil-next-line-first-non-blank))
       (set-mark (point))
-      (re-search-forward "\\(([^=:)(]*)\\)?[),]")
+      (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
+                                 "\\|([^=:)(]*)\\)?[),]"))
       (evil-backward-char)
       (if (looking-at-p ")")
           (progn
@@ -1068,6 +1081,11 @@ On multi-monitor systems the display spans across all the monitors."
   (define-key evil-inner-text-objects-map "c" 'evilnc-inner-comment)
   (define-key evil-outer-text-objects-map "c" 'evilnc-outer-commenter))
 
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode))
+
 (use-package evil-exchange
   :after evil
   :config
@@ -1174,6 +1192,7 @@ On multi-monitor systems the display spans across all the monitors."
 
   (general-define-key
     :keymaps 'term-raw-map
+    "M-y"   'term-paste
     "C-S-q" 'my-quit-shell))
 
 (use-package eshell
@@ -1439,6 +1458,7 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package gitignore-mode)
 (use-package coffee-mode)
 (use-package jade-mode)
+(use-package stylus-mode)
 
 (use-package neotree
   :general
@@ -1537,7 +1557,19 @@ On multi-monitor systems the display spans across all the monitors."
     "g d" 'git-gutter:popup-hunk
     "g u" 'git-gutter:revert-hunk))
 
+;; Some fun, with vim bindings ofc.
+(use-package 2048-game
+  :config
+  (general-define-key
+    :keymaps '(2048-mode-map)
+    :states '(normal)
+    "h" '2048-left
+    "j" '2048-down
+    "k" '2048-up
+    "l" '2048-right))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
 ;;; init.el ends here
+
