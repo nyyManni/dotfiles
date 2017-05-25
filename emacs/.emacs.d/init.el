@@ -1002,6 +1002,10 @@ On multi-monitor systems the display spans across all the monitors."
              frame-to-right)
             (t (error "Unknown direction")))))
 
+  (defun my-frame-center-pos (&optional frame)
+    `(,(/ (frame-pixel-width frame) 2)
+      ,(/ (frame-pixel-height frame) 2)))
+
   (defun my-windmove-advice (orig-fun dir &rest args)
     "Extend the range of windmove to go to next and previous frames."
     (condition-case err
@@ -1019,7 +1023,13 @@ On multi-monitor systems the display spans across all the monitors."
                      ;; direction, user-error is signaled when it hits the frame
                      ;; boundary.
                      (apply orig-fun inverted-dir (cons inverted-dir args))))
-               (user-error nil)))
+               (user-error nil))
+             ;; Move the mouse to the middle of the new frame. The frame switch
+             ;; may have moved the focus into a new monitor, but all of the
+             ;; keyboard shortcuts work on the monitor that currently has the
+             ;; mouse.
+             (apply 'set-mouse-pixel-position (cons (selected-frame)
+                                                    (my-frame-center-pos))))
          (signal (car err) (cdr err))))))
 
   (advice-add 'windmove-do-window-select :around #'my-windmove-advice)
