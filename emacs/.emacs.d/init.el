@@ -3,7 +3,7 @@
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
-;; Modified   : 20 Mar 2017
+;; Modified   : 24 Jul 2017
 ;; Version    : 1.0
 
 ;; The MIT License
@@ -65,10 +65,12 @@
       version-control                      t
       vc-make-backup-files                 t
       tab-width                            2
+      show-paren-delay                     0
       frame-title-format                   '("" "Emacs v" emacs-version))
 
 (setq-default indent-tabs-mode             nil
-              fill-column                  80)
+              fill-column                  80
+              comint-process-echoes        t)
 
 ;; OS X specific settings
 (when (eq system-type 'darwin)
@@ -197,6 +199,12 @@ Allows for setting mode-local variables like:
   (require 'tramp)
   (tramp-tramp-file-p (buffer-file-name (current-buffer))))
 
+(defun my-line-empty-p ()
+  "Return t if line containing point has only whitespace."
+  (string-match-p "^[[:space:]]*$"
+                  (buffer-substring (line-beginning-position)
+                                    (line-end-position))))
+
 (defun my-inside-range-p (value lower-bound upper-bound)
   "Check if VALUE is between LOWER-BOUND and UPPER-BOUND.
 VALUE being equal to either of the bounds is considered inside."
@@ -302,6 +310,9 @@ user can manually override it to use the correct ones."
 
   (function-put #'space-leader 'lisp-indent-function 'defun)
 
+  ; Disable toggling fullscreen with f11
+  (general-define-key "<f11>" nil)
+
   ;; Global keybindings
   (general-define-key
     :prefix "SPC"
@@ -324,6 +335,7 @@ user can manually override it to use the correct ones."
     "s h"  'my-shell-here
     "s '"  'my-split-string
     "s l"  'sort-lines
+    "s w"  'whitespace-mode
     "r"    'my-reload-file
     "f"    'helm-imenu
     "g g"  'magit-status
@@ -340,12 +352,14 @@ user can manually override it to use the correct ones."
   :init
 
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
+
   :general
   (general-define-key
     :keymaps '(org-agenda-mode-map)
     "j"   'evil-next-line
     "k"   'evil-previous-line
     "SPC" nil)
+
   (space-leader
     :keymaps '(org-mode-map)
     "o t c" 'org-table-create
@@ -364,6 +378,7 @@ user can manually override it to use the correct ones."
     "o p i" 'my-punch-in
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
+    "o t i" 'org-clock-select-task
     "o p o" 'my-punch-out
     "o t e" 'my-org-export-hourlog))
 
@@ -395,12 +410,19 @@ user can manually override it to use the correct ones."
                  [drag-mouse-2] [down-mouse-2] [mouse-2]
                  [drag-mouse-3] [down-mouse-3] [mouse-3]))
     (global-unset-key key)
-    (general-define-key :keymaps '(evil-motion-state-map) key nil))
+    (general-define-key
+      :keymaps '(evil-motion-state-map evil-normal-state-map)
+      key nil))
 
   ;; Disable the arrow keys
   (dolist (key '("<left>" "<right>" "<up>" "<down>"))
     (general-define-key :keymaps '(evil-motion-state-map) key nil)
     (global-unset-key (kbd key)))
+
+  ;; Map ctrl-H to backspace.
+  (global-set-key (kbd "M-?") 'help-command)
+  (global-set-key (kbd "C-h") 'delete-backward-char)
+  (global-set-key (kbd "M-h") 'backward-kill-word)
 
   (general-define-key
     :states '(visual)
@@ -470,7 +492,6 @@ user can manually override it to use the correct ones."
     (if (is-empty-line-p)
         (indent-for-tab-command)
       (company-complete)))
-  (company-quickhelp-mode 1)
   :general
   (general-define-key
     :keymaps '(company-template-nav-map)
@@ -482,11 +503,26 @@ user can manually override it to use the correct ones."
         ("C-k" . company-select-previous)))
 
 (use-package company-quickhelp
+  :after company
+  :preface
+  (use-package tips
+    :ensure nil
+    :commands (tips-tooltip-at-point)
+    :load-path "~/projects/elisp/tips")
+
   :config
+  ;; Remove all of the formatting in manual pages for eshell.
+  (defun my-company-quickhelp-delete-backspaces (orig-fun &rest args)
+    (let ((raw-doc (apply orig-fun args)))
+      (when raw-doc (replace-regexp-in-string "." "" raw-doc))))
+
+  (advice-add 'company-quickhelp--doc :around
+              #'my-company-quickhelp-delete-backspaces)
+
   (company-quickhelp-mode 1)
   :bind
   (:map company-active-map
-   ("C-h" . company-quickhelp-manual-begin)))
+   ("C-S-h" . company-quickhelp-manual-begin)))
 
 (use-package yasnippet
   :diminish yas-minor-mode
@@ -523,8 +559,8 @@ user can manually override it to use the correct ones."
                (functionp 'turn-off-fci-mode))
       (turn-on-fci-mode)))
 
-  (add-hook 'yas-before-expand-snippet-hook 'my-yas-begin-hook)
-  (add-hook 'yas-after-exit-snippet-hook 'my-yas-end-hook)
+  ;; (add-hook 'yas-before-expand-snippet-hook 'my-yas-begin-hook)
+  ;; (add-hook 'yas-after-exit-snippet-hook 'my-yas-end-hook)
 
   ;; Use C-& and C-* for going through the fields, since they are positioned
   ;; nicely on a US keyboard.
@@ -548,6 +584,11 @@ user can manually override it to use the correct ones."
   :init
   (add-hook 'prog-mode-hook #'flycheck-mode)
   :config
+  (defun my-flycheck-version-advice (orig-fun &rest args)
+    "FIXME: Flycheck version broken currently")
+
+  (advice-add 'flycheck-version :around
+              #'my-flycheck-version-advice)
   (general-define-key
     :states '(normal visual)
     "[ e" 'flycheck-previous-error
@@ -565,6 +606,7 @@ user can manually override it to use the correct ones."
   :init
   (setq jedi:doc-display-buffer               'my-jedi-show-doc
         jedi:tooltip-method                   nil
+        jedi:use-shortcuts                    t
         realgud:pdb-command-name              "python -m pdb"
         realgud:trepan3k-command-name         "trepan3k --highlight=plain")
 
@@ -600,7 +642,7 @@ user can manually override it to use the correct ones."
 
   (defun my-jedi-show-doc (buffer)
     (with-current-buffer buffer
-      (message (buffer-string))))
+      (tips-tooltip-at-point (buffer-string) 0 1 300)))
 
   (defun my-python-send-region-or-buffer ()
     "Send buffer contents to an inferior Python process."
@@ -643,6 +685,10 @@ the command to run the tests with."
     :states '(insert)
     :keymaps '(python-mode-map)
     "C-<tab>" 'jedi:get-in-function-call)
+  (general-define-key
+    :states '(normal)
+    :keymaps '(python-mode-map)
+    "C-<tab>" 'jedi:show-doc)
 
   (general-define-key
     :keymaps '(python-mode-map)
@@ -656,7 +702,6 @@ the command to run the tests with."
     "] f" 'python-nav-forward-defun
     "[ b" 'python-nav-backward-block
     "] b" 'python-nav-forward-block)
-
   (function-put #'font-lock-add-keywords 'lisp-indent-function 'defun)
 
   ;; Syntax highlighting for ipython tracebacks.
@@ -681,18 +726,64 @@ the command to run the tests with."
     :config
     (defun my-shortkey-mode-hook ()
       (evil-insert-state 1))
+    (mouse-absolute-pixel-position)
+
+    (defun my-get-info-at-point ()
+      (interactive)
+      (set-mouse-absolute-pixel-position (car (window-absolute-pixel-position))
+                                         (cdr (window-absolute-pixel-position)))
+
+      (let ((process (realgud-get-process))
+            (cmdbuf (realgud-get-cmdbuf)))
+
+        (let ((expr (tooltip-identifier-from-point (point))))
+          (with-current-buffer cmdbuf
+            (setq realgud:process-filter-save (process-filter process))
+            (set-process-filter process 'realgud:eval-process-output))
+          (realgud:cmd-eval expr))))
+
+    (general-define-key :keymaps '(realgud-map))
+    (general-define-key "<C-f12>" 'my-get-info-at-point)
+
     (add-hook 'realgud-short-key-mode-hook #'my-shortkey-mode-hook)
     :general
     (space-leader
       :keymaps '(python-mode-map)
       "p b r" 'pydebug-run-realgud-current-file))
 
+
   ;; Function and class text objects
   (evil-define-text-object my-python-a-function (count &optional beg end type)
     :type line
     (save-excursion
-      (python-mark-defun)
-      (evil-range (region-beginning) (region-end) type :expanded t)))
+      (re-search-backward "^\\([[:space:]]*\\)def[[:space:]]+")
+      (let ((defun-begin (point)))
+
+        (forward-line -1)
+        ;; Include decorators
+        (while (string-match-p "^[[:space:]]*@"
+                               (buffer-substring (line-beginning-position)
+                                                 (line-end-position)))
+          (forward-line -1))
+        (unless (my-line-empty-p)
+          (forward-line 1))
+        (let* ((dec-begin (point))
+               (match (match-string 1))
+               (whitespace-level (number-to-string (length match))))
+          (goto-char defun-begin)
+
+          (forward-line 1)
+
+          (if (re-search-forward (concat "^[[:space:]]\\{0," whitespace-level
+                                         "\\}[^[:space:]\n]")
+                                 nil t)
+              (forward-line -1)
+            (goto-char (point-max)))
+
+          (while (my-line-empty-p)
+            (forward-line -1))
+          (forward-line 1)
+          (evil-range dec-begin (point) type :expanded t)))))
 
   (evil-define-text-object my-python-inner-function (count &optional beg end type)
     (save-excursion
@@ -705,17 +796,49 @@ the command to run the tests with."
   (evil-define-text-object my-python-a-class (count &optional beg end type)
     :type line
     (save-excursion
-      (re-search-backward "^[[:space:]]*class[[:space:]]+")
-      (python-mark-defun)
-      (evil-range (region-beginning) (region-end) type :expanded t)))
+      (let ((start-pos (point)))
+        (re-search-backward "^\\([[:space:]]*\\)class[[:space:]]+")
+        (let* ((cls-begin (point-at-bol))
+               (match (match-string 1))
+               (whitespace-level (number-to-string (length match))))
+          (forward-line 1)
+
+          (if (re-search-forward (concat "^[[:space:]]\\{0," whitespace-level
+                                         "\\}[^[:space:]\n]")
+                                 nil t)
+              (forward-line -1)
+            (goto-char (point-max)))
+
+          (while (my-line-empty-p)
+            (forward-line -1))
+          (forward-line 1)
+          (message "point: %s start-pos: %s" (point) start-pos)
+          ;; (when (> (point) start-pos)
+          ;;   (error "Not inside a class"))
+          (evil-range cls-begin (point) type :expanded t)))))
 
   (evil-define-text-object my-python-inner-class (count &optional beg end type)
     (save-excursion
-      (re-search-backward "^[[:space:]]*class[[:space:]]+")
-      (python-mark-defun)
-      (re-search-forward ":$")
-      (evil-next-line-first-non-blank)
-      (evil-range (region-beginning) (region-end) type :expanded t)))
+      (let ((start-pos (point)))
+        (re-search-backward "^\\([[:space:]]*\\)class[[:space:]]+")
+        (forward-line 1)
+        (let* ((cls-begin (point-at-bol))
+               (match (match-string 1))
+               (whitespace-level (number-to-string (length match))))
+          (forward-line 1)
+
+          (if (re-search-forward (concat "^[[:space:]]\\{0," whitespace-level
+                                         "\\}[^[:space:]\n]")
+                                 nil t)
+              (forward-line -1)
+            (goto-char (point-max)))
+
+          (while (my-line-empty-p)
+            (forward-line -1))
+          (forward-line 1)
+          (when (> (point) start-pos)
+            (error "Not inside a class"))
+          (evil-range cls-begin (point) type :expanded t)))))
 
   (evil-define-text-object my-python-inner-arg (count &optional beg end type)
     (save-excursion
@@ -831,12 +954,13 @@ the command to run the tests with."
     "m f" 'mark-defun
     "p d" 'find-function-at-point
     "E"   'my-eval-and-replace))
+
 (use-package hlinum
   :config
   (hlinum-activate)
-  (add-hook 'prog-mode-hook 'linum-mode)
+  (add-hook 'prog-mode-hook (lambda () (setq display-line-numbers t)))
   (remove-hook 'post-command-hook 'hlinum-highlight-region)
-  (set-face-attribute 'linum-highlight-face nil
+  (set-face-attribute 'line-number-current-line nil
                       :inherit 'linum
                       :foreground "#CAE682"
                       :background "#444444"
@@ -853,6 +977,9 @@ the command to run the tests with."
   :config
   ;; Start the commit window in insert mode
   (add-hook 'with-editor-mode-hook 'evil-insert-state)
+
+  ;; Don't display Arev in the mode line.
+  (diminish 'auto-revert-mode)
   :general
   (space-leader
     "g b"   'magit-blame
@@ -901,6 +1028,7 @@ the command to run the tests with."
   :config
   (require 'helm-config)
   (helm-mode 1)
+  (helm-autoresize-mode t)
 
   (defun helm-skip-dots (old-func &rest args)
     "Skip . and .. initially in helm-find-files.  First call OLD-FUNC with ARGS."
@@ -920,7 +1048,6 @@ the command to run the tests with."
   :bind
   (("M-x" . helm-M-x)
    :map helm-map
-   ("[tab]" . helm-execute-persistent-action)
    ("C-i"   . helm-execute-persistent-action)
    ("C-k"   . helm-previous-line)
    ("C-j"   . helm-next-line)
@@ -1159,6 +1286,7 @@ On multi-monitor systems the display spans across all the monitors."
   :diminish undo-tree-mode)
 
 (use-package fill-column-indicator
+  :disabled t
   :if (or (daemonp) window-system)
   :functions (on-off-fci-before-company)
   :commands (fci-mode)
@@ -1181,6 +1309,7 @@ On multi-monitor systems the display spans across all the monitors."
         (when (string= "hide" command)
           (turn-on-fci-mode)))))
   (advice-add 'company-call-frontends :before #'on-off-fci-before-company))
+
 
 (use-package term
   :ensure nil
@@ -1370,6 +1499,11 @@ On multi-monitor systems the display spans across all the monitors."
         (with-temp-buffer
           (rtags-call-rc :path t "-w" project)))))
 
+  (defun my-c-compile (arg)
+    (interactive "P")
+    (let ((compilation-read-command arg))
+      (call-interactively 'projectile-compile-project)))
+
   (setq-mode-local c++-mode
                    (indent-tabs-mode                    . nil)
                    (tab-width                           . 4)
@@ -1386,11 +1520,13 @@ On multi-monitor systems the display spans across all the monitors."
   (space-leader
     :keymaps '(c++-mode-map c-mode-map)
     "p d"   'rtags-find-symbol-at-point
+    "p b"   'rtags-location-stack-back
     "p r"   'rtags-rename-symbol
     "p u"   'rtags-find-references-at-point
     "p s t" 'rtags-symbol-type
     "p s i" 'rtags-symbol-info
     "p v"   'my-rtags-switch-to-project
+    "p c"   'my-c-compile
     "m f"   'c-mark-function))
 
 (use-package irony
@@ -1467,8 +1603,9 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package json-mode)
 (use-package gitignore-mode)
 (use-package coffee-mode)
-(use-package jade-mode)
+(use-package pug-mode)
 (use-package stylus-mode)
+(use-package markdown-mode)
 
 (use-package neotree
   :general
@@ -1540,32 +1677,92 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package cmake-mode)
 
 (use-package git-gutter
+  :after magit
+  :diminish git-gutter-mode
   :config
-  (defun my-toggle-linum-gutter ()
-    "Toggles between git-gutter and linum-modes."
-    (interactive)
-    (if (bound-and-true-p linum-mode)
-        (progn
-          (linum-mode -1)
-          (git-gutter-mode 1))
-      (git-gutter-mode -1)
-      (linum-mode 1)))
+  (global-git-gutter-mode 1)
 
   (set-face-attribute 'git-gutter:deleted nil
-                      :weight 'bold
-                      :foreground (face-attribute 'error :foreground))
+                      :height 10
+                      :width 'ultra-condensed
+                      :foreground (face-attribute 'error :foreground)
+                      :background (face-attribute 'error :foreground))
   (set-face-attribute 'git-gutter:added nil
-                      :weight 'bold
+                      :height 10
+                      :width 'ultra-condensed
                       :foreground
+                      (face-attribute 'font-lock-string-face :foreground)
+                      :background
                       (face-attribute 'font-lock-string-face :foreground))
   (set-face-attribute 'git-gutter:modified nil
-                      :weight 'bold
-                      :foreground "chocolate")
+                      :foreground "chocolate"
+                      :background "chocolate")
+  (set-face-attribute 'git-gutter:unchanged nil
+                      :width 'ultra-condensed
+                      :height 10)
+  (set-face-attribute 'git-gutter:separator nil
+                      :width 'ultra-condensed
+                      :height 10)
   :general
   (space-leader
-    "g l" 'my-toggle-linum-gutter
     "g d" 'git-gutter:popup-hunk
     "g u" 'git-gutter:revert-hunk))
+
+(use-package js2-mode
+  :mode "\\.js\\'"
+  :init
+  (setq js-indent-level               2
+        js2-mode-show-parse-errors    nil
+        js2-mode-show-strict-warnings nil)
+  (setq-mode-local js2-mode
+                   (indent-tabs-mode . nil)
+                   (tab-width        . 2)
+                   (company-backends . '((company-tern))))
+  (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)
+  :general
+  (space-leader
+    :keymaps '(js2-mode-map)
+    "p d" 'js2-jump-to-definition
+    "p D" 'xref-find-definitions
+    "p c" 'grunt-exec))
+
+(use-package grunt
+  :after js2-mode)
+
+(use-package js2-refactor
+  :after js2-mode
+  :init
+  (add-hook 'js2-mode-hook #'js2-refactor-mode)
+  :config
+  (space-leader
+    :keymaps '(js2-mode-map)
+    "p r r" 'js2r-rename-var)
+  (general-define-key
+    :keymaps '(js2-mode-map)
+    "C->" 'js2r-forward-slurp
+    "C-<" 'js2r-forward-barf))
+
+(use-package ag)
+
+(use-package tern
+  :after js2-mode
+  :init
+  (add-hook 'js2-mode-hook #'tern-mode))
+
+(use-package xref-js2
+  :after 'js2-mode
+  :config
+  (add-hook 'js2-mode-hook
+    (lambda ()
+      (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))))
+
+(use-package helm-xref
+  :after xref-js2
+  :init
+  (setq xref-show-xrefs-function 'helm-xref-show-xrefs))
+
+(use-package company-tern
+  :after js2-mode)
 
 ;; Some fun, with vim bindings ofc.
 (use-package 2048-game
@@ -1578,8 +1775,12 @@ On multi-monitor systems the display spans across all the monitors."
     "k" '2048-up
     "l" '2048-right))
 
+;; Eldoc, use in elisp buffers
+(global-eldoc-mode -1)
+(add-hook 'lisp-interaction-mode-hook (lambda ()(eldoc-mode 1)))
+(add-hook 'emacs-lisp-mode-hook (lambda ()(eldoc-mode 1)))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
 ;;; init.el ends here
-
