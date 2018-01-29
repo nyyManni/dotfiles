@@ -37,6 +37,11 @@
 ;; - helm for searching and narrowing
 ;; - company for completion
 ;; - flycheck for syntax-checking
+;; - IDE configuration for:
+;;   * Python
+;;   * C/C++
+;;   * Java
+;;   * JavaScript
 
 
 ;;; Code:
@@ -72,15 +77,19 @@
               fill-column                  80
               comint-process-echoes        t)
 
+
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
         default-input-method               "MacOSX"
+        flycheck-sh-bash-executable        "/usr/local/bin/bash"
         mac-command-modifier               'meta
         mac-option-modifier                nil
         mac-allow-anti-aliasing            t
         frame-resize-pixelwise             t
-        ns-use-srgb-colorspace             nil)
+        ns-use-srgb-colorspace             nil
+        mouse-wheel-scroll-amount          '(5 ((shift) . 5) ((control)))
+        mouse-wheel-progressive-speed      nil)
 
   ;; Environment variables
   (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
@@ -90,14 +99,19 @@
   (setenv "LANG" "en_US.UTF-8")
 
   ;; Transparent frames. On Linux the same is achieved with compton.
-  (set-frame-parameter (selected-frame) 'alpha '(90 90))
+  (defun set-frame-unfocused ()
+    (set-frame-parameter (selected-frame) 'alpha '(85 85)))
+  (defun set-frame-focused ()
+    (set-frame-parameter (selected-frame) 'alpha '(90 90)))
+
+  (add-hook 'focus-in-hook #'set-frame-focused)
+  (add-hook 'focus-out-hook #'set-frame-unfocused)
+  (set-frame-focused)
   (add-to-list 'default-frame-alist '(alpha 90 90)))
 
-;; Load customizations that cannot be put under public VCS. Do not die if the
-;; file does not exist.
-(condition-case err
-    (load-file (concat user-emacs-directory "/work-config.el"))
-  (error nil))
+
+;; Enable disabled commands
+(put 'narrow-to-region 'disabled nil)
 
 ;; Setup use-package
 (require 'package)
@@ -108,6 +122,7 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+
 (eval-when-compile
   (require 'use-package)
   (setq use-package-always-ensure     t
@@ -116,6 +131,11 @@
 (require 'diminish)
 (require 'bind-key)
 
+;; Load customizations that cannot be put under public VCS. Do not die if the
+;; file does not exist.
+(let ((work-config (concat user-emacs-directory "/work-config.el")))
+  (when (file-exists-p work-config)
+    (load-file (concat user-emacs-directory "/work-config.el"))))
 
 (blink-cursor-mode 0)
 (global-hl-line-mode 1)
@@ -277,6 +297,14 @@ user can manually override it to use the correct ones."
       (when (commandp 'evil-insert-state)
         (evil-insert-state)))))
 
+(defun my-kwd-list (l kwd)
+  "Extract arguments from L that are after KWD but before other keywords."
+  (let ((begin (cl-position kwd l)))
+    (when begin
+      (let ((end (let ((p (cl-position-if #'keywordp (cdr (subseq l begin)))))
+                   (when p (+ begin 1 p)))))
+        (cdr (subseq l begin end))))))
+
 (defun my-open-lower-third (command &rest args)
   "Open a buffer and run a COMMAND with ARGS in the lower third of the window."
   (interactive)
@@ -313,6 +341,13 @@ user can manually override it to use the correct ones."
   ; Disable toggling fullscreen with f11
   (general-define-key "<f11>" nil)
 
+  (global-set-key (kbd "C-S-u") 'universal-argument)
+
+  (when (eq system-type 'darwin)
+    (general-define-key "<M-f10>"
+      (lambda () (interactive)
+        (call-process "/Users/hnyman/bin/run-term.applescript"))))
+
   ;; Global keybindings
   (general-define-key
     :prefix "SPC"
@@ -323,8 +358,11 @@ user can manually override it to use the correct ones."
     "O"    'helm-occur
     "A"    'helm-apropos
     "y"    'helm-show-kill-ring
+    "H s"  'helm-swop
+    "H S"  'helm-multi-swoop-projectile
     "u"    'undo-tree-visualize
     "e"    'eval-last-sexp
+    "l p"  'package-list-packages
     "m h"  'mark-whole-buffer
     "w"    'save-buffer
     "D"    'kill-this-buffer
@@ -367,8 +405,14 @@ user can manually override it to use the correct ones."
     ;; Task management keybindings.
     "o t i" 'org-clock-in
     "o s"   'org-todo
+    "o e"   'org-edit-special
     "o r f" 'org-refile
-    "o t s" 'org-clock-display)
+    "o t s" 'org-clock-display
+    "o n s" 'org-narrow-to-subtree
+    "o n w" 'widen)
+  (space-leader
+    :keymaps '(org-src-mode-map)
+    "o e"   'org-edit-src-exit)
 
   ;; Global org bindings
   (space-leader
@@ -414,10 +458,15 @@ user can manually override it to use the correct ones."
       :keymaps '(evil-motion-state-map evil-normal-state-map)
       key nil))
 
-  ;; Disable the arrow keys
+  ;; Disable arrow key movement
   (dolist (key '("<left>" "<right>" "<up>" "<down>"))
     (general-define-key :keymaps '(evil-motion-state-map) key nil)
     (global-unset-key (kbd key)))
+
+  ;; Use up and down for scrolling instead
+  (general-define-key
+    "<up>"   (lambda () (interactive) (scroll-down 1))
+    "<down>" (lambda () (interactive) (scroll-up 1)))
 
   ;; Map ctrl-H to backspace.
   (global-set-key (kbd "M-?") 'help-command)
@@ -451,6 +500,16 @@ user can manually override it to use the correct ones."
     (evil-shift-right (region-beginning) (region-end))
     (evil-normal-state)
     (evil-visual-restore))
+
+  (evil-define-operator evil-yank-line-end (beg end type register)
+    "Yank to end of line."
+    :motion evil-end-of-line
+    (interactive "<R><x>")
+    (evil-yank beg end type register))
+
+  (general-define-key
+    :keymaps '(evil-normal-state-map)
+    "Y" 'evil-yank-line-end)
 
   (evil-set-initial-state 'term-mode 'emacs)
   (evil-mode 1))
@@ -594,41 +653,54 @@ user can manually override it to use the correct ones."
     "[ e" 'flycheck-previous-error
     "] e" 'flycheck-next-error))
 
-(use-package python
+(use-package elpy
   :mode ("\\.py\\'" . python-mode)
-  :functions (my-python-hook my-ipython-hook my-jedi-show-doc
-                             my-python-change-venv)
-  :defines (jedi:doc-display-buffer
-            jedi:tooltip-method
-            realgud:pdb-command-name
-            realgud:trepan3k-command-name)
-  :after (company evil)
   :init
-  (setq jedi:doc-display-buffer               'my-jedi-show-doc
-        jedi:tooltip-method                   nil
-        jedi:use-shortcuts                    t
-        realgud:pdb-command-name              "python -m pdb"
-        realgud:trepan3k-command-name         "trepan3k --highlight=plain")
+  (add-hook 'python-mode-hook (lambda () (elpy-mode 1)))
 
-  (when (executable-find "ipython")
-    (setq python-shell-interpreter      "ipython"
-          python-shell-interpreter-args (concat "--simple-prompt "
-                                                "--no-banner "
-                                                "-i --no-confirm-exit "
-                                                "--colors=NoColor")))
+  (setq jedi:doc-display-buffer 'my-jedi-show-doc
+        jedi:tooltip-method     nil
+        jedi:use-shortcuts      t)
+  :general
+  (general-define-key
+    :states '(insert)
+    :keymaps '(python-mode-map)
+    "C-<tab>" 'jedi:get-in-function-call)
+  (general-define-key
+    :states '(normal)
+    :keymaps '(python-mode-map)
+    "C-<tab>" 'jedi:show-doc)
+
+  (general-define-key
+    :keymaps '(python-mode-map)
+    "C->" 'sp-forward-slurp-sexp
+    "C-<" 'sp-forward-barf-sexp)
+
+  (general-define-key
+    :keymaps '(python-mode-map)
+    :states '(normal visual)
+    "[ f" 'python-nav-backward-defun
+    "] f" 'python-nav-forward-defun
+    "[ b" 'python-nav-backward-block
+    "] b" 'python-nav-forward-block)
+  (space-leader
+    :keymaps '(python-mode-map realgud-mode-map)
+    "p v"   'my-python-change-venv
+    "p d"   'jedi:goto-definition
+    "p b a" 'realgud-short-key-mode
+    "p u"   'helm-jedi-related-names
+    "p ?"   'jedi:show-doc
+    "p r"   'run-python
+    "p t"   'my-run-unittests
+    "m f"   'python-mark-defun
+    "e"     'my-python-send-region-or-buffer)
+
+  :bind
+  (:map python-mode-map
+        ("M-." . elpy-goto-definition)
+        ("M-," . xref-pop-marker-stack))
   :config
-  (define-coding-system-alias 'UTF-8 'utf-8)
-
-  (setq-mode-local python-mode
-                   (company-backends . '((company-jedi))))
-  (setq-mode-local inferior-python-mode
-                   (comint-process-echoes . nil)
-                   (company-backends .      '((company-capf company-jedi))))
-
-  (defun my-python-hook ()
-    (set-face-attribute 'jedi:highlight-function-argument nil
-                        :inherit 'bold
-                        :foreground "chocolate"))
+  (elpy-enable)
 
   (defun my-python-change-venv ()
     "Switches to a new virtualenv, and reloads flycheck and company."
@@ -679,30 +751,9 @@ the command to run the tests with."
       (call-interactively 'projectile-test-project)))
 
   (add-hook 'inferior-python-mode-hook #'company-mode)
-  (add-hook 'python-mode-hook #'my-python-hook)
+  ;; (add-hook 'python-mode-hook #'my-python-hook)
 
-  (general-define-key
-    :states '(insert)
-    :keymaps '(python-mode-map)
-    "C-<tab>" 'jedi:get-in-function-call)
-  (general-define-key
-    :states '(normal)
-    :keymaps '(python-mode-map)
-    "C-<tab>" 'jedi:show-doc)
-
-  (general-define-key
-    :keymaps '(python-mode-map)
-    "C->" 'sp-forward-slurp-sexp
-    "C-<" 'sp-forward-barf-sexp)
-
-  (general-define-key
-    :keymaps '(python-mode-map)
-    :states '(normal visual)
-    "[ f" 'python-nav-backward-defun
-    "] f" 'python-nav-forward-defun
-    "[ b" 'python-nav-backward-block
-    "] b" 'python-nav-forward-block)
-  (function-put #'font-lock-add-keywords 'lisp-indent-function 'defun)
+  ;; (function-put #'font-lock-add-keywords 'lisp-indent-function 'defun)
 
   ;; Syntax highlighting for ipython tracebacks.
   (font-lock-add-keywords 'inferior-python-mode
@@ -720,36 +771,6 @@ the command to run the tests with."
   (defun my-recenter (&rest args) (recenter))
   (advice-add #'jedi:goto-definition--nth :after #'my-recenter)
 
-  (use-package pydebug
-    :ensure nil
-    :load-path "~/projects/elisp/pydebug"
-    :config
-    (defun my-shortkey-mode-hook ()
-      (evil-insert-state 1))
-    (mouse-absolute-pixel-position)
-
-    (defun my-get-info-at-point ()
-      (interactive)
-      (set-mouse-absolute-pixel-position (car (window-absolute-pixel-position))
-                                         (cdr (window-absolute-pixel-position)))
-
-      (let ((process (realgud-get-process))
-            (cmdbuf (realgud-get-cmdbuf)))
-
-        (let ((expr (tooltip-identifier-from-point (point))))
-          (with-current-buffer cmdbuf
-            (setq realgud:process-filter-save (process-filter process))
-            (set-process-filter process 'realgud:eval-process-output))
-          (realgud:cmd-eval expr))))
-
-    (general-define-key :keymaps '(realgud-map))
-    (general-define-key "<C-f12>" 'my-get-info-at-point)
-
-    (add-hook 'realgud-short-key-mode-hook #'my-shortkey-mode-hook)
-    :general
-    (space-leader
-      :keymaps '(python-mode-map)
-      "p b r" 'pydebug-run-realgud-current-file))
 
 
   ;; Function and class text objects
@@ -884,21 +905,50 @@ the command to run the tests with."
   (define-key evil-outer-text-objects-map "C" 'my-python-a-class)
 
   (define-key evil-inner-text-objects-map "a" 'my-python-inner-arg)
-  (define-key evil-outer-text-objects-map "a" 'my-python-a-arg)
+  (define-key evil-outer-text-objects-map "a" 'my-python-a-arg))
 
+(use-package realgud-pydev
+  :ensure nil
+  :load-path "~/projects/git/hnyman/pydev-client"
+  :init
+  (setq realgud-safe-mode nil)
+  :config
+  (add-hook 'realgud-short-key-mode-hook
+    (lambda ()
+      (local-set-key "\C-c" realgud:shortkey-mode-map)))
+  (defun my-shortkey-mode-hook ()
+    (evil-insert-state 1))
+  (add-hook 'realgud-short-key-mode-hook #'my-shortkey-mode-hook)
 
+  (add-to-list 'display-buffer-alist
+               `(,(rx bos "*" "pydevc " (+? nonl) "*" eos)
+                 (display-buffer-in-side-window)
+                 (reusable-frames . visible)
+                 (side            . right)
+                 (slot            . 1)
+                 (window-width    . 0.5)))
+
+  (defun my-gud--setup-realgud-windows (&optional buffer)
+    "Replacement function to realgud window arrangement.
+Uses `current-buffer` or BUFFER."
+    (interactive)
+    (let* ((buffer (or buffer (current-buffer)))
+           (src-buffer (realgud-get-srcbuf buffer))
+           (cmd-buffer (realgud-get-cmdbuf buffer)))
+      (display-buffer cmd-buffer)
+      (select-window (display-buffer src-buffer))))
+
+  (defalias 'realgud-window-src-undisturb-cmd #'my-gud--setup-realgud-windows)
   :general
   (space-leader
-    :keymaps '(python-mode-map realgud-mode-map)
-    "p v"   'my-python-change-venv
-    "p d"   'jedi:goto-definition
-    "p b a" 'realgud-short-key-mode
-    "p u"   'helm-jedi-related-names
-    "p ?"   'jedi:show-doc
-    "p r"   'run-python
-    "p t"   'my-run-unittests
-    "m f"   'python-mark-defun
-    "e"     'my-python-send-region-or-buffer))
+    :keymaps '(python-mode-map)
+    "p b r" 'realgud:pydev-current-file
+    "p b m" 'realgud:pydev-module
+    "p b q" 'pydev-reset))
+
+(use-package debian-changelog-mode
+  :ensure nil
+  :load-path "~/projects/elisp/debian-changelog-mode")
 
 
 (use-package jedi-core
@@ -917,6 +967,12 @@ the command to run the tests with."
   ;; does not touch too long lines, it usually cannot fix them properly
   (setq py-autopep8-options '("--max-line-length=200"))
   (add-hook 'python-mode-hook #'py-autopep8-enable-on-save))
+
+(use-package py-yapf
+  :disabled t
+  :commands (py-yapf-enable-on-save)
+  :init
+  (remote-hook 'python-mode-hook 'py-yapf-enable-on-save))
 
 (use-package ace-window
   :after general
@@ -945,7 +1001,7 @@ the command to run the tests with."
                (current-buffer))
       (error (message "Invalid expression")
              (insert (current-kill 0)))))
-:general
+  :general
   (general-define-key
     :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map)
     "C-c C-c" 'my-eval-sexp-or-region)
@@ -959,6 +1015,8 @@ the command to run the tests with."
   :config
   (hlinum-activate)
   (add-hook 'prog-mode-hook (lambda () (setq display-line-numbers t)))
+  (add-hook 'prog-mode-hook (lambda () (setq show-fill-column-indicator t)))
+
   (remove-hook 'post-command-hook 'hlinum-highlight-region)
   (set-face-attribute 'line-number-current-line nil
                       :inherit 'linum
@@ -1021,7 +1079,7 @@ the command to run the tests with."
         helm-M-x-requires-pattern             nil
         helm-ff-skip-boring-files             t
         helm-move-to-line-cycle-in-source     t
-        helm-split-window-in-side-p           t
+        helm-split-window-inside-p            t
         helm-ff-search-library-in-sexp        t
         helm-scroll-amount                    8
         helm-ff-file-name-history-use-recentf t)
@@ -1057,12 +1115,19 @@ the command to run the tests with."
     ";" 'helm-find-files))
 
 (use-package projectile
-  :after helm
+  ;; :after helm
   :defines (projectile-completion-system
             projectile-enable-caching
             projectile-use-git-grep)
   :diminish projectile-mode
   :init
+
+  (setq safe-local-variable-values
+        '((projectile-project-test-cmd . "pytest test.py")
+          (projectile-project-test-cmd . "pytest")
+          (projectile-project-compilation-cmd . "make -j8")
+          (projectile-project-compilation-cmd . "make -j8 && make install")))
+
   (setq projectile-completion-system 'default
         projectile-enable-caching    t
         projectile-use-git-grep      t)
@@ -1086,11 +1151,10 @@ the command to run the tests with."
     ":"   'helm-projectile-find-file
     "\""  'helm-projectile))
 
-
 (use-package windmove
   :config
   (defun my-frame-pos-x (frame)
-    "Get the x position of the FRAME is display.
+    "Get the x position of the FRAME on display.
 On multi-monitor systems the display spans across all the monitors."
     (+ (car (frame-position frame))
        (cadaar
@@ -1251,6 +1315,26 @@ On multi-monitor systems the display spans across all the monitors."
   (define-key evil-outer-text-objects-map "D" 'my-python-a-docstring))
 
 
+;; Evilify some modes not evilified by evil.
+(defmacro evilify (mode &optional module)
+  "Apply evil-bindings to MODE with evil-collection.
+If module name differs from MODE, a custom one can be given with MODULE."
+  `(with-eval-after-load ',(or module mode)
+     (require ',(intern (concat "evil-collection-" (symbol-name mode))))
+     (,(intern (concat "evil-collection-" (symbol-name mode) "-setup")))))
+
+
+;; TODO: Does not work for some reason
+(evilify package-menu package)
+
+(evilify compile)
+(evilify calendar)
+(evilify rtags)
+
+;; (require 'company-childframe)
+;; (company-childframe-enable)
+;; (setq company-childframe-child-frame nil)
+
 (use-package smartparens
   :diminish smartparens-mode
   :after general
@@ -1285,6 +1369,8 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package undo-tree
   :diminish undo-tree-mode)
 
+;; Currently replaced with native fill column indicator, which does not conflict
+;; with company-mode.
 (use-package fill-column-indicator
   :disabled t
   :if (or (daemonp) window-system)
@@ -1309,7 +1395,6 @@ On multi-monitor systems the display spans across all the monitors."
         (when (string= "hide" command)
           (turn-on-fci-mode)))))
   (advice-add 'company-call-frontends :before #'on-off-fci-before-company))
-
 
 (use-package term
   :ensure nil
@@ -1422,6 +1507,7 @@ On multi-monitor systems the display spans across all the monitors."
   (add-hook 'eshell-mode-hook #'company-mode)
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
+
 (use-package eclim
   :defines (company-emacs-eclim-ignore-case
             eclim-print-debug-messages
@@ -1440,6 +1526,12 @@ On multi-monitor systems the display spans across all the monitors."
                    (indent-tabs-mode . nil)
                    (tab-width        . 4)
                    (company-backends . '((company-emacs-eclim))))
+
+  (defun my-java-compile (arg)
+    (interactive "P")
+    (let ((compilation-read-command arg))
+      (call-interactively 'projectile-compile-project)))
+
   (defun my-java-hook ()
     (help-at-pt-set-timer)
     (eclim-mode))
@@ -1447,6 +1539,7 @@ On multi-monitor systems the display spans across all the monitors."
   :general
   (space-leader
     :keymaps '(java-mode-map)
+    "p c"   'my-java-compile
     "p d"   'eclim-java-find-declaration
     "p r f" 'eclim-problems-correct
     "p r r" 'eclim-java-refactor-rename-symbol-at-point))
@@ -1463,7 +1556,11 @@ On multi-monitor systems the display spans across all the monitors."
         rtags-enable-unsaved-reparsing t
         rtags-rc-log-enabled           t) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
-  (add-hook 'c-mode-common-hook #'my-c-mode-hook)
+
+  ;; Use three hooks since c-mode-common-hook also applies to java-mode
+  (add-hook 'c-mode-hook #'my-c-mode-hook)
+  (add-hook 'c++-mode-common-hook #'my-c-mode-hook)
+  (add-hook 'objc-mode-hook #'my-c-mode-hook)
   :config
   (require 'helm-rtags)
   (defun my-c-mode-hook ()
@@ -1548,7 +1645,9 @@ On multi-monitor systems the display spans across all the monitors."
   :ensure nil
   :load-path "~/projects/elisp/ttymenu"
   :commands (ttymenu-display-menus)
-  :config
+  :general
+  (space-leader
+    "l l" 'ttymenu-display-menus)
   (general-define-key
     :keymaps '(ttymenu-mode-map)
     :states '(normal)
@@ -1603,7 +1702,8 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package json-mode)
 (use-package gitignore-mode)
 (use-package coffee-mode)
-(use-package pug-mode)
+(use-package pug-mode
+  :mode "\\.jade\\'")
 (use-package stylus-mode)
 (use-package markdown-mode)
 
@@ -1775,10 +1875,150 @@ On multi-monitor systems the display spans across all the monitors."
     "k" '2048-up
     "l" '2048-right))
 
+
+(with-eval-after-load 'gnus
+  (add-hook 'gnus-group-mode-hook #'gnus-topic-mode)
+  (general-define-key
+    :keymaps '(gnus-group-mode-map
+               gnus-summary-mode-map
+               gnus-article-mode-map)
+    "j" 'evil-next-line
+    "k" 'evil-previous-line))
+
 ;; Eldoc, use in elisp buffers
 (global-eldoc-mode -1)
 (add-hook 'lisp-interaction-mode-hook (lambda ()(eldoc-mode 1)))
 (add-hook 'emacs-lisp-mode-hook (lambda ()(eldoc-mode 1)))
+
+
+(use-package swift-mode)
+(use-package apples-mode
+  :mode ("\\.\\(applescri\\|sc\\)pt\\'" . apples-mode))
+(use-package flycheck-swift
+  :after swift-mode)
+
+(use-package ejira
+  :load-path "~/projects/elisp/ejira"
+  :after (org general helm)
+  :defines (ejira-sprint-agenda)
+  :ensure nil
+  :defer nil
+  :init
+  (setq ejira-done-states                      '("Done")
+        ejira-in-progress-states               '("In Progress" "In Review" "Testing")
+        ejira-high-priorities                  '("High" "Highest")
+        ejira-low-priorities                   '("Low" "Lowest")
+        ejira-coding-system                    'utf-8
+
+        epa-pinentry-mode                      'loopback
+        org-tags-column                        -100
+        org-clock-history-length               23
+        org-agenda-restore-windows-after-quit  t
+        org-clock-in-resume                    t
+        org-drawers                            '("PROPERTIES" "LOGBOOK")
+        org-clock-into-drawer                  t
+        org-clock-out-remove-zero-time-clocks  t
+        org-clock-out-when-done                t
+        org-clock-persist                      t
+        org-clock-persist-query-resume         nil
+        org-clock-auto-clock-resolution        'when-no-clock-is-running
+        org-clock-report-include-clocking-task t
+        org-time-stamp-rounding-minutes        '(1 1)
+
+        my-org-clock-title-length              10
+        org-indirect-buffer-display            'other-window
+
+        org-agenda-files                       '("~/projects/org")
+        org-refile-targets                     '((nil              :maxlevel . 9)
+                                                 (org-agenda-files :maxlevel . 9))
+
+        org-use-fast-todo-selection t)
+
+  :config
+  (require 'ejira)
+  (require 'org-agenda)
+  (org-add-agenda-custom-command ejira-sprint-agenda)
+
+  (defun my-guess-sprint-number ()
+    "Guess the sprint number based on week number (assumes one week sprints)."
+    (number-to-string (+ (string-to-number (format-time-string "%W")) 48)))
+
+  (defun my-remove-empty-drawer-on-clock-out ()
+    "Remove empty LOGBOOK drawers on clock out."
+    (interactive)
+    (save-excursion
+      (beginning-of-line 0)
+      (org-remove-empty-drawer-at (point))))
+
+  (add-hook 'org-clock-out-hook 'my-remove-empty-drawer-on-clock-out 'append)
+  (add-hook 'org-mode-hook #'org-indent-mode)
+  :general
+  (space-leader
+    "j j"   'ejira-goto-issue
+    "o j j" 'ejira-focus-on-clocked-issue)
+  (space-leader
+    :keymaps '(org-mode-map)
+    "o j c" 'ejira-add-comment
+    "o j a" 'ejira-assign-issue
+    "o j u" 'ejira-update-current-issue
+    "o j n" 'ejira-focus-on-current-issue
+    "o j p" 'ejira-progress-current-issue)
+
+  ;; Some eviliation for agenda mode.
+  (with-eval-after-load 'org-agenda
+    (general-define-key
+      :keymaps '(org-agenda-mode-map)
+      "j"     'evil-next-line
+      "k"     'evil-previous-line
+      "g"     nil
+      "g g"   'evil-goto-first-line
+      "g r"   'org-agenda-redo-all
+      "G"     'evil-goto-line)))
+
+(use-package helm-ejira
+  :load-path "~/projects/elisp/ejira"
+  :ensure nil
+  :after ejira
+  :general
+  (space-leader
+    "J"     'helm-ejira
+    "K"     'helm-ejira-sprint))
+
+(use-package ejira-hourmarking
+  :load-path "~/projects/elisp/ejira"
+  :ensure nil
+  :general
+  (general-define-key
+    :states '(normal)
+    :keymaps '(ejira-hourlog-mode-map)
+    "q" 'ejira-hourlog-quit)
+  (space-leader
+    "o j h" 'ejira-hourmarking-get-hourlog))
+
+
+(use-package org-clock-convenience
+  :ensure t
+  :after (helm-ejira)
+  :bind
+  (:map org-agenda-mode-map
+        ("<S-up>" . org-clock-convenience-timestamp-up)
+        ("<S-down>" . org-clock-convenience-timestamp-down)
+        ("F" . org-clock-convenience-fill-gap-both)))
+
+(use-package org-clock-csv
+  :config
+  (defun my-row-format (plist)
+    (mapconcat #'identity
+                 `(,(plist-get plist ':start)
+                   ,(plist-get plist ':end)
+                   ,(plist-get plist ':key)
+                   ,(org-clock-csv--escape (plist-get plist ':task)))
+               ","))
+
+  (setq org-clock-csv-header "start,end,key,task"
+        org-clock-csv-row-fmt #'my-row-format))
+
+
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
