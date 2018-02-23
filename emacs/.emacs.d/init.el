@@ -661,6 +661,13 @@ user can manually override it to use the correct ones."
   (setq jedi:doc-display-buffer 'my-jedi-show-doc
         jedi:tooltip-method     nil
         jedi:use-shortcuts      t)
+
+  (when (executable-find "ipython")
+    (setq python-shell-interpreter      "ipython"
+          python-shell-interpreter-args (concat "--simple-prompt "
+                                                "--no-banner "
+                                                "-i --no-confirm-exit "
+                                                "--colors=NoColor")))
   :general
   (general-define-key
     :states '(insert)
@@ -694,11 +701,16 @@ user can manually override it to use the correct ones."
     "p t"   'my-run-unittests
     "m f"   'python-mark-defun
     "e"     'my-python-send-region-or-buffer)
+  (general-define-key
+    :states '(normal)
+    :keymaps '(python-mode-map realgud-mode-map)
+    "M-."  'elpy-goto-definition
+    "M-,"  'xref-pop-marker-stack)
 
-  :bind
-  (:map python-mode-map
-        ("M-." . elpy-goto-definition)
-        ("M-," . xref-pop-marker-stack))
+  ;; :bind
+  ;; (:map python-mode-map
+  ;;       ("M-." . elpy-goto-definition)
+  ;;       ("M-," . xref-pop-marker-stack))
   :config
   (elpy-enable)
 
@@ -861,42 +873,120 @@ the command to run the tests with."
             (error "Not inside a class"))
           (evil-range cls-begin (point) type :expanded t)))))
 
+  (defun my-mark-inner-arg ()
+    (interactive)
+    (re-search-backward "[(,]")
+    (evil-forward-char)
+    (when (looking-at-p " ")
+      (evil-forward-char))
+    (when (looking-at-p "\n")
+      (evil-next-line-first-non-blank))
+    (set-mark (point))
+    (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
+                               "\\|([^=:)(]*)\\)?[),]"))
+    (evil-backward-char))
+
+  (defun my-mark-a-arg ()
+    (interactive)
+    (re-search-backward "[(,]")
+    (evil-forward-char)
+    (when (looking-at-p " ")
+      (evil-forward-char))
+    (when (looking-at-p "\n")
+      (evil-next-line-first-non-blank))
+    (set-mark (point))
+    (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
+                               "\\|([^=:)(]*)\\)?[),]"))
+    (evil-backward-char)
+    (if (looking-at-p ")")
+        (progn
+          (exchange-point-and-mark)
+          (re-search-backward "[(,]")
+          (when (looking-at-p "(")
+            (evil-forward-char)))
+      (evil-forward-char))
+    (when (looking-at-p " ")
+      (evil-forward-char)))
+
   (evil-define-text-object my-python-inner-arg (count &optional beg end type)
+    (interactive)
     (save-excursion
-      (re-search-backward "[(,]")
-      (evil-forward-char)
-      (when (looking-at-p " ")
-        (evil-forward-char))
-      (when (looking-at-p "\n")
-        (evil-next-line-first-non-blank))
-      (set-mark (point))
-      (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
-                                 "\\|([^=:)(]*)\\)?[),]"))
-      (evil-backward-char)
+      (my-mark-inner-arg)
       (evil-range (region-beginning) (region-end) type :expanded t)))
 
   (evil-define-text-object my-python-a-arg (count &optional beg end type)
+    (interactive)
     (save-excursion
-      (re-search-backward "[(,]")
-      (evil-forward-char)
-      (when (looking-at-p " ")
-        (evil-forward-char))
-      (when (looking-at-p "\n")
-        (evil-next-line-first-non-blank))
-      (set-mark (point))
-      (re-search-forward (concat "\\(" re-dbl-quote-str "\\|" re-sgl-quote-str
-                                 "\\|([^=:)(]*)\\)?[),]"))
-      (evil-backward-char)
-      (if (looking-at-p ")")
-          (progn
-            (exchange-point-and-mark)
-            (re-search-backward "[(,]")
-            (when (looking-at-p "(")
-              (evil-forward-char)))
-        (evil-forward-char))
-      (when (looking-at-p " ")
-        (evil-forward-char))
+      (my-mark-a-arg)
       (evil-range (region-beginning) (region-end) type :expanded t)))
+
+
+  (defun my-shift-arg-forwards ()
+    (interactive)
+    (let ((pos (point)))
+      (let (b1 b2 e1 e2)
+        (my-mark-inner-arg)
+        (setq e1 (point-marker))
+        (exchange-point-and-mark)
+        (setq b1 (point-marker))
+        (exchange-point-and-mark)
+
+        (deactivate-mark)
+
+        (unless (looking-at ",")
+          (goto-char pos)
+          (error "Last argument"))
+
+        (forward-word)
+        (my-mark-inner-arg)
+        (setq e2 (point-marker))
+        (exchange-point-and-mark)
+        (setq b2 (point-marker))
+        (exchange-point-and-mark)
+
+        (deactivate-mark)
+
+        (evil-exchange--do-swap (current-buffer) (current-buffer)
+                                b2 e2 b1 e1
+                                #'delete-and-extract-region #'insert
+                                nil))))
+
+  (defun my-shift-arg-backwards ()
+    (interactive)
+    (let ((pos (point)))
+      (let (b1 b2 e1 e2)
+        (my-mark-inner-arg)
+        (setq e1 (point-marker))
+        (exchange-point-and-mark)
+        (setq b1 (point-marker))
+
+        (deactivate-mark)
+
+        (backward-char)
+        (backward-char)
+
+        (unless (looking-at ",")
+          (goto-char pos)
+          (error "First argument"))
+
+        (my-mark-inner-arg)
+        (setq e2 (point-marker))
+        (exchange-point-and-mark)
+        (setq b2 (point-marker))
+        (exchange-point-and-mark)
+
+        (deactivate-mark)
+
+        (evil-exchange--do-swap (current-buffer) (current-buffer)
+                                b2 e2 b1 e1
+                                #'delete-and-extract-region #'insert
+                                nil))))
+
+  (space-leader
+    :keymaps '(python-mode-map)
+    "C->" 'my-shift-arg-forwards
+    "C-<" 'my-shift-arg-backwards
+    )
 
   (define-key evil-inner-text-objects-map "f" 'my-python-inner-function)
   (define-key evil-outer-text-objects-map "f" 'my-python-a-function)
@@ -1125,6 +1215,7 @@ Uses `current-buffer` or BUFFER."
   (setq safe-local-variable-values
         '((projectile-project-test-cmd . "pytest test.py")
           (projectile-project-test-cmd . "pytest")
+          (projectile-project-compilation-cmd . "make")
           (projectile-project-compilation-cmd . "make -j8")
           (projectile-project-compilation-cmd . "make -j8 && make install")))
 
@@ -1553,6 +1644,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :commands (my-c-mode-hook)
   :init
   (setq rtags-use-helm                 t
+        rtags-display-result-backend   'helm
         rtags-enable-unsaved-reparsing t
         rtags-rc-log-enabled           t) ; Set to t to enable logging
   (setq-default c-basic-offset         4)
@@ -1614,6 +1706,11 @@ If module name differs from MODE, a custom one can be given with MODULE."
                    (flycheck-check-syntax-automatically . nil))
 
   :general
+  (general-define-key
+    :states '(normal insert visual)
+    :keymaps '(c++-mode-map c-mode-map)
+    "M-." 'rtags-find-symbol-at-point
+    "M-," 'rtags-location-stack-back)
   (space-leader
     :keymaps '(c++-mode-map c-mode-map)
     "p d"   'rtags-find-symbol-at-point
@@ -1641,21 +1738,75 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (setq-mode-local c-mode
                    (company-backends . '((company-irony)))))
 
-(use-package ttymenu
+(use-package lunchtime
   :ensure nil
-  :load-path "~/projects/elisp/ttymenu"
-  :commands (ttymenu-display-menus)
+  :load-path "~/projects/elisp/lunchtime"
+  :commands (lunchtime-display-menus)
+  :config
+
+  ;; TTY
+  (lunchtime-define-restaurant
+   "https://api.ruoka.xyz/%Y-%m-%d"
+   (mapcar
+    (lambda (restaurant)
+      `((name . ,(assoc-recursive restaurant 'name))
+        (subrestaurants
+         .
+         ,(mapcar
+           (lambda (subrestaurant)
+             `((name . ,(assoc-recursive subrestaurant 'name))
+               (menus . ,(mapcar
+                          (lambda (meal)
+                            `((name . ,(assoc-recursive meal 'name))
+                              (prices . ,(assoc-recursive meal 'prices))
+                              (menu . ,(mapcar
+                                        (lambda (part)
+                                          (assoc-recursive part 'name))
+                                        (assoc-recursive meal 'contents)))))
+                          (assoc-recursive subrestaurant 'meals)))))
+           (assoc-recursive restaurant 'menus)))))
+
+    (assoc-recursive lunchtime-response-data 'restaurants)))
+
+  ;; Hermia 6
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/9870/%Y/%m/%d/en"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (,(assoc-recursive item 'title_fi)))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+
+  ;; Hermia 5
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/134/%Y/%m/%d/en"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (,(assoc-recursive item 'title_fi)))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+  
   :general
   (space-leader
-    "l l" 'ttymenu-display-menus)
+    "l l" 'lunchtime-display-menus)
   (general-define-key
-    :keymaps '(ttymenu-mode-map)
+    :keymaps '(lunchtime-mode-map)
     :states '(normal)
-    "l" 'ttymenu-next-day
-    "h" 'ttymenu-previous-day
-    "j" 'ttymenu-next-restaurant
-    "k" 'ttymenu-previous-restaurant
-    "q" 'ttymenu-close))
+    "l" 'lunchtime-next-day
+    "h" 'lunchtime-previous-day
+    "j" 'lunchtime-next-restaurant
+    "k" 'lunchtime-previous-restaurant
+    "q" 'lunchtime-close))
 
 (use-package dired
   :ensure nil
@@ -1941,7 +2092,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
   (defun my-guess-sprint-number ()
     "Guess the sprint number based on week number (assumes one week sprints)."
-    (number-to-string (+ (string-to-number (format-time-string "%W")) 48)))
+    (number-to-string (+ (string-to-number (format-time-string "%W")) 47)))
 
   (defun my-remove-empty-drawer-on-clock-out ()
     "Remove empty LOGBOOK drawers on clock out."
@@ -2019,6 +2170,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
         org-clock-csv-row-fmt #'my-row-format))
 
 
+(use-package jinja2-mode)
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
