@@ -438,6 +438,13 @@ user can manually override it to use the correct ones."
         evil-want-C-u-scroll t
         evil-want-C-i-jump   t)
   :config
+
+  ;; Unbind M-. and M-, for use with xref
+  (general-define-key
+    :keymaps '(evil-normal-state-map)
+    "M-." nil
+    "M-," nil)
+
   ;; Make escape quit everything, whenever possible.
   (general-define-key
     :keymaps '(evil-normal-state-map evil-visual-state-map)
@@ -560,6 +567,12 @@ user can manually override it to use the correct ones."
   (:map company-active-map
         ("C-j" . company-select-next)
         ("C-k" . company-select-previous)))
+
+(use-package company-childframe
+  :disabled t  ;; Not ready yet for everyday use.
+  :after 'company
+  :config
+  (company-childframe-mode -1))
 
 (use-package company-quickhelp
   :after company
@@ -1223,6 +1236,9 @@ Uses `current-buffer` or BUFFER."
         projectile-enable-caching    t
         projectile-use-git-grep      t)
   :config
+  (projectile-register-project-type 'python '(".python")
+                                    :compile "python setup.py bdist_wheel"
+                                    :test "python test.py")
   (projectile-mode)
   (append-to-list projectile-globally-ignored-directories
                   '(".git" "venv" "build" "dist"))
@@ -1405,6 +1421,22 @@ On multi-monitor systems the display spans across all the monitors."
   (define-key evil-inner-text-objects-map "D" 'my-python-inner-docstring)
   (define-key evil-outer-text-objects-map "D" 'my-python-a-docstring))
 
+(use-package evil-args
+  :after 'evil
+  :config
+
+  ;; bind evil-args text objects
+  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
+
+  ;; bind evil-forward/backward-args
+  (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  (define-key evil-normal-state-map "H" 'evil-backward-arg)
+  (define-key evil-motion-state-map "L" 'evil-forward-arg)
+  (define-key evil-motion-state-map "H" 'evil-backward-arg)
+
+  ;; bind evil-jump-out-args
+  (define-key evil-normal-state-map "K" 'evil-jump-out-args))
 
 ;; Evilify some modes not evilified by evil.
 (defmacro evilify (mode &optional module)
@@ -1414,17 +1446,12 @@ If module name differs from MODE, a custom one can be given with MODULE."
      (require ',(intern (concat "evil-collection-" (symbol-name mode))))
      (,(intern (concat "evil-collection-" (symbol-name mode) "-setup")))))
 
-
-;; TODO: Does not work for some reason
 (evilify package-menu package)
 
 (evilify compile)
 (evilify calendar)
 (evilify rtags)
 
-;; (require 'company-childframe)
-;; (company-childframe-enable)
-;; (setq company-childframe-child-frame nil)
 
 (use-package smartparens
   :diminish smartparens-mode
@@ -1599,44 +1626,44 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
 
-(use-package eclim
-  :defines (company-emacs-eclim-ignore-case
-            eclim-print-debug-messages
-            help-at-pt-timer-delay)
-  :init
-  (setq eclimd-executable               (concat "/Applications/Eclipse.app/"
-                                                "Contents/Eclipse/eclimd")
-        eclim-executable                (concat "/Applications/Eclipse.app/"
-                                                "Contents/Eclipse/eclim")
-        eclimd-default-workspace        "~/Documents/workspace"
-        help-at-pt-display-when-idle    t
-        company-emacs-eclim-ignore-case nil
-        eclim-print-debug-messages      nil ; Set to t to enable logging
-        help-at-pt-timer-delay          0.1)
+;; (use-package eclim
+;;   :defines (company-emacs-eclim-ignore-case
+;;             eclim-print-debug-messages
+;;             help-at-pt-timer-delay)
+;;   :init
+;;   (setq eclimd-executable               (concat "/Applications/Eclipse.app/"
+;;                                                 "Contents/Eclipse/eclimd")
+;;         eclim-executable                (concat "/Applications/Eclipse.app/"
+;;                                                 "Contents/Eclipse/eclim")
+;;         eclimd-default-workspace        "~/Documents/workspace"
+;;         help-at-pt-display-when-idle    t
+;;         company-emacs-eclim-ignore-case nil
+;;         eclim-print-debug-messages      nil ; Set to t to enable logging
+;;         help-at-pt-timer-delay          0.1)
   (setq-mode-local java-mode
                    (indent-tabs-mode . nil)
                    (tab-width        . 4)
-                   (company-backends . '((company-emacs-eclim))))
+                   (company-backends . '((company-lsp))))
 
-  (defun my-java-compile (arg)
-    (interactive "P")
-    (let ((compilation-read-command arg))
-      (call-interactively 'projectile-compile-project)))
+;;   (defun my-java-compile (arg)
+;;     (interactive "P")
+;;     (let ((compilation-read-command arg))
+;;       (call-interactively 'projectile-compile-project)))
 
-  (defun my-java-hook ()
-    (help-at-pt-set-timer)
-    (eclim-mode))
-  (add-hook 'java-mode-hook #'my-java-hook)
-  :general
-  (space-leader
-    :keymaps '(java-mode-map)
-    "p c"   'my-java-compile
-    "p d"   'eclim-java-find-declaration
-    "p r f" 'eclim-problems-correct
-    "p r r" 'eclim-java-refactor-rename-symbol-at-point))
+;;   (defun my-java-hook ()
+;;     (help-at-pt-set-timer)
+;;     (eclim-mode))
+;;   (add-hook 'java-mode-hook #'my-java-hook)
+;;   :general
+;;   (space-leader
+;;     :keymaps '(java-mode-map)
+;;     "p c"   'my-java-compile
+;;     "p d"   'eclim-java-find-declaration
+;;     "p r f" 'eclim-problems-correct
+;;     "p r r" 'eclim-java-refactor-rename-symbol-at-point))
 
-(use-package company-emacs-eclim
-  :after eclim)
+;; (use-package company-emacs-eclim
+;;   :after eclim)
 
 (use-package rtags
   :functions (my-c-mode-hook)
@@ -1931,7 +1958,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :after magit
   :diminish git-gutter-mode
   :config
-  (global-git-gutter-mode 1)
+  (global-git-gutter-mode +1)
 
   (set-face-attribute 'git-gutter:deleted nil
                       :height 10
@@ -1962,12 +1989,12 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package js2-mode
   :mode "\\.js\\'"
   :init
-  (setq js-indent-level               2
+  (setq js-indent-level               4
         js2-mode-show-parse-errors    nil
         js2-mode-show-strict-warnings nil)
   (setq-mode-local js2-mode
                    (indent-tabs-mode . nil)
-                   (tab-width        . 2)
+                   (tab-width        . 4)
                    (company-backends . '((company-tern))))
   (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)
   :general
@@ -1994,6 +2021,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "C-<" 'js2r-forward-barf))
 
 (use-package ag)
+(message "tes")
 
 (use-package tern
   :after js2-mode
@@ -2012,8 +2040,11 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :init
   (setq xref-show-xrefs-function 'helm-xref-show-xrefs))
 
+
 (use-package company-tern
-  :after js2-mode)
+  :after js2-mode
+  :config
+  (use-package tern))
 
 ;; Some fun, with vim bindings ofc.
 (use-package 2048-game
@@ -2038,8 +2069,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 ;; Eldoc, use in elisp buffers
 (global-eldoc-mode -1)
-(add-hook 'lisp-interaction-mode-hook (lambda ()(eldoc-mode 1)))
-(add-hook 'emacs-lisp-mode-hook (lambda ()(eldoc-mode 1)))
+(add-hook 'lisp-interaction-mode-hook (lambda () (eldoc-mode 1)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (eldoc-mode 1)))
 
 
 (use-package swift-mode)
@@ -2169,6 +2200,27 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (setq org-clock-csv-header "start,end,key,task"
         org-clock-csv-row-fmt #'my-row-format))
 
+(use-package org-bullets
+  :after 'org
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+(use-package org-fancy-priorities
+  :hook
+  (org-mode . org-fancy-priorities-mode)
+  :config
+  (setq org-fancy-priorities-list '("⬆" " " "⬇")
+        org-priority-faces        '((?A . (:foreground "red" :weight "bold"))
+                                    (?B . (:foreground "yellow"))
+                                    (?C . (:foreground "green")))))
+
+(use-package lsp-intellij
+  :ensure nil
+  :load-path "~/projects/git/github/intellij-lsp-server")
+
+(use-package company-lsp
+  :init
+  (add-hook 'prog-major-mode #'lsp-prog-major-mode-enable))
 
 (use-package jinja2-mode)
 
