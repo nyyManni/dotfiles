@@ -2,7 +2,7 @@
 
 # enable num-lock on boot and finnish keymap
 numlockx &
-setxkbmap "fi"
+setxkbmap "us"
 
 # Set up custom keybindings
 xbindkeys
