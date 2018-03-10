@@ -1,14 +1,4 @@
 
-! keycode  66 = CapsLock
-! keycode  37 = Control_L NoSymbol Control_L
-! keycode 133 = Super_L NoSymbol Super_L
-! keycode  64 = Alt_L Meta_L Alt_L Meta_L
-! keycode 108 = ISO_Level3_Shift NoSymbol ISO_Level3_Shift
-! keycode 108 = Alt_R Meta_R Alt_R Meta_R
-! keycode 134 = Super_R NoSymbol Super_R
-! keycode 135 = Menu
-! keycode 105 = Control_R NoSymbol Control_R
-
 ! First clear all modifiers, caps lock & control
 clear lock
 clear control
@@ -18,7 +8,15 @@ clear mod4
 ! Then set new values for keycodes
 
 ! Caps Lock is Alt Gr
-keycode 66 = ISO_Level3_Shift NoSymbol ISO_Level3_Shift
+! Caps Lock is Escape
+keycode 66 = Escape NoSymbol Escape
+! < is also left shift (mimic US layout)
+keycode 94 = Shift_L NoSymbol Shift_L
+
+! Swap backslash and enter (mimic US layout)
+keycode 51 = Return NoSymbol Return
+keycode 36 = backslash bar  backslash bar 
+
 
 ! Bottom Row
 keycode 37  = Alt_L Meta_L
@@ -37,11 +35,3 @@ keycode 105 = ISO_Level3_Shift NoSymbol ISO_Level3_Shift
 add mod1    = Alt_R Alt_L Meta_R Meta_L
 add mod4    = Super_R Super_L Menu
 add control = Control_R Control_L
-
-! Map ¤ -> $
-keycode 13 = 4 dollar 4 currency dollar guillemotleft currency
-
-! Disable dead keys
-keycode  21 = acute grave acute grave cedilla ogonek cedilla ogonek acute grave cedilla ogonek
-keycode  35 = diaeresis asciicircum diaeresis asciicircum asciitilde macron asciitilde macron diaeresis asciicircum asciitilde macron
-keycode  51 = apostrophe asterisk apostrophe asterisk caron breve caron breve apostrophe asterisk caron breve
