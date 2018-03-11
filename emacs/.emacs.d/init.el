@@ -1076,7 +1076,11 @@ Uses `current-buffer` or BUFFER."
   ;; Set the line-length for autopep to something large so that it
   ;; does not touch too long lines, it usually cannot fix them properly
   (setq py-autopep8-options '("--max-line-length=200"))
-  (add-hook 'python-mode-hook #'py-autopep8-enable-on-save))
+  (add-hook 'python-mode-hook #'py-autopep8-enable-on-save)
+  :general
+  (space-leader
+    :keymaps '(python-mode-map)
+    "p f" 'py-autopep8-buffer))
 
 (use-package py-yapf
   :disabled t
@@ -1483,7 +1487,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :defines (org-export-async-init-file)
   :init
   (setq org-export-async-init-file (concat user-emacs-directory
-                                           "/org-async-init.el"))
+                                           "/org-async-init.el")
+        org-confirm-babel-evaluate nil)
   (add-hook 'org-mode-hook #'my-org-mode-hook)
   :config
   (defun my-org-pdf-async ()
@@ -2225,10 +2230,10 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :hook
   (org-mode . org-fancy-priorities-mode)
   :config
-  (setq org-fancy-priorities-list '("⬆" " " "⬇")
-        org-priority-faces        '((?A . (:foreground "red" :weight "bold"))
-                                    (?B . (:foreground "yellow"))
-                                    (?C . (:foreground "green")))))
+  (setq org-fancy-priorities-list '("⬆" "-" "⬇")
+        org-priority-faces        '((?A . (:foreground "#c23127" :weight "bold"))
+                                    (?B . (:foreground "#d26937"))
+                                    (?C . (:foreground "#2aa889")))))
 
 (use-package lsp-intellij
   :ensure nil
@@ -2239,6 +2244,20 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'prog-major-mode #'lsp-prog-major-mode-enable))
 
 (use-package jinja2-mode)
+(use-package yaml-mode)
+
+(use-package clang-format
+  :config
+  (defun my-clang-format-region-or-buffer ()
+    "Format active region, or the whole buffer if no region is active."
+    (interactive)
+    (if (region-active-p)
+        (call-interactively #'clang-format-region)
+      (clang-format-buffer)))
+  :general
+  (space-leader
+    :keymaps '(c++-mode-map c-mode-map objc-mode-map)
+    "p f" 'my-clang-format-region-or-buffer))
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
