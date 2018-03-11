@@ -78,6 +78,9 @@
               comint-process-echoes        t)
 
 
+;; Required by evil-collection to be set before loading evil.
+(setq evil-want-integration nil)
+
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   (setq exec-path                          (append exec-path '("/usr/local/bin"))
@@ -121,6 +124,10 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+(unless (package-installed-p 'diminish)
+  (package-refresh-contents)
+  (package-install 'diminish))
 
 
 (eval-when-compile
@@ -1117,8 +1124,11 @@ Uses `current-buffer` or BUFFER."
 (use-package hlinum
   :config
   (hlinum-activate)
-  (add-hook 'prog-mode-hook (lambda () (setq display-line-numbers t)))
-  (add-hook 'prog-mode-hook (lambda () (setq show-fill-column-indicator t)))
+  (require 'show-fill-column-indicator)
+  (require 'display-line-numbers)
+
+  (add-hook 'prog-mode-hook #'show-fill-column-indicator-mode)
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
   (remove-hook 'post-command-hook 'hlinum-highlight-region)
   (set-face-attribute 'line-number-current-line nil
@@ -1446,11 +1456,14 @@ If module name differs from MODE, a custom one can be given with MODULE."
      (require ',(intern (concat "evil-collection-" (symbol-name mode))))
      (,(intern (concat "evil-collection-" (symbol-name mode) "-setup")))))
 
-(evilify package-menu package)
+(use-package evil-collection
+  :after evil
+  :config
+  (evilify package-menu package)
 
-(evilify compile)
-(evilify calendar)
-(evilify rtags)
+  (evilify compile)
+  (evilify calendar)
+  (evilify rtags))
 
 
 (use-package smartparens
@@ -1681,9 +1694,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'c++-mode-common-hook #'my-c-mode-hook)
   (add-hook 'objc-mode-hook #'my-c-mode-hook)
   :config
-  (require 'helm-rtags)
+  (use-package helm-rtags)
+  (use-package flycheck-rtags)
   (defun my-c-mode-hook ()
-    (require 'flycheck-rtags)
     (flycheck-select-checker 'rtags))
 
   (defun my-rtags-switch-to-project ()
@@ -1955,10 +1968,10 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package cmake-mode)
 
 (use-package git-gutter
-  :after magit
   :diminish git-gutter-mode
+  :hook
+  (prog-mode . git-gutter-mode)
   :config
-  (global-git-gutter-mode +1)
 
   (set-face-attribute 'git-gutter:deleted nil
                       :height 10
@@ -2079,6 +2092,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package flycheck-swift
   :after swift-mode)
 
+(use-package request)
+(use-package ox-jira)
+(use-package language-detection)
 (use-package ejira
   :load-path "~/projects/elisp/ejira"
   :after (org general helm)
