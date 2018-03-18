@@ -2295,6 +2295,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 
 (use-package editorconfig
+  :diminish editorconfig-mode
   :config
   (editorconfig-mode 1))
 
