@@ -3,7 +3,7 @@
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
-;; Modified   : 24 Jul 2017
+;; Modified   : 18 Mar 2018
 ;; Version    : 1.0
 
 ;; The MIT License
