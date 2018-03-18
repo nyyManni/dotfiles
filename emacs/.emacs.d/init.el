@@ -1876,6 +1876,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package dired
   :ensure nil
+  :init
+  (setq wdired-allow-to-change-permissions t)
   :general
   (space-leader
     :keymaps '(dired-mode-map)
