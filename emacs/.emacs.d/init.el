@@ -1467,6 +1467,10 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
   (evilify compile)
   (evilify calendar)
+  (evilify dired)
+
+  ;; Do not use space for dired-next-line
+  (general-define-key :keymaps '(dired-mode-map) :states '(normal) "SPC" nil)
   (evilify rtags))
 
 
