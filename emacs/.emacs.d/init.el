@@ -1243,8 +1243,21 @@ Uses `current-buffer` or BUFFER."
         '((projectile-project-test-cmd . "pytest test.py")
           (projectile-project-test-cmd . "pytest")
           (projectile-project-compilation-cmd . "make")
+          (projectile-project-compilation-cmd . "make ergodox_ez-allsp-nyymanni-all")
           (projectile-project-compilation-cmd . "make -j8")
           (projectile-project-compilation-cmd . "make -j8 && make install")))
+
+  ;; Parse shell color escape codes in  compilation buffer.
+  (require 'ansi-color)
+  (defun endless/colorize-compilation ()
+    "Colorize from `compilation-filter-start' to `point'."
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region
+       compilation-filter-start (point))))
+
+  (add-hook 'compilation-filter-hook
+    #'endless/colorize-compilation)
+
 
   (setq projectile-completion-system 'default
         projectile-enable-caching    t
