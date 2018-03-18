@@ -2158,6 +2158,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :general
   (space-leader
     "j j"   'ejira-goto-issue
+    "o j l" 'ejira-insert-link-to-current-issue
     "o j j" 'ejira-focus-on-clocked-issue)
   (space-leader
     :keymaps '(org-mode-map)
