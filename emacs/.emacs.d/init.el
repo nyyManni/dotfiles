@@ -78,6 +78,10 @@
               comint-process-echoes        t)
 
 
+(when window-system
+  ;; Allow me to accidentally hit C-x C-c when using graphical Emacs.
+  (setq confirm-kill-emacs 'y-or-n-p))
+
 ;; Required by evil-collection to be set before loading evil.
 (setq evil-want-integration nil)
 
