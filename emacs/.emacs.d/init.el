@@ -2259,6 +2259,22 @@ If module name differs from MODE, a custom one can be given with MODULE."
     :keymaps '(c++-mode-map c-mode-map objc-mode-map)
     "p f" 'my-clang-format-region-or-buffer))
 
+(use-package web-beautify
+  :config
+  ;; Set e4x support on.
+  (setq web-beautify-args '("-f" "-" "-X"))
+
+  (defun my-js-format-region-or-buffer ()
+    "Format active region, or the whole buffer if no region is active."
+    (interactive)
+    (if (region-active-p)
+        (call-interactively #'web-beautify-js)
+      (web-beautify-js-buffer)))
+  :general
+  (space-leader
+    :keymaps '(rjsx-mode-map js2-mode-map)
+    "p f" 'my-js-format-region-or-buffer))
+
 
 (use-package editorconfig
   :config
