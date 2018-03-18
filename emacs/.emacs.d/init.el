@@ -2259,6 +2259,11 @@ If module name differs from MODE, a custom one can be given with MODULE."
     :keymaps '(c++-mode-map c-mode-map objc-mode-map)
     "p f" 'my-clang-format-region-or-buffer))
 
+
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
