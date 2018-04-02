@@ -2304,6 +2304,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (org-mode . org-bullets-mode))
 
 (use-package org-fancy-priorities
+  :diminish org-fancy-priorities-mode
   :hook
   (org-mode . org-fancy-priorities-mode)
   :config
