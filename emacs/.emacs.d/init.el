@@ -2358,6 +2358,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :config
   (editorconfig-mode 1))
 
+(use-package opencl-mode)
+(use-package csharp-mode)
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
