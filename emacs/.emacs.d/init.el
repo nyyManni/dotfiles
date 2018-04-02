@@ -1754,44 +1754,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
 
-;; (use-package eclim
-;;   :defines (company-emacs-eclim-ignore-case
-;;             eclim-print-debug-messages
-;;             help-at-pt-timer-delay)
 ;;   :init
-;;   (setq eclimd-executable               (concat "/Applications/Eclipse.app/"
-;;                                                 "Contents/Eclipse/eclimd")
-;;         eclim-executable                (concat "/Applications/Eclipse.app/"
-;;                                                 "Contents/Eclipse/eclim")
-;;         eclimd-default-workspace        "~/Documents/workspace"
-;;         help-at-pt-display-when-idle    t
-;;         company-emacs-eclim-ignore-case nil
-;;         eclim-print-debug-messages      nil ; Set to t to enable logging
-;;         help-at-pt-timer-delay          0.1)
-  (setq-mode-local java-mode
-                   (indent-tabs-mode . nil)
-                   (tab-width        . 4)
-                   (company-backends . '((company-lsp))))
-
-;;   (defun my-java-compile (arg)
-;;     (interactive "P")
-;;     (let ((compilation-read-command arg))
-;;       (call-interactively 'projectile-compile-project)))
-
-;;   (defun my-java-hook ()
-;;     (help-at-pt-set-timer)
-;;     (eclim-mode))
-;;   (add-hook 'java-mode-hook #'my-java-hook)
-;;   :general
-;;   (space-leader
-;;     :keymaps '(java-mode-map)
-;;     "p c"   'my-java-compile
-;;     "p d"   'eclim-java-find-declaration
-;;     "p r f" 'eclim-problems-correct
-;;     "p r r" 'eclim-java-refactor-rename-symbol-at-point))
-
-;; (use-package company-emacs-eclim
-;;   :after eclim)
 
 (use-package rtags
   :functions (my-c-mode-hook)
