@@ -1,5 +1,5 @@
 ;; init.el --- Emacs configuration
-;; Copyright (c) 2016 - 2017 Henrik Nyman
+;; Copyright (c) 2016 - 2018 Henrik Nyman
 
 ;; Author     : Henrik Nyman <henrikjohannesnyman@gmail.com>
 ;; Created    : 10 Aug 2016
@@ -214,16 +214,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 Allows for setting mode-local variables like:
    (setq-mode-local mode-name
-                    (variable  . value)
-                    (variable2 . value2)
+                    variable  value
+                    variable2 value2
                      ...
-                    (variableN . valueN))"
-  ;; TODO: use make-symbol for arg.
-  `(add-hook ',(intern (concat (symbol-name mode) "-hook"))
-     (lambda ()
-       ,@(mapcar
-          #'(lambda (arg) `(set (make-local-variable ',(car arg)) ,(cdr arg)))
-          args))))
+                    variableN valueN)"
+  (let (l
+        (hook-fn-name (concat "setq-mode-local-" (symbol-name mode) "-hook")))
+    (while args
+      (when (equal (length args) 1)
+        (error "Invalid arguments to setq-mode-local"))
+      (let* ((symbol (pop args))
+             (value (pop args)))
+        (add-to-list 'l `(set (make-local-variable ',symbol) ,value) t)))
+    `(progn
+       (defun ,(intern hook-fn-name) () ,@l)
+       (add-hook
+         ',(intern (concat (symbol-name mode) "-hook"))
+         #',(intern hook-fn-name)))))
 
 (defun is-current-file-tramp ()
   "Check if the file is a remote tramp file."
@@ -1456,6 +1463,7 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package evil-args
   :after 'evil
   :config
+  ;; TODO: Use general and :general
 
   ;; bind evil-args text objects
   (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
@@ -1680,11 +1688,13 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
     ;; Enable the new eshell prompt
     (setq eshell-prompt-function 'esh-prompt-func)
+
+
   ;; bug#18951: complete-at-point removes an asterisk when it tries to
   ;;            complete. Disable idle completion until resolved.
   (setq-mode-local eshell-mode
-                   (company-idle-delay . nil)
-                   (company-backends   . '((company-shell company-capf))))
+                   company-idle-delay nil
+                   company-backends   '((company-shell company-capf)))
 
   (defun my-eshell-history ()
     (interactive)
@@ -1754,7 +1764,14 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'eshell-mode-hook #'my-eshell-hook))
 
 
+;; (use-package java
+;;   :ensure nil
 ;;   :init
+;;   (setq-mode-local java-mode
+;;                    indent-tabs-mode nil
+;;                    tab-width        4
+;;                    company-backends '((company-lsp))))
+
 
 (use-package rtags
   :functions (my-c-mode-hook)
@@ -1812,16 +1829,17 @@ If module name differs from MODE, a custom one can be given with MODULE."
       (call-interactively 'projectile-compile-project)))
 
   (setq-mode-local c++-mode
-                   (indent-tabs-mode                    . nil)
-                   (tab-width                           . 4)
-                   (flycheck-highlighting-mode          . nil)
-                   (flycheck-check-syntax-automatically . nil)
-                   (company-backends                    . '((company-rtags))))
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   flycheck-highlighting-mode          nil
+                   flycheck-check-syntax-automatically nil
+                   company-backends                    '((company-rtags company-irony)))
   (setq-mode-local c-mode
-                   (indent-tabs-mode                    . nil)
-                   (tab-width                           . 4)
-                   (flycheck-highlighting-mode          . nil)
-                   (flycheck-check-syntax-automatically . nil))
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   flycheck-highlighting-mode          nil
+                   company-backends                    '((company-rtags company-irony))
+                   flycheck-check-syntax-automatically nil)
 
   :general
   (general-define-key
@@ -1849,12 +1867,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
 (use-package company-irony
-  :after 'irony
-  :config
-  (setq-mode-local c++-mode
-                   (company-backends . '((company-irony))))
-  (setq-mode-local c-mode
-                   (company-backends . '((company-irony)))))
+  :after 'irony)
 
 (use-package lunchtime
   :ensure nil
@@ -2086,9 +2099,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
         js2-mode-show-parse-errors    nil
         js2-mode-show-strict-warnings nil)
   (setq-mode-local js2-mode
-                   (indent-tabs-mode . nil)
-                   (tab-width        . 4)
-                   (company-backends . '((company-tern))))
+                   indent-tabs-mode nil
+                   tab-width        4
+                   company-backends '((company-tern)))
   (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)
   :general
   (space-leader
@@ -2361,6 +2374,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package opencl-mode)
 (use-package csharp-mode)
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
