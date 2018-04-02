@@ -813,6 +813,7 @@ the command to run the tests with."
   (evil-define-text-object my-python-a-function (count &optional beg end type)
     :type line
     (save-excursion
+      (end-of-line)
       (re-search-backward "^\\([[:space:]]*\\)def[[:space:]]+")
       (let ((defun-begin (point)))
 
