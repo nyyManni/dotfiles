@@ -2300,8 +2300,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package org-bullets
   :after 'org
-  :config
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  :hook
+  (org-mode . org-bullets-mode))
 
 (use-package org-fancy-priorities
   :hook
