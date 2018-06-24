@@ -64,7 +64,8 @@
 
       initial-scratch-message              ""
       ad-redefinition-action               'accept
-      backup-directory-alist               '(("." . "~/.emacs.d/backups"))
+      backup-directory-alist               '(("." . "~/.emacs.d/backups/"))
+
       auto-save-file-name-transforms       '((".*" "~/.emacs.d/auto-save-list" t))
       delete-old-versions                  -1
       version-control                      t
@@ -123,7 +124,7 @@
 ;; Setup use-package
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-(package-initialize)
+;; (package-initialize)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -132,7 +133,6 @@
 (unless (package-installed-p 'diminish)
   (package-refresh-contents)
   (package-install 'diminish))
-
 
 (eval-when-compile
   (require 'use-package)
@@ -409,6 +409,11 @@ user can manually override it to use the correct ones."
 
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
 
+  (defun my-org-compile (arg)
+    (interactive "P")
+    (let ((compilation-read-command arg))
+      (call-interactively 'projectile-compile-project)))
+
   :general
   (general-define-key
     :keymaps '(org-agenda-mode-map)
@@ -417,8 +422,16 @@ user can manually override it to use the correct ones."
     "SPC" nil)
 
   (space-leader
+    :keymaps '(bibtex-mode-map)
+    "i" 'org-ref-clean-bibtex-entry)
+
+  (space-leader
     :keymaps '(org-mode-map)
     "o t c" 'org-table-create
+    "o C"   'org-ref-helm-insert-cite-link
+    "o L"   'org-ref-helm-insert-label-link
+    "o R"   'org-ref-helm-insert-ref-link
+    "p c"   'my-org-compile
 
     ;; Task management keybindings.
     "o t i" 'org-clock-in
@@ -482,6 +495,11 @@ user can manually override it to use the correct ones."
     (general-define-key
       :keymaps '(evil-motion-state-map evil-normal-state-map)
       key nil))
+
+  (global-set-key (kbd "<left>") 'evil-window-decrease-width)
+  (global-set-key (kbd "<right>") 'evil-window-increase-width)
+  (global-set-key (kbd "<down>") 'evil-window-decrease-height)
+  (global-set-key (kbd "<up>") 'evil-window-increase-height)
 
   ;; Disable arrow key movement
   (dolist (key '("<left>" "<right>" "<up>" "<down>"))
@@ -1080,7 +1098,14 @@ Uses `current-buffer` or BUFFER."
   :after python
   :commands (pyvenv-tracking-mode)
   :init
-  (add-hook 'python-mode-hook #'pyvenv-tracking-mode))
+  (add-hook 'python-mode-hook #'pyvenv-tracking-mode)
+  :config
+  (setq eshell-modify-global-environment t)
+  (defun my-post-venv-hook ()
+    (setq eshell-path-env (mapconcat 'identity exec-path ":")))
+
+  (add-hook 'pyvenv-post-activate-hooks #'my-post-venv-hook)
+  (add-hook 'pyvenv-post-deactivate-hooks #'my-post-venv-hook))
 
 (use-package py-autopep8
   :commands (py-autopep8-enable-on-save)
@@ -1242,6 +1267,7 @@ Uses `current-buffer` or BUFFER."
   :general
   (space-leader
     ";" 'helm-find-files))
+
 
 (use-package projectile
   ;; :after helm
@@ -1494,6 +1520,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (evilify compile)
   (evilify calendar)
   (evilify dired)
+  (evilify doc-view)
 
   ;; (evilify term)
 
@@ -1597,6 +1624,15 @@ If module name differs from MODE, a custom one can be given with MODULE."
         pcomplete-cycle-completions   nil)
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
+
+  (defun my-eshell/clear ()
+    "Clear `eshell' buffer, comint-style."
+    (interactive)
+    (let ((input (eshell-get-old-input)))
+      (eshell/clear-scrollback)
+      (eshell-emit-prompt)
+      (insert input)))
+
   :general
   (space-leader
     :keymaps '(eshell-mode-map)
@@ -1657,12 +1693,14 @@ If module name differs from MODE, a custom one can be given with MODULE."
                '(:foreground "gold" :bold ultra-bold :underline t))
 
   (esh-section esh-git
+
                ;; "\xe907"  ;  (git icon)
                "⎇"
                (magit-get-current-branch)
                `(:foreground ,(face-foreground font-lock-type-face)))
 
   (esh-section esh-python
+
                "\xe928"  ;  (python icon)
                pyvenv-virtual-env-name)
 
@@ -1710,6 +1748,11 @@ If module name differs from MODE, a custom one can be given with MODULE."
       :keymaps '(eshell-mode-map)
       :prefix "SPC"
       "h" 'my-eshell-history)
+
+    (general-define-key
+      :keymaps '(eshell-mode-map)
+      :states '(insert normal visual)
+      "C-l" 'my-eshell/clear)
     (general-define-key
       :keymaps 'eshell-mode-map
       "C-S-q" 'my-quit-eshell)
@@ -1774,6 +1817,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 
 (use-package rtags
+  :disabled t
   :functions (my-c-mode-hook)
   :defines (rtags-use-helm)
   :commands (my-c-mode-hook)
@@ -1833,12 +1877,12 @@ If module name differs from MODE, a custom one can be given with MODULE."
                    tab-width                           4
                    flycheck-highlighting-mode          nil
                    flycheck-check-syntax-automatically nil
-                   company-backends                    '((company-rtags company-irony)))
+                   company-backends                    '((company-capf)))
   (setq-mode-local c-mode
                    indent-tabs-mode                    nil
                    tab-width                           4
                    flycheck-highlighting-mode          nil
-                   company-backends                    '((company-rtags company-irony))
+                   company-backends                    '((company-capf))
                    flycheck-check-syntax-automatically nil)
 
   :general
@@ -1860,6 +1904,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "m f"   'c-mark-function))
 
 (use-package irony
+  :disabled t
   :init
   (add-hook 'c++-mode-hook 'irony-mode)
   (add-hook 'c-mode-hook 'irony-mode)
@@ -1867,6 +1912,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
 (use-package company-irony
+  :disabled t
   :after 'irony)
 
 (use-package lunchtime
@@ -1926,7 +1972,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
                         (prices . (,(assoc-recursive item 'price)))
                         (menu . (,(assoc-recursive item 'title_fi)))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
-  
+
   :general
   (space-leader
     "l l" 'lunchtime-display-menus)
@@ -1942,7 +1988,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package dired
   :ensure nil
   :init
-  (setq wdired-allow-to-change-permissions t)
+  (setq wdired-allow-to-change-permissions t
+        dired-dwim-target                  t)
+
   :general
   (space-leader
     :keymaps '(dired-mode-map)
@@ -1987,7 +2035,14 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package gitignore-mode)
 (use-package coffee-mode)
 (use-package pug-mode
-  :mode "\\.jade\\'")
+  :mode "\\.jade\\'"
+  :config
+
+  ;; Disable pug-electric-backspace, it's nasty.
+  (general-define-key
+    :keymaps '(pug-mode-map)
+    "<backspace>" nil))
+
 (use-package stylus-mode)
 (use-package markdown-mode)
 
@@ -2098,10 +2153,10 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (setq js-indent-level               4
         js2-mode-show-parse-errors    nil
         js2-mode-show-strict-warnings nil)
-  (setq-mode-local js2-mode
-                   indent-tabs-mode nil
-                   tab-width        4
-                   company-backends '((company-tern)))
+  ;; (setq-mode-local js2-mode
+  ;;                  indent-tabs-mode nil
+  ;;                  tab-width        4
+  ;;                  company-backends '((company-tern)))
   (add-hook 'js2-mode-hook #'js2-imenu-extras-mode)
   :general
   (space-leader
@@ -2127,9 +2182,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "C-<" 'js2r-forward-barf))
 
 (use-package ag)
-(message "tes")
 
 (use-package tern
+  :disabled t
   :after js2-mode
   :init
   (add-hook 'js2-mode-hook #'tern-mode))
@@ -2148,6 +2203,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 
 (use-package company-tern
+  :disabled t
   :after js2-mode
   :config
   (use-package tern))
@@ -2195,13 +2251,13 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :ensure nil
   :defer nil
   :init
-  (setq ejira-done-states                      '("Done")
+  (setq ejira-done-states                      '("Resolved" "Done")
         ejira-in-progress-states               '("In Progress" "In Review" "Testing")
         ejira-high-priorities                  '("High" "Highest")
         ejira-low-priorities                   '("Low" "Lowest")
         ejira-coding-system                    'utf-8
 
-        epa-pinentry-mode                      'loopback
+        epg-pinentry-mode                      'loopback
         org-tags-column                        -100
         org-clock-history-length               23
         org-agenda-restore-windows-after-quit  t
@@ -2231,8 +2287,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (org-add-agenda-custom-command ejira-sprint-agenda)
 
   (defun my-guess-sprint-number ()
-    "Guess the sprint number based on week number (assumes one week sprints)."
-    (number-to-string (+ (string-to-number (format-time-string "%W")) 47)))
+    "Guess the sprint number based on week number."
+    (let ((week-n (string-to-number (format-time-string "%W"))))
+      (+ (/ week-n ejira-sprint-length) 54)))
 
   (defun my-remove-empty-drawer-on-clock-out ()
     "Remove empty LOGBOOK drawers on clock out."
@@ -2248,6 +2305,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "j j"   'ejira-goto-issue
     "o j l" 'ejira-insert-link-to-current-issue
     "o j j" 'ejira-focus-on-clocked-issue
+    "o j m" 'ejira-mention-user
     "o j U" 'ejira-update-issues-in-active-sprint)
   (space-leader
     :keymaps '(org-mode-map)
@@ -2313,8 +2371,22 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package org-bullets
   :after 'org
-  :hook
-  (org-mode . org-bullets-mode))
+  :init
+  (setq org-bullets-bullet-list '(;;; Large
+                                  "◉"
+                                  "○"
+                                  "✸"
+                                  "◇"
+    ;; ♥ ● ◇ ✚ ✜ ☯ ◆ ♠ ♣ ♦ ☢ ❀ ◆ ◖ ▶
+    ;;; Small
+    ;; ► • ★ ▸
+    ))
+
+  (defun org-bullets-hook ()
+    (org-bullets-mode 1))
+  (add-hook 'org-mode-hook #'org-bullets-hook))
+  ;; :hook
+  ;; (org-mode . org-bullets-mode))
 
 (use-package org-fancy-priorities
   :diminish org-fancy-priorities-mode
@@ -2328,7 +2400,18 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package lsp-intellij
   :ensure nil
-  :load-path "~/projects/git/github/intellij-lsp-server")
+  :load-path "~/projects/git/github/intellij-lsp-server"
+
+  :init
+  (defun my-c-mode-hook ()
+    (lsp-intellij-enable)
+    ;; (lsp-ui-doc-mode 1)
+    (eldoc-mode -1))
+  (add-hook 'java-mode-hook #'my-java-mode-hook)
+  (setq-mode-local java-mode
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   company-backends                    '((company-lsp))))
 
 (use-package company-lsp
   :init
@@ -2375,7 +2458,169 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package opencl-mode)
 (use-package csharp-mode)
 
+
+;; Configure SQL client
+(use-package sql
+  :ensure nil
+  :init
+  (add-hook 'sql-interactive-mode-hook
+    (lambda ()
+      (toggle-truncate-lines t))))
+
+(use-package flycheck-yamllint
+  :after 'flycheck
+  :init
+  (add-hook 'yaml-mode-hook #'flycheck-mode))
+
+(use-package lsp-mode
+  :config
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  ;; (add-hook 'lsp-ui-mode-hook 'lsp-ui-sideline-mode)
+
+  (lsp-define-stdio-client
+   lsp-shell-script-mode
+   "bash"
+   (lambda () default-directory)
+   '("/usr/local/bin/bash-language-server" "start")))
+
+(use-package lsp-ui
+  :after lsp-mode
+  :config
+
+  ;; chunkwm gets confused if the childframe has the same name as the main window
+  (add-to-list 'lsp-ui-doc-frame-parameters
+               '(name . "lsp-ui-doc")))
+
+(use-package cquery
+  :after lsp-mode
+  :defer nil
+  :init
+  (setq cquery-executable "/usr/local/bin/cquery")
+  (defun my-c-mode-hook ()
+    (lsp-cquery-enable)
+    ;; (lsp-ui-doc-mode 1)
+    (eldoc-mode -1))
+  (setq-default c-basic-offset 4)
+  (add-hook 'c-mode-hook #'my-c-mode-hook)
+  (add-hook 'c++-mode-hook #'my-c-mode-hook)
+  (add-hook 'objc-mode-hook #'my-c-mode-hook)
+  (setq-mode-local c++-mode
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   company-backends                    '((company-lsp)))
+  (setq-mode-local c-mode
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   company-backends                    '((company-lsp))
+                   flycheck-check-syntax-automatically nil)
+  (setq-mode-local objc-mode
+                   indent-tabs-mode                    nil
+                   tab-width                           4
+                   company-backends                    '((company-lsp))
+                   flycheck-check-syntax-automatically nil)
+  (space-leader
+    :keymaps '(c-mode-map c++-mode-map objc-mode-map)
+    "p F" 'lsp-ui-sideline-apply-code-actions))
+
+(use-package lsp-javascript-typescript
+  :after lsp-mode
+  :init
+  (defun my-company-transformer (candidates)
+    (let ((completion-ignore-case t))
+      (all-completions (company-grab-symbol) candidates)))
+
+  (defun my-js-hook ()
+    (make-local-variable 'company-transformers)
+    (push 'my-company-transformer company-transformers))
+
+  (add-hook 'js-mode-hook #'lsp-javascript-typescript-enable)
+  (add-hook 'typescript-mode-hook #'lsp-javascript-typescript-enable) ;; for typescript support
+  (add-hook 'typescript-mode-hook #'my-js-hook)
+  (add-hook 'js-mode-hook #'my-js-hook)
+  (add-hook 'js2-mode-hook #'my-js-hook)
+  (add-hook 'js2-mode-hook #'lsp-javascript-typescript-enable) ;; for js3-mode support
+  (add-hook 'js3-mode-hook #'lsp-javascript-typescript-enable) ;; for js3-mode support
+  (add-hook 'rjsx-mode #'lsp-javascript-typescript-enable) ;; for rjsx-mode support
+  (add-hook 'rjsx-mode #'my-js-hook)
+
+  (setq-mode-local js-mode
+                   company-backends '((company-lsp)))
+  (setq-mode-local js2-mode
+                   company-backends '((company-lsp)))
+  (setq-mode-local js3-mode
+                   company-backends '((company-lsp)))
+  (setq-mode-local rjsx-mode
+                   company-backends '((company-lsp))))
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
 ;;; init.el ends here
+;; (custom-set-faces
+;;   '(org-level-1 ((t (:inherit outline-1 :height 1.0))))
+;;   '(org-level-2 ((t (:inherit outline-2 :height 1.0))))
+;;   '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
+;;   '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
+;;   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+;; )
+
+;; (defmacro setq-mode-local2 (modes &rest args)
+;;   "Add a hook to MODES and set mode-local values for ARGS.
+
+;; Allows for setting mode-local variables like:
+;;    (setq-mode-local mode-name
+;;                     variable  value
+;;                     variable2 value2
+;;                      ...
+;;                     variableN valueN)"
+;;   (mapcar (lambda (mode)
+;;             (let (l
+;;                   (hook-fn-name (concat "setq-mode-local-" (symbol-name mode) "-hook")))
+;;               (while args
+;;                 (when (equal (length args) 1)
+;;                   (error "Invalid arguments to setq-mode-local"))
+;;                 (let* ((symbol (pop args))
+;;                        (value (pop args)))
+;;                   (add-to-list 'l `(set (make-local-variable ',symbol) ,value) t)))
+;;               `(progn
+;;                  (defun ,(intern hook-fn-name) () ,@l)
+;;                  (add-hook
+;;                    ',(intern (concat (symbol-name mode) "-hook"))
+;;                    #',(intern hook-fn-name)))))
+;;           (if (listp modes) modes '(modes))
+          
+;;           ))
+
+;; (macroexpand-1
+;;  (setq-mode-local2 c---mode
+;;                    test "ftest"
+;;                    test2 "sdfs"
+;;                 ))
+;; (dolist (msg '("test")) (when msg (message msg)))
+
+;; (setq bibtex-file-path "/Users/hnyman/tty/thesis")
+;; (setq bibtex-files '("/Users/hnyman/tty/thesis/thesis.bib" "./thesis.bib"))
+
+(use-package ispell
+  :ensure nil
+  :init
+  (setq ispell-program-name "hunspell")
+  (setq ispell-local-dictionary "en_US")
+  (setq ispell-local-dictionary-alist
+        '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil nil nil utf-8))))
+
+(flycheck-define-checker proselint
+  "A linter for prose."
+  :command ("proselint" source-inplace)
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column ": "
+	    (id (one-or-more (not (any " "))))
+	    (message) line-end))
+  :modes (text-mode markdown-mode org-mode))
+
+(add-to-list 'flycheck-checkers 'proselint)
+
+(use-package plantuml-mode
+  :init
+  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  (setq org-plantuml-jar-path "/usr/local/Cellar/plantuml/1.2018.6/libexec/plantuml.jar"))
