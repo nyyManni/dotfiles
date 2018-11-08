@@ -84,7 +84,9 @@
   (setq confirm-kill-emacs 'y-or-n-p))
 
 ;; Required by evil-collection to be set before loading evil.
-(setq evil-want-integration nil)
+(setq evil-want-integration t
+      evil-want-keybinding  nil)
+
 
 ;; OS X specific settings
 (when (eq system-type 'darwin)
@@ -100,22 +102,27 @@
         mouse-wheel-progressive-speed      nil)
 
   ;; Environment variables
-  (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
+  (setenv "PATH" (concat "/usr/local/bin:/usr/local/opt/texinfo/bin:"
+                         "/usr/local/texlive/2018/bin/x86_64-darwin:/usr/bin:"
+                         "/bin:/usr/sbin:/sbin:/Users/hnyman/bin:"
+                         "/Users/hnyman/.cargo/bin"))
+  ;; (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
   (setenv "SHELL" "/bin/zsh")
   (setenv "LC_CTYPE" "UTF-8")
   (setenv "LC_ALL" "en_US.UTF-8")
   (setenv "LANG" "en_US.UTF-8")
 
   ;; Transparent frames. On Linux the same is achieved with compton.
-  (defun set-frame-unfocused ()
-    (set-frame-parameter (selected-frame) 'alpha '(85 85)))
-  (defun set-frame-focused ()
-    (set-frame-parameter (selected-frame) 'alpha '(90 90)))
+  ;; (defun set-frame-unfocused ()
+  ;;   (set-frame-parameter (selected-frame) 'alpha '(85 85)))
+  ;; (defun set-frame-focused ()
+  ;;   (set-frame-parameter (selected-frame) 'alpha '(90 90)))
 
-  (add-hook 'focus-in-hook #'set-frame-focused)
-  (add-hook 'focus-out-hook #'set-frame-unfocused)
-  (set-frame-focused)
-  (add-to-list 'default-frame-alist '(alpha 90 90)))
+  ;; ;; (remove-hook 'focus-in-hook #'set-frame-focused)
+  ;; ;; (remove-hook 'focus-out-hook #'set-frame-unfocused)
+  ;; (set-frame-focused)
+  ;; (add-to-list 'default-frame-alist '(alpha 100 100))
+  )
 
 
 ;; Enable disabled commands
@@ -407,6 +414,10 @@ user can manually override it to use the correct ones."
   :defines org-capture-templates
   :init
 
+  (setq org-goto-interface 'outline-path-completionp
+        org-outline-path-complete-in-steps nil)
+  (setf org-highlight-latex-and-related '(latex))
+
   (add-hook 'org-capture-mode-hook 'evil-insert-state)
 
   (defun my-org-compile (arg)
@@ -555,7 +566,8 @@ user can manually override it to use the correct ones."
     "Y" 'evil-yank-line-end)
 
   (evil-set-initial-state 'term-mode 'emacs)
-  (evil-mode 1))
+  (evil-mode 1)
+  (evil-select-search-module 'evil-search-module 'evil-search))
 
 (use-package key-chord
   :after general
@@ -616,7 +628,7 @@ user can manually override it to use the correct ones."
   (use-package tips
     :ensure nil
     :commands (tips-tooltip-at-point)
-    :load-path "~/projects/elisp/tips")
+    :load-path "~/.emacs.d/lisp/tips")
 
   :config
   ;; Remove all of the formatting in manual pages for eshell.
@@ -702,8 +714,10 @@ user can manually override it to use the correct ones."
     "[ e" 'flycheck-previous-error
     "] e" 'flycheck-next-error))
 
+
 (use-package elpy
   :mode ("\\.py\\'" . python-mode)
+  :disabled t
   :init
   (add-hook 'python-mode-hook (lambda () (elpy-mode 1)))
 
@@ -1049,7 +1063,8 @@ the command to run the tests with."
 
 (use-package realgud-pydev
   :ensure nil
-  :load-path "~/projects/git/hnyman/pydev-client"
+  :disabled t
+  :load-path "~/projects/github/pydev-client"
   :init
   (setq realgud-safe-mode nil)
   :config
@@ -1085,10 +1100,6 @@ Uses `current-buffer` or BUFFER."
     "p b r" 'realgud:pydev-current-file
     "p b m" 'realgud:pydev-module
     "p b q" 'pydev-reset))
-
-(use-package debian-changelog-mode
-  :ensure nil
-  :load-path "~/projects/elisp/debian-changelog-mode")
 
 
 (use-package jedi-core
@@ -1280,6 +1291,8 @@ Uses `current-buffer` or BUFFER."
   (setq safe-local-variable-values
         '((projectile-project-test-cmd . "pytest test.py")
           (projectile-project-test-cmd . "pytest")
+          (c-basic-offset . 2)
+          (c-basic-offset . 4)
           (projectile-project-compilation-cmd . "make")
           (projectile-project-compilation-cmd . "make ergodox_ez-allsp-nyymanni-all")
           (projectile-project-compilation-cmd . "make -j8")
@@ -1306,7 +1319,10 @@ Uses `current-buffer` or BUFFER."
                                     :test "python test.py")
   (projectile-mode)
   (append-to-list projectile-globally-ignored-directories
-                  '(".git" "venv" "build" "dist"))
+                  '(".git" "venv" "build" "dist" ".cquery_cached_index" ".tox"
+                    "__pycache__"))
+  (append-to-list projectile-globally-ignored-directories
+                  '(".cquery_cached_index"))
   (append-to-list projectile-globally-ignored-file-suffixes
                   '("pyc" "jpeg" "jpg" "png"))
   (append-to-list projectile-globally-ignored-files
@@ -1522,6 +1538,15 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (evilify dired)
   (evilify doc-view)
 
+  ;; initialize pdf-tools, maybe move somewhere else
+  (pdf-tools-install)
+  (evilify pdf pdf-view)
+
+  (general-define-key
+    :keymaps '(pdf-view-mode-map)
+    :states '(normal insert emacs)
+    "SPC" nil)
+
   ;; (evilify term)
 
   ;; Do not use space for dired-next-line
@@ -1623,6 +1648,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
         eshell-cmpl-cycle-completions nil
         pcomplete-cycle-completions   nil)
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
+  (add-hook 'eshell-mode-hook 'auto-complete-mode)
 
 
   (defun my-eshell/clear ()
@@ -1634,13 +1660,15 @@ If module name differs from MODE, a custom one can be given with MODULE."
       (insert input)))
 
   :general
-  (space-leader
-    :keymaps '(eshell-mode-map)
-    "h" 'helm-eshell-history)
   :config
   (require 'dash)
   (require 's)
   (require 'pyvenv)
+  (require 'magit)
+  (require 'general)
+  ;; (space-leader
+  ;;   :keymaps '(eshell-mode-map)
+  ;;   "h" 'helm-eshell-history)
 
   (defmacro with-face (STR &rest PROPS)
     "Return STR propertized with PROPS."
@@ -1688,20 +1716,20 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 
   (esh-section esh-dir
-               "\xf07c"  ;  (faicon folder)
+               ;; "\xf07c"  ;  (faicon folder)
+
+               ""
+               ;; ""
                (abbreviate-file-name (eshell/pwd))
                '(:foreground "gold" :bold ultra-bold :underline t))
 
   (esh-section esh-git
-
-               ;; "\xe907"  ;  (git icon)
-               "⎇"
+               ""
                (magit-get-current-branch)
                `(:foreground ,(face-foreground font-lock-type-face)))
 
   (esh-section esh-python
-
-               "\xe928"  ;  (python icon)
+               ""
                pyvenv-virtual-env-name)
 
   (esh-section esh-clock
@@ -1717,7 +1745,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
                 (lambda (&rest args) (setq esh-prompt-num (incf esh-prompt-num))))
 
     (esh-section esh-num
-                 "\xf0c9"  ;  (list icon)
+                 ""
                  (number-to-string esh-prompt-num)
                  '(:foreground "brown"))
 
@@ -1799,12 +1827,20 @@ If module name differs from MODE, a custom one can be given with MODULE."
     (eshell-bol)
     (evil-insert-state t)))
 
+(use-package esh-help
+  :after eshell
+  :hook
+  (eshell-mode . eldoc-mode)
+  :config
+  (setup-esh-help-eldoc))
+
 (use-package company-shell
   :after eshell
   :config
 
   (add-hook 'eshell-mode-hook #'company-mode)
-  (add-hook 'eshell-mode-hook #'my-eshell-hook))
+  ;; (add-hook 'eshell-mode-hook #'my-eshell-hook)
+  )
 
 
 ;; (use-package java
@@ -1917,7 +1953,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package lunchtime
   :ensure nil
-  :load-path "~/projects/elisp/lunchtime"
+  :load-path "~/.emacs.d/lisp/lunchtime"
   :commands (lunchtime-display-menus)
   :config
 
@@ -1956,7 +1992,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
                     (lambda (item)
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
-                        (menu . (,(assoc-recursive item 'title_fi)))))
+                        (menu . (,(assoc-recursive item 'title_en)))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 
   ;; Hermia 5
@@ -1970,7 +2006,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
                     (lambda (item)
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
-                        (menu . (,(assoc-recursive item 'title_fi)))))
+                        (menu . (,(assoc-recursive item 'title_en)))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 
   :general
@@ -1979,6 +2015,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (general-define-key
     :keymaps '(lunchtime-mode-map)
     :states '(normal)
+    "o" 'delete-other-windows
     "l" 'lunchtime-next-day
     "h" 'lunchtime-previous-day
     "j" 'lunchtime-next-restaurant
@@ -1999,6 +2036,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package compilation
   :ensure nil
   :after helm
+  :config
+  (setq compilation-scroll-output 'first-error)
   :general
   (general-define-key
     :keymaps '(compilation-mode-map)
@@ -2100,6 +2139,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
         pdf-info-epdfinfo-program          "/usr/local/bin/epdfinfo"))
 
 (use-package zoom-frm
+  :disabled t
   :init
   (define-key ctl-x-map [(control ?+)] 'zoom-in/out)
   (define-key ctl-x-map [(control ?-)] 'zoom-in/out)
@@ -2117,6 +2157,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package git-gutter
   :diminish git-gutter-mode
+  :disabled t
   :hook
   (prog-mode . git-gutter-mode)
   :config
@@ -2245,7 +2286,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package ox-jira)
 (use-package language-detection)
 (use-package ejira
-  :load-path "~/projects/elisp/ejira"
+  :load-path "~/.emacs.d/lisp/ejira"
   :after (org general helm)
   :defines (ejira-sprint-agenda)
   :ensure nil
@@ -2256,6 +2297,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
         ejira-high-priorities                  '("High" "Highest")
         ejira-low-priorities                   '("Low" "Lowest")
         ejira-coding-system                    'utf-8
+        ejira-jira-to-org-process-underscores  nil
 
         epg-pinentry-mode                      'loopback
         org-tags-column                        -100
@@ -2275,11 +2317,11 @@ If module name differs from MODE, a custom one can be given with MODULE."
         my-org-clock-title-length              10
         org-indirect-buffer-display            'other-window
 
-        org-agenda-files                       '("~/projects/org")
+        org-agenda-files                       '("~/org")
         org-refile-targets                     '((nil              :maxlevel . 9)
                                                  (org-agenda-files :maxlevel . 9))
 
-        org-use-fast-todo-selection t)
+        org-use-fast-todo-selection            t)
 
   :config
   (require 'ejira)
@@ -2311,6 +2353,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     :keymaps '(org-mode-map)
     "o j c" 'ejira-add-comment
     "o j a" 'ejira-assign-issue
+    "o j P" 'ejira-push-issue-under-point
     "o j u" 'ejira-update-current-issue
     "o j n" 'ejira-focus-on-current-issue
     "o j p" 'ejira-progress-current-issue)
@@ -2327,7 +2370,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
       "G"     'evil-goto-line)))
 
 (use-package helm-ejira
-  :load-path "~/projects/elisp/ejira"
+  :load-path "~/.emacs.d/lisp/ejira"
   :ensure nil
   :after ejira
   :general
@@ -2336,7 +2379,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "K"     'helm-ejira-sprint))
 
 (use-package ejira-hourmarking
-  :load-path "~/projects/elisp/ejira"
+  :load-path "~/.emacs.d/lisp/ejira"
   :ensure nil
   :general
   (general-define-key
@@ -2399,11 +2442,12 @@ If module name differs from MODE, a custom one can be given with MODULE."
                                     (?C . (:foreground "#2aa889")))))
 
 (use-package lsp-intellij
-  :ensure nil
-  :load-path "~/projects/git/github/intellij-lsp-server"
+  :disabled t
+  ;; :ensure nil
+  ;; :load-path "~/.emacs.d/lisp/lsp-intellij"
 
   :init
-  (defun my-c-mode-hook ()
+  (defun my-java-mode-hook ()
     (lsp-intellij-enable)
     ;; (lsp-ui-doc-mode 1)
     (eldoc-mode -1))
@@ -2412,6 +2456,31 @@ If module name differs from MODE, a custom one can be given with MODULE."
                    indent-tabs-mode                    nil
                    tab-width                           4
                    company-backends                    '((company-lsp))))
+
+
+(use-package lsp-python
+  :hook (python-mode . lsp-python-enable)
+  :config
+  (defun my-python-change-venv ()
+    "Switches to a new virtualenv, and reloads flycheck and company."
+    (interactive)
+    (call-interactively 'pyvenv-workon)
+    (when (eq major-mode 'python-mode)
+      ;; Reset flycheck and company to new venv.
+      (flycheck-buffer)
+      (pyvenv-restart-python)))
+  (defun my-python-send-region-or-buffer ()
+    "Send buffer contents to an inferior Python process."
+    (interactive)
+    (if (evil-visual-state-p)
+        (let ((r (evil-visual-range)))
+          (python-shell-send-region (car r) (cadr r)))
+      (python-shell-send-buffer t)))
+  :general
+  (space-leader
+    :keymaps '(python-mode-map)
+    "p r"   'run-python
+    "p v"   'my-python-change-venv))
 
 (use-package company-lsp
   :init
@@ -2475,6 +2544,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package lsp-mode
   :config
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  ;; (defun disable-lsp-doc ()
+  ;;   (lsp-ui-doc-mode 1))
+  ;; (add-hook 'lsp-ui-mode-hook #'disable-lsp-doc)
   ;; (add-hook 'lsp-ui-mode-hook 'lsp-ui-sideline-mode)
 
   (lsp-define-stdio-client
@@ -2491,31 +2563,50 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (add-to-list 'lsp-ui-doc-frame-parameters
                '(name . "lsp-ui-doc")))
 
+(use-package ccls
+  :after lsp-mode
+  :commands lsp-ccls-enable
+  :init
+  (defun +ccls/enable ()
+    (condition-case nil
+        (lsp-ccls-enable)
+      (user-error nil)))
+  (setq ccls-executable "/Users/hnyman/projects/github/ccls/Release/ccls")
+  (add-hook 'c-mode-hook #'+ccls/enable)
+  (add-hook 'c++-mode-hook #'+ccls/enable)
+  (add-hook 'objc-mode-hook #'+ccls/enable)
+  (add-hook 'cuda-mode-hook #'+ccls/enable)
+  )
+
+
+
 (use-package cquery
   :after lsp-mode
+  :disabled t
   :defer nil
   :init
   (setq cquery-executable "/usr/local/bin/cquery")
   (defun my-c-mode-hook ()
     (lsp-cquery-enable)
     ;; (lsp-ui-doc-mode 1)
-    (eldoc-mode -1))
+    ;; (eldoc-mode -1)
+    )
   (setq-default c-basic-offset 4)
   (add-hook 'c-mode-hook #'my-c-mode-hook)
   (add-hook 'c++-mode-hook #'my-c-mode-hook)
   (add-hook 'objc-mode-hook #'my-c-mode-hook)
   (setq-mode-local c++-mode
                    indent-tabs-mode                    nil
-                   tab-width                           4
+                   ;; tab-width                           4
                    company-backends                    '((company-lsp)))
   (setq-mode-local c-mode
                    indent-tabs-mode                    nil
-                   tab-width                           4
+                   ;; tab-width                           4
                    company-backends                    '((company-lsp))
                    flycheck-check-syntax-automatically nil)
   (setq-mode-local objc-mode
                    indent-tabs-mode                    nil
-                   tab-width                           4
+                   ;; tab-width                           4
                    company-backends                    '((company-lsp))
                    flycheck-check-syntax-automatically nil)
   (space-leader
@@ -2552,6 +2643,26 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (setq-mode-local rjsx-mode
                    company-backends '((company-lsp))))
 
+(use-package rust-mode)
+
+(use-package lsp-rust)
+
+(use-package flycheck-rust)
+
+
+
+(use-package dap-mode
+  :config
+  (require 'dap-python)
+  ;; (require 'dap-java)
+
+  (dap-mode 1)
+  (dap-ui-mode 1)
+
+  )
+
+(use-package lsp-python)
+
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars noruntime unresolved)
 ;; End:
@@ -2566,7 +2677,6 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 ;; (defmacro setq-mode-local2 (modes &rest args)
 ;;   "Add a hook to MODES and set mode-local values for ARGS.
-
 ;; Allows for setting mode-local variables like:
 ;;    (setq-mode-local mode-name
 ;;                     variable  value
@@ -2588,7 +2698,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 ;;                    ',(intern (concat (symbol-name mode) "-hook"))
 ;;                    #',(intern hook-fn-name)))))
 ;;           (if (listp modes) modes '(modes))
-          
+
 ;;           ))
 
 ;; (macroexpand-1
@@ -2623,4 +2733,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
 (use-package plantuml-mode
   :init
   (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
-  (setq org-plantuml-jar-path "/usr/local/Cellar/plantuml/1.2018.6/libexec/plantuml.jar"))
+  (setq org-plantuml-jar-path "/usr/local/Cellar/plantuml/1.2018.7/libexec/plantuml.jar"))
+
+(use-package all-the-icons)
+
+(use-package all-the-icons-dired)
+
