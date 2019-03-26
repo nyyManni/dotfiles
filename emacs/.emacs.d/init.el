@@ -131,7 +131,6 @@
 ;; Setup use-package
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-;; (package-initialize)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -578,6 +577,7 @@ user can manually override it to use the correct ones."
       (general-chord chord) 'evil-normal-state))
   (key-chord-mode t))
 
+
 (use-package which-key
   :after evil
   :diminish which-key-mode
@@ -717,13 +717,22 @@ user can manually override it to use the correct ones."
 
 (use-package elpy
   :mode ("\\.py\\'" . python-mode)
-  :disabled t
+  ;; :disabled t
   :init
   (add-hook 'python-mode-hook (lambda () (elpy-mode 1)))
 
   (setq jedi:doc-display-buffer 'my-jedi-show-doc
         jedi:tooltip-method     nil
         jedi:use-shortcuts      t)
+
+  (setq elpy-modules '(elpy-module-sane-defaults
+                          elpy-module-company
+                          elpy-module-eldoc
+                          ;; elpy-module-flymake
+                          elpy-module-highlight-indentation
+                          elpy-module-pyvenv
+                          elpy-module-yasnippet
+                          elpy-module-django))
 
   (when (executable-find "ipython")
     (setq python-shell-interpreter      "ipython"
@@ -1340,6 +1349,7 @@ Uses `current-buffer` or BUFFER."
     "\""  'helm-projectile))
 
 (use-package windmove
+  :ensure nil
   :config
   (defun my-frame-pos-x (frame)
     "Get the x position of the FRAME on display.
@@ -1567,6 +1577,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
   (show-smartparens-global-mode 1))
 
 (use-package org
+  :ensure nil
   :functions (my-org-mode-hook)
   :defines (org-export-async-init-file)
   :init
@@ -1640,6 +1651,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
     "C-S-q" 'my-quit-shell))
 
 (use-package eshell
+  :ensure nil
   :commands (my-eshell-here)
   :functions (my-eshell-hook)
   :defines (eshell-banner-message eshell-cmpl-cycle-completions)
@@ -1992,7 +2004,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
                     (lambda (item)
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
-                        (menu . (,(assoc-recursive item 'title_en)))))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_en)
+                                    " (" (assoc-recursive item 'properties) ")")))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 
   ;; Hermia 5
@@ -2006,7 +2020,9 @@ If module name differs from MODE, a custom one can be given with MODULE."
                     (lambda (item)
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
-                        (menu . (,(assoc-recursive item 'title_en)))))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_en)
+                                    " (" (assoc-recursive item 'properties) ")")))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 
   :general
@@ -2292,8 +2308,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :ensure nil
   :defer nil
   :init
-  (setq ejira-done-states                      '("Resolved" "Done")
-        ejira-in-progress-states               '("In Progress" "In Review" "Testing")
+  (setq ejira-done-states                      '("Resolved" "Done" "Closed")
+        ejira-in-progress-states               '("In Progress" "In Review" "Testing" "Ready for QA")
         ejira-high-priorities                  '("High" "Highest")
         ejira-low-priorities                   '("Low" "Lowest")
         ejira-coding-system                    'utf-8
@@ -2376,7 +2392,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
   :general
   (space-leader
     "J"     'helm-ejira
-    "K"     'helm-ejira-sprint))
+    "K"     'helm-ejira-sprint
+    "L"     'helm-ejira-assigned))
 
 (use-package ejira-hourmarking
   :load-path "~/.emacs.d/lisp/ejira"
@@ -2460,6 +2477,7 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
 (use-package lsp-python
   :hook (python-mode . lsp-python-enable)
+  :disabled t
   :config
   (defun my-python-change-venv ()
     "Switches to a new virtualenv, and reloads flycheck and company."
@@ -2549,11 +2567,13 @@ If module name differs from MODE, a custom one can be given with MODULE."
   ;; (add-hook 'lsp-ui-mode-hook #'disable-lsp-doc)
   ;; (add-hook 'lsp-ui-mode-hook 'lsp-ui-sideline-mode)
 
-  (lsp-define-stdio-client
-   lsp-shell-script-mode
-   "bash"
-   (lambda () default-directory)
-   '("/usr/local/bin/bash-language-server" "start")))
+  ;; (lsp-define-stdio-client
+  ;;  lsp-shell-script-mode
+  ;;  "bash"
+  ;;  (lambda () default-directory)
+  ;;  '("/usr/local/bin/bash-language-server" "start")))
+  )
+
 
 (use-package lsp-ui
   :after lsp-mode
@@ -2661,12 +2681,8 @@ If module name differs from MODE, a custom one can be given with MODULE."
 
   )
 
-(use-package lsp-python)
+;; (use-package lsp-python)
 
-;; Local Variables:
-;; byte-compile-warnings: (not free-vars noruntime unresolved)
-;; End:
-;;; init.el ends here
 ;; (custom-set-faces
 ;;   '(org-level-1 ((t (:inherit outline-1 :height 1.0))))
 ;;   '(org-level-2 ((t (:inherit outline-2 :height 1.0))))
