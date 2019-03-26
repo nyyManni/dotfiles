@@ -59,6 +59,13 @@ chunkc set focused_border_width          5
 chunkc set focused_border_radius         5
 chunkc set focused_border_skip_floating  0
 
+# enable fading of windows that are not in focus
+chunkc set window_fade_inactive 1
+# the target alpha value for faded windows
+chunkc set window_fade_alpha 0.85
+# the amount of time in seconds the fade should last
+chunkc set window_fade_duration 0.0
+
 #
 # NOTE: specify plugins to load when chunkwm starts.
 #       if chunkc plugin_dir is not set, the absolutepath is necessary.
@@ -83,3 +90,4 @@ chunkc tiling::rule --owner "Microsoft Outlook.*" --name ".*Reminder.*" --state 
 
 # Float finder copy dialogs
 chunkc tiling::rule --name "Copy" --owner "Finder.*" --state float
+

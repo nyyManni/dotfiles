@@ -40,6 +40,9 @@ alt - w : chunkc tiling::window --close
 # Disable macOS dumb-ass cmd-h to hide a window
 cmd - h : :
 
+# Start screensaver on external keyborad
+cmd - f15 : open -a /System/Library/CoreServices/ScreenSaverEngine.app
+
 # focus window
 alt - h : chunkc tiling::window --focus west
 alt - j : chunkc tiling::window --focus south
@@ -80,6 +83,8 @@ shift + alt - right  : chunkc tiling::window --grid-layout 1:2:1:0:1:1
 shift + alt - x : chunkc tiling::window --send-to-desktop $(chunkc get _last_active_desktop)
 shift + alt - z : chunkc tiling::window --send-to-desktop prev
 shift + alt - c : chunkc tiling::window --send-to-desktop next
+shift + alt + ctrl - z : chunkc tiling::window --send-to-monitor prev; chunkc tiling::monitor -f prev
+shift + alt + ctrl - c : chunkc tiling::window --send-to-monitor next; chunkc tiling::monitor -f next
 shift + alt - 1 : chunkc tiling::window --send-to-desktop 1
 shift + alt - 2 : chunkc tiling::window --send-to-desktop 2
 shift + alt - 3 : chunkc tiling::window --send-to-desktop 3
@@ -93,12 +98,12 @@ shift + alt - 9 : chunkc tiling::window --send-to-desktop 9
 # focus monitor
 ctrl + alt - z  : chunkc tiling::monitor -f prev
 ctrl + alt - c  : chunkc tiling::monitor -f next
-ctrl + alt - 1  : chunkc tiling::monitor -f 1
-ctrl + alt - 2  : chunkc tiling::monitor -f 2
-ctrl + alt - 3  : chunkc tiling::monitor -f 3
+# ctrl + alt - 1  : chunkc tiling::monitor -f 1
+# ctrl + alt - 2  : chunkc tiling::monitor -f 2
+# ctrl + alt - 3  : chunkc tiling::monitor -f 3
 
 # send window to monitor and follow focus
-# ctrl + cmd - z  : chunkc tiling::window --send-to-monitor prev; chunkc tiling::monitor -f prev
+# ctrl + cmd - z  : chunkc tiling::window --send-to-monitor prev
 # ctrl + cmd - c  : chunkc tiling::window --send-to-monitor next; chunkc tiling::monitor -f next
 # ctrl + cmd - 1  : chunkc tiling::window --send-to-monitor 1; chunkc tiling::monitor -f 1
 # ctrl + cmd - 2  : chunkc tiling::window --send-to-monitor 2; chunkc tiling::monitor -f 2
@@ -161,6 +166,16 @@ shift + alt - t : chunkc set window_float_next 1
 
 ctrl - right : chunkc tiling::desktop -f next
 ctrl - left : chunkc tiling::desktop -f prev
+
+alt - 1 : chunkc tiling::desktop -f 1
+alt - 2 : chunkc tiling::desktop -f 2
+alt - 3 : chunkc tiling::desktop -f 3
+alt - 4 : chunkc tiling::desktop -f 4
+alt - 5 : chunkc tiling::desktop -f 5
+alt - 6 : chunkc tiling::desktop -f 6
+alt - 7 : chunkc tiling::desktop -f 7
+alt - 8 : chunkc tiling::desktop -f 8
+alt - 9 : chunkc tiling::desktop -f 9
 
 # change layout of desktop
 ctrl + alt - a : chunkc tiling::desktop --layout bsp
