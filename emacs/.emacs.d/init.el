@@ -92,6 +92,7 @@
 
 ;; OS X specific settings
 (when (eq system-type 'darwin)
+  ;; TODO: Fix byte compiler warnings
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
         mac-command-modifier          'meta
@@ -114,9 +115,9 @@
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 
 ;; Default values for configuration that is overridden in the private config.
-(setq my-ejira-projects      '("EJ" "JL2")
-      my-ejira-server         "https://localhost:8080"
-      my-ejira-kanban-boards nil)
+(defvar my-ejira-projects      '("EJ" "JL2"))
+(defvar my-ejira-server        "https://localhost:8080")
+(defvar my-ejira-kanban-boards nil)
 (let ((work-config (concat user-emacs-directory "/work-config.el")))
   (when (file-exists-p work-config)
     (load-file (concat user-emacs-directory "/work-config.el"))))
@@ -160,6 +161,8 @@
 
 (use-package doom-modeline
   :demand
+  :init
+  (setq doom-modeline-height 0)
   :config
   (doom-modeline-mode))
 
@@ -191,6 +194,11 @@
     (other-window 1)
     (apply command args)
     (rename-buffer (concat (symbol-name command) " " name "*"))))
+
+(use-package f
+  :functions (f-dirname))
+(use-package dash-functional
+  :commands (-partial))
 
 (use-package general
   :commands (general-define-key general-chord)
@@ -363,6 +371,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package projectile
   :functions (projectile-register-project-type)
+  :commands (projectile-register-project-type)
   :init
   (setq projectile-completion-system 'default
         projectile-enable-caching    t
@@ -377,6 +386,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :general
   (space-leader
     "G P" 'helm-projectile-ag
+    "G r" 'rgrep
     "'"   'helm-projectile-switch-project
     ":"   'helm-projectile-find-file))
 
@@ -439,6 +449,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (general-define-key
     :keymaps '(evil-normal-sate-map)
     "K" 'evil-jump-out-args))
+
+(use-package ediff
+  :ensure nil
+  :init
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally))
 
 (use-package evil-exchange
   :general
@@ -609,6 +625,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "o t t" 'org-clock-goto
     "o t i" 'org-clock-select-task))
 
+(use-package org-agenda
+  :ensure nil
+  :commands (org-add-agenda-custom-command))
+
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
   :init
@@ -625,6 +645,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package ejira
   :load-path "~/.emacs.d/lisp/ejira"
   :ensure nil
+  :commands (ejira-guess-epic-sprint-fields)
   :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
                                              my-add-ejira-kanban-board)
   :init
@@ -904,6 +925,8 @@ On multi-monitor systems the display spans across all the monitors."
   (setq magit-branch-arguments nil)
   (when (eq system-type 'darwin)
     (setq magit-git-executable "/usr/local/bin/git"))
+  :config
+  (add-hook 'with-editor-mode-hook 'evil-insert-state)
   :general
   (space-leader
     :keymaps 'override
@@ -916,6 +939,7 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package yasnippet
   :functions (yas-reload-all)
+  :commands (yas-reload-all)
   :config
   (setq yas-verbosity          1
         yas-wrap-around-region t)
@@ -945,6 +969,10 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package eshell
   :ensure nil
+  :defines (eshell-banner-message eshell-cmpl-cycle-completions
+            eshell-modify-global-environment eshell-prompt-regexp
+            eshell-prompt-function)
+  :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func)
   :commands (my-eshell-here)
   :init
   (setq eshell-banner-message            ""
@@ -954,8 +982,8 @@ On multi-monitor systems the display spans across all the monitors."
   :config
   (defun my-eshell-here ()
     "Opens up a new shell in the directory associated with the
-  current buffer's file. The eshell is renamed to match that
-  directory to make multiple eshell windows easier."
+current buffer's file. The eshell is renamed to match that
+directory to make multiple eshell windows easier."
     (interactive)
     (my-open-lower-third 'eshell "new"))
 
@@ -968,7 +996,7 @@ On multi-monitor systems the display spans across all the monitors."
     (concat
      "┌─" (eshell/whoami) "@xps13 " (abbreviate-file-name (eshell/pwd)) "\n"
      "└─$ "))
-  (setq eshell-prompt-regexp "└─$ ")   ; or "└─> "
+  (setq eshell-prompt-regexp "└─\\$ ")   ; or "└─> "
   (setq eshell-prompt-function #'esh-prompt-func)
 
   :general
@@ -992,26 +1020,75 @@ On multi-monitor systems the display spans across all the monitors."
   :init
   (setq lsp-prefer-flymake       nil
         lsp-file-watch-threshold 30000
-        lsp-enable-links         nil)
-  :config (require 'lsp-clients))
+        lsp-enable-links         nil
+        lsp-pyls-plugins-pycodestyle-enabled nil)
+  :config (require 'lsp-clients)
+
+
+  ;; Override the default pyls client with one aware of pyvenv library files
+  (eval-after-load "lsp-pyls"
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection
+                       (lambda () lsp-clients-python-command))
+      :major-modes '(python-mode cython-mode)
+      :priority -1
+      :server-id 'pyls
+      :library-folders-fn
+      (lambda (workspace)
+        (let ((b (nth 0 (lsp--workspace-buffers workspace))))
+
+          ;; If there are no buffers yet, we cannot have a library file for this
+          ;; workspace, as we are most likely opening the first project file.
+          (when b
+            (with-current-buffer b
+              (remq nil (list
+                         (pyvenv-workon-home)
+                         "/usr"
+                         pyvenv-activate
+
+                         ;; The python-binary is a symlink if the directory is a
+                         ;; virtual environment. Include the libraries in the
+                         ;; main env as well.
+                         (when pyvenv-activate
+                           (f-parent
+                            (f-parent
+                             (file-truename (f-join pyvenv-activate "bin" "python")))))))))))
+      :initialized-fn (lambda (workspace)
+                        (with-lsp-workspace workspace
+                                            (lsp--set-configuration
+                                             (lsp-configuration-section "pyls"))))))))
 
 (use-package lsp-ui :commands lsp-ui-mode)
 (use-package company-lsp :commands company-lsp)
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 
 ;; C/C++
-(use-package ccls :after lsp-mode)
+(use-package ccls :after lsp-mode
+  :config
+  ;; Override the client definition with library-folder awareness
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection (lambda () (cons ccls-executable ccls-args)))
+    :major-modes '(c-mode c++-mode cuda-mode objc-mode)
+    :server-id 'ccls
+    :multi-root nil
+    :notification-handlers
+    (lsp-ht ("$ccls/publishSkippedRanges" #'ccls--publish-skipped-ranges)
+            ("$ccls/publishSemanticHighlight" #'ccls--publish-semantic-highlight))
+    :initialization-options (lambda () ccls-initialization-options)
+    :library-folders-fn (lambda (_ws) '("/usr" "/opt")))))
 
 ;; Python
 (use-package pyvenv
   :hook (python-mode . pyvenv-tracking-mode)
   :functions (pyvenv-virtualenvwrapper-supported)
+  :commands (pyvenv-virtualenvwrapper-supported)
   :config
 
   ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
   (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest a))))
 
-(use-package lsp-python-ms :after lsp-mode)
 
 (use-package py-autopep8
   :hook (python-mode . py-autopep8-enable-on-save)
@@ -1024,5 +1101,44 @@ On multi-monitor systems the display spans across all the monitors."
   (space-leader
     :keymaps '(python-mode-map)
     "p f" 'py-autopep8-buffer))
+
+(use-package systemd)
+
+(use-package mu4e
+  :ensure nil
+  :init
+  (setq mu4e-maildir        "~/.mail"
+        mu4e-attachment-dir "~/downloads"
+        mu4e-sent-folder    "/sent"
+        mu4e-drafts-folder  "/drafts"
+        mu4e-trash-folder   "/trash"
+        mu4e-refile-folder  "/archive"
+        mu4e-confirm-quit   nil
+
+        ;; Get mail
+        mu4e-get-mail-command             "mbsync protonmail"
+        mu4e-change-filenames-when-moving t
+        mu4e-update-interval              120
+
+        ;; Send mail
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-user         user-mail-address
+        smtpmail-smtp-server       "127.0.0.1"
+        smtpmail-smtp-service      1025)
+
+  :load-path "/usr/share/emacs/site-lisp/mu4e"
+  :general
+  (space-leader
+    :keymaps 'override
+    "M" 'mu4e))
+
+(use-package mu4e-maildirs-extension
+  :after 'mu4e
+  :commands (mu4e-maildirs-extension)
+  :config
+  (mu4e-maildirs-extension))
+
+(use-package mu4e-conversation
+  :after 'mu4e)
 
 ;;; init.el ends here
