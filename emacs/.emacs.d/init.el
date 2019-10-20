@@ -46,12 +46,16 @@
       inhibit-startup-echo-area-message t
       sentence-end-double-space nil
 
+      backup-directory-alist         '(("." . "~/.emacs.d/backups/"))
+      auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t))
+
       custom-file          (concat user-emacs-directory "/customize-ignored.el")
       delete-old-versions  -1
       version-control      t
       vc-make-backup-files t
       tab-width            2
       frame-title-format   '("" "Emacs v" emacs-version))
+(fset 'startup-echo-area-message (lambda () ""))
 
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t)))
 
@@ -1009,12 +1013,17 @@ directory to make multiple eshell windows easier."
 
 (use-package wdired)
 
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
 (use-package lsp-mode
   :hook
   (c-mode      . lsp-deferred)
   (c++-mode    . lsp-deferred)
   (objc-mode   . lsp-deferred)
   (python-mode . lsp-deferred)
+  (rust-mode . lsp-deferred)
   :commands (lsp lsp-deferred)
   :defines (lsp-prefer-flymake lsp-enable-links)
   :init
@@ -1022,9 +1031,8 @@ directory to make multiple eshell windows easier."
         lsp-file-watch-threshold 30000
         lsp-enable-links         nil
         lsp-pyls-plugins-pycodestyle-enabled nil)
-  :config (require 'lsp-clients)
-
-
+  :config
+  (require 'lsp-clients)
   ;; Override the default pyls client with one aware of pyvenv library files
   (eval-after-load "lsp-pyls"
     (lsp-register-client
@@ -1089,7 +1097,6 @@ directory to make multiple eshell windows easier."
   ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
   (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest a))))
 
-
 (use-package py-autopep8
   :hook (python-mode . py-autopep8-enable-on-save)
   :defines (py-autopep8-options)
@@ -1101,6 +1108,9 @@ directory to make multiple eshell windows easier."
   (space-leader
     :keymaps '(python-mode-map)
     "p f" 'py-autopep8-buffer))
+
+;; Rust
+(use-package rust-mode)
 
 (use-package systemd)
 
