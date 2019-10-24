@@ -118,7 +118,7 @@
   (setenv "LC_CTYPE"      "UTF-8")
   (setenv "LC_ALL"        "en_US.UTF-8")
   (setenv "LANG"          "en_US.UTF-8")
-  (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
+  (setenv "SSH_AUTH_SOCK" (shell-command-to-string "launchctl getenv SSH_AUTH_SOCK | tr -d '\n'")))
 
 ;; Default values for configuration that is overridden in the private config.
 (defvar my-ejira-projects      '("EJ" "JL2"))
