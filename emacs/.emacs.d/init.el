@@ -947,6 +947,35 @@ On multi-monitor systems the display spans across all the monitors."
 (use-package evil-magit
   :after magit)
 
+(use-package git-gutter
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (set-face-attribute 'git-gutter:deleted nil
+                      :height 10
+                      :width 'ultra-condensed
+                      :foreground (face-attribute 'error :foreground)
+                      :background (face-attribute 'error :foreground))
+  (set-face-attribute 'git-gutter:added nil
+                      :height 10
+                      :width 'ultra-condensed
+                      :foreground (face-attribute 'font-lock-string-face :foreground)
+                      :background (face-attribute 'font-lock-string-face :foreground))
+  (set-face-attribute 'git-gutter:modified nil
+                      :height 10
+                      :width 'ultra-condensed
+                      :foreground (face-attribute 'warning :foreground)
+                      :background (face-attribute 'warning :foreground))
+  (set-face-attribute 'git-gutter:unchanged nil
+                      :width 'ultra-condensed
+                      :height 10)
+  (set-face-attribute 'git-gutter:separator nil
+                      :width 'ultra-condensed
+                      :height 10)
+  :general
+  (space-leader
+    "g d" 'git-gutter:popup-hunk
+    "g u" 'git-gutter:revert-hunk))
+
 (use-package yasnippet
   :functions (yas-reload-all)
   :commands (yas-reload-all)
