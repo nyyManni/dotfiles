@@ -54,6 +54,8 @@
       vc-make-backup-files t
       tab-width            2
       frame-title-format   '("" "Emacs v" emacs-version))
+
+(defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
 (fset 'startup-echo-area-message (lambda () ""))
 
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t)))
@@ -1033,7 +1035,7 @@ directory to make multiple eshell windows easier."
 
   (defun esh-prompt-func ()
     (concat
-     "┌─" (eshell/whoami) "@xps13 " (abbreviate-file-name (eshell/pwd)) "\n"
+     "┌─" (eshell/whoami) "@" user-hostname " " (abbreviate-file-name (eshell/pwd)) "\n"
      "└─$ "))
   (setq eshell-prompt-regexp "└─\\$ ")   ; or "└─> "
   (setq eshell-prompt-function #'esh-prompt-func)
