@@ -40,7 +40,6 @@
       vc-follow-symlinks                t
       inhibit-startup-screen            t
       initial-scratch-message           ""
-      load-prefer-newer                 t
 
       inhibit-startup-message           t
       inhibit-startup-echo-area-message t
@@ -83,7 +82,9 @@
                     "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims"
                     "/home/hnyman/.pyenv/shims" "/home/hnyman/.pyenv/bin"
                     "/usr/local/bin" "/usr/bin" "/bin" "/usr/games"
-                    "/usr/local/libexec/emacs/27.0.50/x86_64-pc-linux-gnu"))
+                    "/usr/local/libexec/emacs/27.0.50/x86_64-pc-linux-gnu")
+
+        load-prefer-newer  t)
   (setenv "PATH" (concat "/home/hnyman/.cargo/bin:"
                          "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims:"
                          "/home/hnyman/.pyenv/shims:/home/hnyman/.pyenv/bin:"
@@ -99,6 +100,7 @@
   ;; TODO: Fix byte compiler warnings
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
+        default-directory             "/Users/hnyman/"
         mac-command-modifier          'meta
         mac-option-modifier           nil
         mac-allow-anti-aliasing       t
@@ -166,7 +168,7 @@
 (use-package doom-modeline
   :demand
   :init
-  (setq doom-modeline-height 0)
+  (setq doom-modeline-height 24)
   :config
   (doom-modeline-mode))
 
@@ -581,6 +583,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (defun my-org-pdf-async ()
     "Perform an async pdf export."
     (interactive)
+    (save-buffer)
+    (message "Exporting PDF...")
     (org-latex-export-to-pdf t))
   :general
   (space-leader
@@ -632,6 +636,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package org-agenda
   :ensure nil
   :commands (org-add-agenda-custom-command))
+
+(use-package org-ref)
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
