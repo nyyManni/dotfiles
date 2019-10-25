@@ -633,7 +633,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "o t r" 'org-clock-in-last
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
-    "o t i" 'org-clock-select-task))
+    "o t i" 'org-clock-in))
 
 (use-package org-agenda
   :ensure nil
