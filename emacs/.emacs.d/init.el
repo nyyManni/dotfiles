@@ -272,6 +272,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "D"   'kill-this-buffer
     "F"   'my-dired-here
     "l p" 'package-list-packages
+    "s l" 'sort-lines
     "r"   'my-reload-file
     "i"   'indent-region
     "I"   (lambda () (interactive) (find-file user-init-file))
@@ -1197,5 +1198,80 @@ directory to make multiple eshell windows easier."
 
 (use-package mu4e-conversation
   :after 'mu4e)
+
+(use-package lunchtime
+  :ensure nil
+  :load-path "~/.emacs.d/lisp/lunchtime"
+  :commands (lunchtime-display-menus)
+  :config
+
+  ;; TTY
+  (lunchtime-define-restaurant
+   "https://api.ruoka.xyz/%Y-%m-%d"
+   (mapcar
+    (lambda (restaurant)
+      `((name . ,(assoc-recursive restaurant 'name))
+        (subrestaurants
+         .
+         ,(mapcar
+           (lambda (subrestaurant)
+             `((name . ,(assoc-recursive subrestaurant 'name))
+               (menus . ,(mapcar
+                          (lambda (meal)
+                            `((name . ,(assoc-recursive meal 'name))
+                              (prices . ,(assoc-recursive meal 'prices))
+                              (menu . ,(mapcar
+                                        (lambda (part)
+                                          (assoc-recursive part 'name))
+                                        (assoc-recursive meal 'contents)))))
+                          (assoc-recursive subrestaurant 'meals)))))
+           (assoc-recursive restaurant 'menus)))))
+
+    (assoc-recursive lunchtime-response-data 'restaurants)))
+
+  ;; Hermia 6
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/9870/%Y/%m/%d/en"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_en)
+                                    " (" (assoc-recursive item 'properties) ")")))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+
+  ;; Hermia 5
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/134/%Y/%m/%d/en"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_en)
+                                    " (" (assoc-recursive item 'properties) ")")))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+
+  :general
+  (space-leader
+    "l l" 'lunchtime-display-menus)
+  (general-define-key
+    :keymaps '(lunchtime-mode-map)
+    :states '(normal)
+    "o" 'delete-other-windows
+    "l" 'lunchtime-next-day
+    "h" 'lunchtime-previous-day
+    "j" 'lunchtime-next-restaurant
+    "k" 'lunchtime-previous-restaurant
+    "q" 'lunchtime-close))
 
 ;;; init.el ends here
