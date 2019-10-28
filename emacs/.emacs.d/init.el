@@ -1060,7 +1060,8 @@ directory to make multiple eshell windows easier."
   (c++-mode    . lsp-deferred)
   (objc-mode   . lsp-deferred)
   (python-mode . lsp-deferred)
-  (rust-mode . lsp-deferred)
+  (rust-mode   . lsp-deferred)
+  (js2-mode    . lsp-deferred)
   :commands (lsp lsp-deferred)
   :defines (lsp-prefer-flymake lsp-enable-links)
   :init
@@ -1148,6 +1149,15 @@ directory to make multiple eshell windows easier."
 
 ;; Rust
 (use-package rust-mode)
+
+;; JavaScript
+(use-package js2-mode
+  :mode "\\.js\\'"
+  :init
+  (setq js2-mode-show-strict-warnings nil
+        js2-mode-show-parse-errors    nil))
+
+(use-package rjsx-mode)
 
 (use-package systemd)
 
