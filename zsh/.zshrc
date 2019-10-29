@@ -157,3 +157,6 @@ workon() {
   source "$WORKON_HOME/$1/bin/activate"
 }
 
+export PATH="/home/hnyman/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"

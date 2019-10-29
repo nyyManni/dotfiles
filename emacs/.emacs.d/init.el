@@ -609,7 +609,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "o t i" 'org-clock-in
     "o s"   'org-todo
     "o e"   'org-edit-special
-    "o r f" 'org-refile
+    "o r f" 'helm-ejira-refile
     "o t s" 'org-clock-display
     "o n s" 'org-narrow-to-subtree
     "o n w" 'widen)
@@ -1051,9 +1051,16 @@ directory to make multiple eshell windows easier."
 
 (use-package wdired)
 
+(use-package systemd)
+(use-package meson-mode)
+(use-package yaml-mode)
+
 (use-package editorconfig
   :config
   (editorconfig-mode 1))
+
+
+;;; Programming languages
 
 (use-package lsp-mode
   :hook
@@ -1106,13 +1113,23 @@ directory to make multiple eshell windows easier."
                                             (lsp--set-configuration
                                              (lsp-configuration-section "pyls"))))))))
 
+(use-package hydra)
 (use-package lsp-ui :commands lsp-ui-mode)
-(use-package company-lsp :commands company-lsp)
+
+(use-package company-lsp
+  :commands company-lsp
+  :init
+  (setq company-lsp-cache-candidates t))
+
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 
 ;; C/C++
 (use-package ccls :after lsp-mode
   :config
+
+  ;; Disable other flycheck backends, only use lsp
+  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang))
+
   ;; Override the client definition with library-folder awareness
   (lsp-register-client
    (make-lsp-client
@@ -1160,7 +1177,15 @@ directory to make multiple eshell windows easier."
 
 (use-package rjsx-mode)
 
+;; Debuggers
+(use-package dap-mode
+  :config
+  (add-hook 'dap-stopped-hook
+            (lambda (arg) (call-interactively #'dap-hydra))))
+
 (use-package systemd)
+
+;;; E-mail
 
 (use-package mu4e
   :ensure nil
