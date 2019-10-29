@@ -197,11 +197,26 @@
                      (file-name-directory (buffer-file-name))
                    default-directory))
          (height (/ (window-total-height) 3))
-         (name   (car (last (split-string parent "/" t)))))
+         (name (car (last (split-string parent "/" t))))
+         (bufname (concat (symbol-name command) " " name))
+         (firstp t))
+    (while (get-buffer (concat bufname "*"))
+      ;; Buffer with name already exists
+      (message "buffer already taken")
+      (setq bufname (if firstp
+                       (progn (setq firstp nil)
+                              (concat bufname "<2>"))
+
+                      ;; Increment the number
+                      (let* ((regex "\\(.*<\\)\\([0-9]+\\)\\(>\\)" )
+                             (num (string-to-number
+                                   (replace-regexp-in-string regex "\\2" bufname))))
+                        (replace-regexp-in-string
+                         regex (concat "\\1" (number-to-string (1+ num)) "\\3") bufname)))))
     (split-window-vertically (- height))
     (other-window 1)
     (apply command args)
-    (rename-buffer (concat (symbol-name command) " " name "*"))))
+    (rename-buffer (concat bufname "*"))))
 
 (use-package f
   :functions (f-dirname))
