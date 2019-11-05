@@ -267,6 +267,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "C-h") 'delete-backward-char)
   (global-set-key (kbd "M-h") 'backward-kill-word)
 
+  ; Disable toggling fullscreen with f11
+  (general-define-key "<f11>" nil)
+
+  (global-set-key (kbd "C-S-u") 'universal-argument)
+  (define-key universal-argument-map (kbd "C-S-u") 'universal-argument-more)
+
   (general-create-definer space-leader
     :states '(normal visual insert emacs)
     :global-prefix "C-c"
@@ -380,6 +386,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "C-j" 'helm-next-line)
   (general-define-key
     "M-x" 'helm-M-x)
+  (general-define-key
+    :keymap 'helm-find-files-map
+    "<right>" 'helm-ff-RET
+    "<left>" 'backward-kill-word)
   (space-leader
     :keymaps 'override
     "x" 'helm-M-x
@@ -677,6 +687,24 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
                                              my-add-ejira-kanban-board)
   :init
+
+
+  (defun my-clock-fn ()
+    (cond ((org-before-first-heading-p) "???")
+          (t (let ((heading (replace-regexp-in-string
+	                     org-bracket-link-analytic-regexp "\\5"
+	                     (org-no-properties (org-get-heading t t t t)))))
+               (cond ((s-starts-with-p "ejira-" (or (org-entry-get (point-marker) "TYPE") ""))
+                      (concat
+                       (propertize (org-entry-get (point-marker) "ID") 'face 'font-lock-type-face)
+                       ": "
+                       (if (> (length heading) 30)
+                           (concat (substring heading 0 27) "...")
+                         heading)))
+                     (t heading))))))
+
+  (setq org-clock-heading-function #'my-clock-fn)
+
   (setq request--curl-cookie-jar ""
         jiralib2-user-login-name "hnyman"
         jiralib2-url              my-ejira-server
@@ -753,6 +781,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package helm-ejira
   :load-path "~/.emacs.d/lisp/ejira"
   :ensure nil
+  :config
+  (helm-ejira-advice)
   :general
   (space-leader
     :keymaps 'override
@@ -1091,6 +1121,7 @@ directory to make multiple eshell windows easier."
   (setq lsp-prefer-flymake       nil
         lsp-file-watch-threshold 30000
         lsp-enable-links         nil
+        lsp-pyls-plugins-pylint-enabled t
         lsp-pyls-plugins-pycodestyle-enabled nil)
   :config
   (require 'lsp-clients)
@@ -1105,24 +1136,26 @@ directory to make multiple eshell windows easier."
       :server-id 'pyls
       :library-folders-fn
       (lambda (workspace)
-        (let ((b (nth 0 (lsp--workspace-buffers workspace))))
+        (condition-case nil
+            (let ((b (nth 0 (lsp--workspace-buffers workspace))))
 
-          ;; If there are no buffers yet, we cannot have a library file for this
-          ;; workspace, as we are most likely opening the first project file.
-          (when b
-            (with-current-buffer b
-              (remq nil (list
-                         (pyvenv-workon-home)
-                         "/usr"
-                         pyvenv-activate
+              ;; If there are no buffers yet, we cannot have a library file for this
+              ;; workspace, as we are most likely opening the first project file.
+              (when b
+                (with-current-buffer b
+                  (remq nil (list
+                             (pyvenv-workon-home)
+                             "/usr"
+                             pyvenv-activate
 
-                         ;; The python-binary is a symlink if the directory is a
-                         ;; virtual environment. Include the libraries in the
-                         ;; main env as well.
-                         (when pyvenv-activate
-                           (f-parent
-                            (f-parent
-                             (file-truename (f-join pyvenv-activate "bin" "python")))))))))))
+                             ;; The python-binary is a symlink if the directory is a
+                             ;; virtual environment. Include the libraries in the
+                             ;; main env as well.
+                             (when pyvenv-activate
+                               (f-parent
+                                (f-parent
+                                 (file-truename (f-join pyvenv-activate "bin" "python"))))))))))
+          (error nil)))
       :initialized-fn (lambda (workspace)
                         (with-lsp-workspace workspace
                                             (lsp--set-configuration
