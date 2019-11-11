@@ -1217,6 +1217,10 @@ directory to make multiple eshell windows easier."
 ;; Rust
 (use-package rust-mode)
 
+(use-package cargo
+  :ensure t
+  :hook ((rust-mode toml-mode) . cargo-minor-mode))
+
 ;; JavaScript
 (use-package js2-mode
   :mode "\\.js\\'"
