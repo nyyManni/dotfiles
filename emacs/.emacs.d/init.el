@@ -138,6 +138,7 @@
 (global-hl-line-mode 1)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(setq-default display-line-numbers-width 4)
 
 (require 'package)
 (setq package-user-dir   "~/.emacs.d/elpa"
