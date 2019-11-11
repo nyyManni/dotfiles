@@ -521,6 +521,34 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (nxml-mode . flycheck-mode)
   :init
   (setq-default flycheck-emacs-lisp-load-path 'inherit)
+
+  ;; Disable other flycheck backends, only use lsp
+  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang rust-cargo))
+  :config
+  (when (eq system-type 'gnu/linux)
+    ;; On Linux, use magnified fringes (wayland scaling workarounds...)
+    (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+      (vector #b0000000000000000
+              #b0000000000000000
+              #b0111001110000000
+              #b0111100111000000
+              #b0011110011100000
+              #b0001111001110000
+              #b0000111100111000
+              #b0000011110011100
+              #b0000001111001110
+              #b0000001111001110
+              #b0000011110011100
+              #b0000111100111000
+              #b0001111001110000
+              #b0011110011100000
+              #b0111100111000000
+              #b0111001110000000
+              #b0000000000000000
+              #b0000000000000000)
+      18 16 'center)
+    (fringe-mode '(16 . 4)))
+
   :general
   (general-define-key
     :states '(normal visual)
