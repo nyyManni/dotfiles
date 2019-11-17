@@ -184,6 +184,26 @@
                       :background "#444444"
                       :weight 'bold))
 
+;; Fix issue with the new :extend face attribute in emacs-27
+;; Prefer to extend to EOL as in previous emacs.
+(defun my-extend-faces-matching (regexp)
+  (cl-loop for f in (face-list)
+           for face = (symbol-name f)
+           when (and (string-match regexp face)
+                     (eq (face-attribute f :extend t 'default)
+                         'unspecified))
+           do (set-face-attribute f nil :extend t)))
+
+(when (fboundp 'set-face-extend)
+  (set-face-attribute 'region nil :extend t)
+  (with-eval-after-load "magit"
+    (my-extend-faces-matching "\\`magit"))
+  (with-eval-after-load "helm"
+    (my-extend-faces-matching "\\`helm"))
+  (with-eval-after-load "company"
+    (my-extend-faces-matching "\\`company")))
+
+
 (defun my-reload-file ()
   "Reopen current file, preserving location of point."
   (interactive)
