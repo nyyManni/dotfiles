@@ -1275,6 +1275,7 @@ directory to make multiple eshell windows easier."
   :init
   (setq js2-mode-show-strict-warnings nil
         js2-mode-show-parse-errors    nil))
+(use-package json-mode)
 
 (use-package rjsx-mode)
 
