@@ -236,3 +236,4 @@ output * bg /home/hnyman/Pictures/wallpaper.png fill
 exec xrdb ~/.Xresources
 
 exec /usr/bin/python3 /home/hnyman/bin/inactive-windows-transparency.py
+exec '/usr/local/bin/mako --default-timeout 3000 --font "monospace 16"'
