@@ -95,7 +95,7 @@
             "warning": 30,
             "critical": 15
         },
-        "format": "{capacity}% <span font=\"FontAwesome 5 Free Solid\">{icon}</span>",
+        "format": "{capacity}% {icon}",
         "format-charging": "{capacity}% ",
         "format-plugged": "{capacity}% ",
         "format-alt": "{time} {icon}",
