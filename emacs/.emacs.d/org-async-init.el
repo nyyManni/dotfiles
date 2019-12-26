@@ -4,10 +4,10 @@
 
 ;; This environment is required for pdflatex to find required resource files.
 (setenv "TEXINPUTS" (concat ".:" (expand-file-name "~/texmf/tex/latex/local/") "::"))
-(setenv "SHELL" "/bin/zsh")
-(setenv "LC_CTYPE" "UTF-8")
-(setenv "LC_ALL" "en_US.UTF-8")
-(setenv "LANG" "en_US.UTF-8")
+(setenv "SHELL"     "/bin/zsh")
+(setenv "LC_CTYPE"  "UTF-8")
+(setenv "LC_ALL"    "en_US.UTF-8")
+(setenv "LANG"      "en_US.UTF-8")
 
 (require 'org)
 (require 'ox)
@@ -34,6 +34,7 @@
       org-export-with-sub-superscripts nil
       org-export-with-latex            t
       org-latex-default-packages-alist nil
+      org-export-with-toc              nil
 
       org-latex-pdf-process
       `("%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
