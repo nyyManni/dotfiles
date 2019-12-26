@@ -926,7 +926,8 @@ On multi-monitor systems the display spans across all the monitors."
                                                     (my-frame-center-pos))))
          (signal (car err) (cdr err))))))
 
-  (advice-add 'windmove-do-window-select :around #'my-windmove-advice)
+  (when (eq system-type 'darwin)
+    (advice-add 'windmove-do-window-select :around #'my-windmove-advice))
 
   :general
   (general-define-key
