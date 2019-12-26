@@ -53,6 +53,7 @@
       version-control      t
       vc-make-backup-files t
       tab-width            2
+      doc-view-resolution  300
       frame-title-format   '("" "Emacs v" emacs-version))
 
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
