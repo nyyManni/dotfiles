@@ -150,6 +150,12 @@
 (if (version< emacs-version "27")
     (package-initialize))
 
+(unless (package-installed-p 'no-littering)
+  (package-refresh-contents)
+  (package-install 'no-littering))
+
+(require 'no-littering)
+
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -398,6 +404,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         (if (and (stringp sel) (string-match "/\\.\\.$" sel))
             (helm-previous-line 1)))))
 
+  ;; Override the ugly magenta color of the file extension (why doesn't it follow
+  ;; the setting from the theme...)
+  (require 'helm-files)
+  (set-face-attribute 'helm-ff-file-extension nil
+                      :foreground "#C23127")
+
   (advice-add #'helm-preselect :around #'helm-skip-dots)
   (advice-add #'helm-ff-move-to-first-real-candidate :around #'helm-skip-dots)
   :general
@@ -420,7 +432,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "y" 'helm-show-kill-ring
     "f" 'helm-imenu
     ";" 'helm-find-files
-    "b" 'switch-to-buffer))
+    "b" 'helm-mini))
 
 (use-package helm-xref)
 (use-package helm-ag)
@@ -455,12 +467,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq-default sp-escape-quotes-after-insert nil)
   :commands (sp-pair)
   :config
-
-  ;; Smartparens is broken in `cc-mode' as of Emacs 27. See
-  ;; <https://github.com/Fuco1/smartparens/issues/963>.
-  (when (version<= "27" emacs-version)
-    (dolist (fun '(c-electric-paren c-electric-brace))
-      (add-to-list 'sp--special-self-insert-commands fun)))
 
   (require 'smartparens-config)
   (general-define-key
@@ -1137,6 +1143,11 @@ directory to make multiple eshell windows easier."
   (setq eshell-prompt-regexp "└─\\$ ")   ; or "└─> "
   (setq eshell-prompt-function #'esh-prompt-func)
 
+  ;; Only trigger company manually inside eshell
+  (defun my-eshell-hook ()
+    (setq-local company-idle-delay nil))
+  (add-hook 'eshell-mode-hook #'my-eshell-hook)
+
   :general
   (general-define-key
     :keymaps 'eshell-mode-map
@@ -1167,10 +1178,19 @@ directory to make multiple eshell windows easier."
   (rust-mode   . lsp-deferred)
   (js2-mode    . lsp-deferred)
   :commands (lsp lsp-deferred)
-  :defines (lsp-prefer-flymake lsp-enable-links)
+  :defines (lsp-pyls-plugins-pylint-enabled lsp-pyls-plugins-pycodestyle-enabled
+            lsp-enable-links)
   :init
-  (setq lsp-prefer-flymake       nil
+  (setq lsp-diagnostic-package   :flycheck
         lsp-file-watch-threshold 30000
+
+        ;; Performance optimizations
+        gc-cons-threshold             100000000
+        read-process-output-max       (* 1024 1024)
+        lsp-idle-delay                0.500
+        company-minimum-prefix-length 1
+        company-idle-delay            0.0
+
         lsp-enable-links         nil
         lsp-pyls-plugins-pylint-enabled t
         lsp-pyls-plugins-pycodestyle-enabled nil)
@@ -1223,7 +1243,11 @@ directory to make multiple eshell windows easier."
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 
 ;; C/C++
+(use-package clang-format)
 (use-package ccls :after lsp-mode
+  :init
+  (put 'c-macro-cppflags 'safe-local-variable (lambda (x) t))
+
   :config
 
   ;; Disable other flycheck backends, only use lsp
@@ -1240,7 +1264,16 @@ directory to make multiple eshell windows easier."
     (lsp-ht ("$ccls/publishSkippedRanges" #'ccls--publish-skipped-ranges)
             ("$ccls/publishSemanticHighlight" #'ccls--publish-semantic-highlight))
     :initialization-options (lambda () ccls-initialization-options)
-    :library-folders-fn (lambda (_ws) '("/usr" "/opt")))))
+    :library-folders-fn (lambda (_ws) '("/usr" "/opt"))))
+  :general
+  (space-leader
+    :keymaps '(c-mode-map c++-mode-map objc-mode-map)
+    "p c" 'projectile-compile-project
+    )
+  )
+
+(use-package cmake-mode)
+(use-package glsl-mode)
 
 ;; Python
 (use-package pyvenv
@@ -1272,14 +1305,51 @@ directory to make multiple eshell windows easier."
   :hook ((rust-mode toml-mode) . cargo-minor-mode))
 
 ;; JavaScript
-(use-package js2-mode
-  :mode "\\.js\\'"
-  :init
-  (setq js2-mode-show-strict-warnings nil
-        js2-mode-show-parse-errors    nil))
+;; (use-package js2-mode
+;;   ;; :mode "\\.js\\'"
+;;   :init
+;;   (setq js2-mode-show-strict-warnings nil
+;;         js2-mode-show-parse-errors    nil))
+
+;; (use-package js-mode
+;;   :ensure nil
+;;   :init
+;;   (setq-default js-indent-level 2)
+
+
+;;   :general
+;;   (general-define-key
+;;     :keymaps '(js-mode-map)
+;;     "M-." #'xref-find-definitions)
+;;   )
+;; (use-package js2-mode
+;;   :hook (js-mode . js2-minor-mode))
+
 (use-package json-mode)
 
-(use-package rjsx-mode)
+(use-package rjsx-mode
+  :mode "\\.js\\'"
+  :init
+  (setq-default js-indent-level 2)
+  (general-define-key
+    :keymaps '(rjsx-mode-map)
+    "M-." #'xref-find-definitions)
+
+  (defun my-lsp-diagnostics-mode-hook (&rest _)
+    (when (eq 'rjsx-mode major-mode)
+      (setq-local flycheck-checker 'javascript-eslint)))
+  (advice-add #'lsp-flycheck-enable :after #'my-lsp-diagnostics-mode-hook))
+
+(use-package prettier-js
+  :hook ((js2-mode rsjx-mode) . prettier-js-mode)
+  :init
+  (setq prettier-js-args '("--trailing-comma" "all")))
+
+(use-package emmet-mode
+  :hook (rjsx-mode css-mode js-mode)
+  :init
+  (setq emmet-expand-jsx-className? t)  ;; React support
+  )
 
 ;; Debuggers
 (use-package dap-mode
@@ -1288,6 +1358,8 @@ directory to make multiple eshell windows easier."
             (lambda (arg) (call-interactively #'dap-hydra))))
 
 (use-package systemd)
+(use-package jinja2-mode)
+(use-package apt-sources-list)
 
 ;;; E-mail
 
@@ -1402,5 +1474,10 @@ directory to make multiple eshell windows easier."
     "j" 'lunchtime-next-restaurant
     "k" 'lunchtime-previous-restaurant
     "q" 'lunchtime-close))
+
+
+;;; elisp tools
+(use-package package-lint)
+(use-package flycheck-package)
 
 ;;; init.el ends here
