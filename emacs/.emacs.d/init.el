@@ -127,6 +127,7 @@
 (defvar my-ejira-projects      '("EJ" "JL2"))
 (defvar my-ejira-server        "https://localhost:8080")
 (defvar my-ejira-kanban-boards nil)
+(defvar my-ejira-scrum-boards nil)
 (let ((work-config (concat user-emacs-directory "/work-config.el")))
   (when (file-exists-p work-config)
     (load-file (concat user-emacs-directory "/work-config.el"))))
@@ -194,6 +195,8 @@
 ;; Fix issue with the new :extend face attribute in emacs-27
 ;; Prefer to extend to EOL as in previous emacs.
 (defun my-extend-faces-matching (regexp)
+  "Helper function to fix styling issues from the new :extend -keyword.
+Set :extend to t for faces matching REGEXP."
   (cl-loop for f in (face-list)
            for face = (symbol-name f)
            when (and (string-match regexp face)
@@ -592,8 +595,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (general-define-key
     :keymaps '(undo-tree-map)
     "C-/" nil
-    "C-?" nil
-    )
+    "C-?" nil)
   (space-leader
     :keymaps 'override
     "u" 'undo-tree-visualize))
@@ -606,6 +608,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (org-mode . org-indent-mode)
   (org-capture-mode . evil-insert-state)
   :init
+
+  (defun my-pop-to-temp-org-buffer ()
+    (interactive)
+    (pop-to-buffer "*scratch.org*")
+    (unless (derived-mode-p 'org-mode)
+      (org-mode)))
+
   (setq org-export-async-init-file             (concat user-emacs-directory
                                                        "/org-async-init.el")
         org-confirm-babel-evaluate             nil
@@ -640,10 +649,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         '((sequence "BLOG(b)" "TODO(t)" "NEXT(p)" "TEST" "|" "DONE(d)")
           (sequence "WAIT(w@/!)" "|" "CANCELLED(c@/!)" "MEET(m)" "NOTE(n)"))
 
-        org-todo-keyword-faces '(("TODO" :foreground "#c23127"    :weight bold)
-                                 ("BLOG" :foreground "#343a40"    :weight bold)
-                                 ("NEXT" :foreground "#d26937e"   :weight bold)
-                                 ("IMPL" :foreground "light blue" :weight bold)
+        org-todo-keyword-faces '(("BLOG" :foreground "#343a40"    :weight bold)
+                                 ("TODO" :foreground "#c23127"    :weight bold)
+                                 ;; ("NEXT" :foreground "#d26937e"   :weight bold)
+                                 ("NEXT" :foreground "white"   :weight bold)
                                  ("TEST" :foreground "light blue" :weight bold)
                                  ("DONE" :foreground "#2aa889"    :weight bold))
         org-capture-templates
@@ -712,6 +721,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps 'override
     "o a"   'org-agenda
     "o c"   'org-capture
+    "o o"   'my-pop-to-temp-org-buffer
     "o t r" 'org-clock-in-last
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
@@ -759,7 +769,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                          heading)))
                      (t heading))))))
 
-  (setq org-clock-heading-function #'my-clock-fn)
+  (eval-after-load "org-clock"
+    (setq org-clock-heading-function #'my-clock-fn))
 
   (setq request--curl-cookie-jar ""
         jiralib2-user-login-name "hnyman"
@@ -780,6 +791,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                                    ("In Progress"              . 3)
                                    ("Quality Check"            . 4)
                                    ("Ready for QA"             . 4)
+                                   ("Verify"                   . 4)
                                    ("Testing"                  . 4)
                                    ("Closed"                   . 5)
                                    ("Done"                     . 5))
@@ -818,21 +830,55 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (org-add-agenda-custom-command
      `(,key ,title
             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
                                 "and resolution = unresolved "
                                 "and assignee = currentUser()")
                         ((org-agenda-overriding-header
                           ,(concat title "\n\nAssigned to me"))))
              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
                                 "and resolution = unresolved "
                                 "and assignee is EMPTY")
                         ((org-agenda-overriding-header "Unassigned")))
              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
                                 "and resolution = unresolved "
                                 "and assignee != currentUser()")
                         ((org-agenda-overriding-header "Others")))))))
 
+  (defun my-add-ejira-scrum-board (key board-name &optional title)
+    (setq title (or title board-name))
+    (org-add-agenda-custom-command
+     `(,key ,title
+            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
+                                "and sprint in openSprints() "
+                                "and assignee = currentUser()")
+                        ((org-agenda-overriding-header
+                          ,(concat title "\n\nAssigned to me"))))
+             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
+                                "and sprint in openSprints() "
+                                "and assignee is EMPTY")
+                        ((org-agenda-overriding-header "Unassigned")))
+             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                "and type != Epic "
+                                "and sprint in openSprints() "
+                                "and assignee != currentUser()")
+                        ((org-agenda-overriding-header "Others")))))))
+
+
+
   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
-  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards))
+  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
+  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards)
+
+
+  ;; Add some extra agendas
+  (org-add-agenda-custom-command
+   '("A" "Assigned to me"
+     ((ejira-jql "assignee = currentUser() and resolution = unresolved"
+                 ((org-agenda-overriding-header "Assigned to me:")))))))
 
 (use-package helm-ejira
   :load-path "~/.emacs.d/lisp/ejira"
@@ -1181,7 +1227,8 @@ directory to make multiple eshell windows easier."
   :defines (lsp-pyls-plugins-pylint-enabled lsp-pyls-plugins-pycodestyle-enabled
             lsp-enable-links)
   :init
-  (setq lsp-diagnostic-package   :flycheck
+  (setq lsp-diagnostics-provider :flycheck
+        gc-cons-threshold        100000000
         lsp-file-watch-threshold 30000
 
         ;; Performance optimizations
@@ -1233,7 +1280,9 @@ directory to make multiple eshell windows easier."
                                              (lsp-configuration-section "pyls"))))))))
 
 (use-package hydra)
-(use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-ui :commands lsp-ui-mode
+  :init
+  (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
 
 (use-package company-lsp
   :commands company-lsp
@@ -1275,6 +1324,11 @@ directory to make multiple eshell windows easier."
 (use-package cmake-mode)
 (use-package glsl-mode)
 
+;; Clang-format
+(use-package clang-format+
+  :hook (c-mode-common . clang-format+-mode))
+;; (add-hook 'c-mode-common-hook #'clang-format+-mode)
+
 ;; Python
 (use-package pyvenv
   :hook (python-mode . pyvenv-tracking-mode)
@@ -1291,7 +1345,7 @@ directory to make multiple eshell windows easier."
   :init
   ;; Set the line-length for autopep to something large so that it
   ;; does not touch too long lines, it usually cannot fix them properly
-  (setq py-autopep8-options '("--max-line-length=200"))
+  (setq py-autopep8-options '("--max-line-length=200" "--ignore=E402" "--ignore=E731"))
   :general
   (space-leader
     :keymaps '(python-mode-map)
@@ -1303,6 +1357,30 @@ directory to make multiple eshell windows easier."
 (use-package cargo
   :ensure t
   :hook ((rust-mode toml-mode) . cargo-minor-mode))
+
+
+;; Swift
+(use-package swift-mode)
+
+(use-package lsp-sourcekit
+  :after lsp-mode
+  :config
+  (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain")
+
+  (setq lsp-sourcekit-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp")
+        lsp-sourcekit-extra-args '("-Xswiftc" "-sdk"
+                                   "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.5.sdk"
+
+                                   "-Xswiftc" "-target"
+                                   "-Xswiftc" "x86_64-apple-ios13.5-simulator"
+                                   ))
+  )
+
+(use-package swift-mode
+  :hook (swift-mode . (lambda () (lsp))))
+
+;; Groovy
+(use-package groovy-mode)
 
 ;; JavaScript
 ;; (use-package js2-mode
@@ -1406,6 +1484,7 @@ directory to make multiple eshell windows easier."
   :commands (lunchtime-display-menus)
   :config
 
+  (setq lunchtime-parsers-alist nil)
   ;; TTY
   (lunchtime-define-restaurant
    "https://api.ruoka.xyz/%Y-%m-%d"
@@ -1432,7 +1511,7 @@ directory to make multiple eshell windows easier."
 
   ;; Hermia 6
   (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/9870/%Y/%m/%d/en"
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/110/%Y-%m-%d"
    `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
       (subrestaurants
        .
@@ -1442,13 +1521,13 @@ directory to make multiple eshell windows easier."
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
                         (menu . (, (concat
-                                    (assoc-recursive item 'title_en)
+                                    (assoc-recursive item 'title_fi)
                                     " (" (assoc-recursive item 'properties) ")")))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 
   ;; Hermia 5
   (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/134/%Y/%m/%d/en"
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/107/%Y-%m-%d"
    `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
       (subrestaurants
        .
@@ -1458,7 +1537,7 @@ directory to make multiple eshell windows easier."
                       `((name . ,(assoc-recursive item 'category))
                         (prices . (,(assoc-recursive item 'price)))
                         (menu . (, (concat
-                                    (assoc-recursive item 'title_en)
+                                    (assoc-recursive item 'title_fi)
                                     " (" (assoc-recursive item 'properties) ")")))))
                     (assoc-recursive lunchtime-response-data 'courses)))))))))
 

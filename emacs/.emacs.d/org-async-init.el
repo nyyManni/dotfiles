@@ -22,7 +22,10 @@
 (setq org-latex-classes '(("optodoc" "\\documentclass{optodoc}"
                           ("\\section{%s}"       . "\\section*{%s}")
                           ("\\subsection{%s}"    . "\\subsection*{%s}")
-                          ("\\subsubsection{%s}" . "\\subsubsection*{%s}")))
+                          ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                          ("\\subsubsubsection{%s}" . "\\subsubsubsection*{%s}")
+
+                          ))
 
       org-export-async-debug           t
       org-latex-compiler               "xelatex"
@@ -32,6 +35,7 @@
       org-export-with-todo-keywords    nil
       org-export-with-smart-quotes     nil
       org-export-with-sub-superscripts nil
+      org-export-with-toc              nil
       org-export-with-latex            t
       org-latex-default-packages-alist nil
       org-export-with-toc              nil
@@ -45,3 +49,5 @@
         ;; "%latex -shell-escape -interaction nonstopmode -output-directory %o %f"
 
         ,export-finished-notification))
+
+(add-to-list 'org-latex-minted-langs '(conf "ini"))
