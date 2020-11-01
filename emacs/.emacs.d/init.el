@@ -1450,7 +1450,7 @@ directory to make multiple eshell windows easier."
 (use-package mu4e
   :ensure nil
   :init
-  (setq mu4e-maildir        "~/.mail"
+  (setq mu4e-root-maildir   "~/.mail"
         mu4e-attachment-dir "~/downloads"
         mu4e-sent-folder    "/sent"
         mu4e-drafts-folder  "/drafts"
@@ -1469,6 +1469,12 @@ directory to make multiple eshell windows easier."
         smtpmail-smtp-server       "127.0.0.1"
         smtpmail-smtp-service      1025)
 
+  :config
+
+  (add-to-list 'mu4e-bookmarks
+               '( :name  "Personal"
+                  :query "maildir:/INBOX"
+                  :key   ?m))
   :load-path "/usr/share/emacs/site-lisp/mu4e"
   :general
   (space-leader
