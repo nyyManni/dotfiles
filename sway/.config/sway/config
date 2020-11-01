@@ -100,11 +100,8 @@ bindsym $mod+space focus mode_toggle
 # focus the parent container
 bindsym $mod+a focus parent
 
-# focus the child container
-#bindsym $mod+d focus child
-# bindsym $mod+d exec dmenu-wl_run -b -i
-bindsym $mod+d exec sh -c 'dmenu-wl_run -b -h 30 -i -m `swaymsg -t get_outputs | jq -r "map(.focused) | index(true)"`'
-# bindsym $mod+d exec sh -c 'dmenu-wl_run -b -i -m 1'
+# app launcher
+bindsym $mod+d exec /home/hnyman/bin/rofi_history
 
 # switch to workspace
 bindsym $mod+1 workspace 1
@@ -155,23 +152,34 @@ bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
-output eDP-1 scale 1 position 0,0
-# output eDP-1 scale 1.75 position 0,0
-output DP-1 resolution 3840x2160 position 3840,0
+#output eDP-1 scale 1 position 0,0
+output eDP-1 scale 1.75 position 0,0
+output DP-2 scale 1.4 position 2194,0
+
+xwayland scale 2
 
 input "1:1:AT_Translated_Set_2_keyboard" {
     repeat_rate 40
     repeat_delay 250
+    xkb_layout fus
+}
+
+input "65261:4871:ErgoDox_EZ_ErgoDox_EZ" {
+    repeat_rate 40
+    repeat_delay 250
+    xkb_layout us
 }
 
 
-input "1739:30383:DELL07E6:00_06CB:76AF_Touchpad" {
+input type:touchpad {
       tap enabled
       middle_emulation disabled
-      accel_profile flat
+      accel_profile adaptive
+      # accel_profile flat
       dwt enabled
-      pointer_accel 0.2
-
+      pointer_accel -0.05
+      natural_scroll disabled
+      # calibration_matrix 30.0 0.0 0.0 0.0 30.0 0.0
 }
 
 # resize window (you can also use the mouse for that)
@@ -212,7 +220,8 @@ bar {
      # status_command i3status
      # status_command /home/hnyman/projects/github/i3status-rust/target/release/i3status-rs ~/.config/sway/.i3status-rs.toml
      # status_command while ~/.config/sway/status.sh; do sleep 1; done
-     swaybar_command waybar
+     # swaybar_command waybar
+     swaybar_command /home/hnyman/projects/github/waybar-gl/build/waybar-gl
      mode hide
      # mode hide
      hidden_state hide
