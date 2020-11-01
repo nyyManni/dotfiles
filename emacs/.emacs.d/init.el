@@ -146,6 +146,17 @@
 (global-hl-line-mode 1)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+(global-set-key (kbd "<C-up>") 'shrink-window)
+(global-set-key (kbd "<C-down>") 'enlarge-window)
+(global-set-key (kbd "<C-left>") 'shrink-window-horizontally)
+(global-set-key (kbd "<C-right>") 'enlarge-window-horizontally)
+
+(global-set-key (kbd "<C-S-up>") (lambda () (interactive) (shrink-window 10)))
+(global-set-key (kbd "<C-S-down>") (lambda () (interactive) (enlarge-window 10)))
+(global-set-key (kbd "<C-S-left>") (lambda () (interactive) (shrink-window-horizontally 10)))
+(global-set-key (kbd "<C-S-right>") (lambda () (interactive) (enlarge-window-horizontally 10)))
+
 (setq-default display-line-numbers-width 4)
 
 (require 'package)
