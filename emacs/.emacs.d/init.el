@@ -1247,7 +1247,7 @@ directory to make multiple eshell windows easier."
         lsp-pyls-plugins-pylint-enabled t
         lsp-pyls-plugins-pycodestyle-enabled nil)
   :config
-  (require 'lsp-clients)
+  ;; (require 'lsp-clients)
   ;; Override the default pyls client with one aware of pyvenv library files
   ;; (eval-after-load "lsp-pyls"
   ;;   (lsp-register-client
@@ -1290,10 +1290,10 @@ directory to make multiple eshell windows easier."
   :init
   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
 
-(use-package company-lsp
-  :commands company-lsp
-  :init
-  (setq company-lsp-cache-candidates t))
+;; (use-package company-lsp
+;;   :commands company-lsp
+;;   :init
+;;   (setq company-lsp-cache-candidates t))
 
 (use-package helm-lsp :commands helm-lsp-workspace-symbol)
 
