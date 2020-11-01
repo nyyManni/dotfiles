@@ -103,6 +103,7 @@
                          "/usr/local/bin:/usr/bin:/bin:/usr/games"))
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 
+  (setq byte-compile-warnings '(cl-functions))
 ;; OS X specific settings
 (when (eq system-type 'darwin)
   ;; TODO: Fix byte compiler warnings
