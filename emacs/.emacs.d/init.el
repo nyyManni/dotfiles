@@ -1249,40 +1249,41 @@ directory to make multiple eshell windows easier."
   :config
   (require 'lsp-clients)
   ;; Override the default pyls client with one aware of pyvenv library files
-  (eval-after-load "lsp-pyls"
-    (lsp-register-client
-     (make-lsp-client
-      :new-connection (lsp-stdio-connection
-                       (lambda () lsp-clients-python-command))
-      :major-modes '(python-mode cython-mode)
-      :priority -1
-      :server-id 'pyls
-      :library-folders-fn
-      (lambda (workspace)
-        (condition-case nil
-            (let ((b (nth 0 (lsp--workspace-buffers workspace))))
+  ;; (eval-after-load "lsp-pyls"
+  ;;   (lsp-register-client
+  ;;    (make-lsp-client
+  ;;     :new-connection (lsp-stdio-connection
+  ;;                      (lambda () lsp-clients-python-command))
+  ;;     :major-modes '(python-mode cython-mode)
+  ;;     :priority -1
+  ;;     :server-id 'pyls
+  ;;     :library-folders-fn
+  ;;     (lambda (workspace)
+  ;;       (condition-case nil
+  ;;           (let ((b (nth 0 (lsp--workspace-buffers workspace))))
 
-              ;; If there are no buffers yet, we cannot have a library file for this
-              ;; workspace, as we are most likely opening the first project file.
-              (when b
-                (with-current-buffer b
-                  (remq nil (list
-                             (pyvenv-workon-home)
-                             "/usr"
-                             pyvenv-activate
+  ;;             ;; If there are no buffers yet, we cannot have a library file for this
+  ;;             ;; workspace, as we are most likely opening the first project file.
+  ;;             (when b
+  ;;               (with-current-buffer b
+  ;;                 (remq nil (list
+  ;;                            (pyvenv-workon-home)
+  ;;                            "/usr"
+  ;;                            pyvenv-activate
 
-                             ;; The python-binary is a symlink if the directory is a
-                             ;; virtual environment. Include the libraries in the
-                             ;; main env as well.
-                             (when pyvenv-activate
-                               (f-parent
-                                (f-parent
-                                 (file-truename (f-join pyvenv-activate "bin" "python"))))))))))
-          (error nil)))
-      :initialized-fn (lambda (workspace)
-                        (with-lsp-workspace workspace
-                                            (lsp--set-configuration
-                                             (lsp-configuration-section "pyls"))))))))
+  ;;                            ;; The python-binary is a symlink if the directory is a
+  ;;                            ;; virtual environment. Include the libraries in the
+  ;;                            ;; main env as well.
+  ;;                            (when pyvenv-activate
+  ;;                              (f-parent
+  ;;                               (f-parent
+  ;;                                (file-truename (f-join pyvenv-activate "bin" "python"))))))))))
+  ;;         (error nil)))
+  ;;     :initialized-fn (lambda (workspace)
+  ;;                       (with-lsp-workspace workspace
+  ;;                                           (lsp--set-configuration
+  ;;                                            (lsp-configuration-section "pyls")))))))
+  )
 
 (use-package hydra)
 (use-package lsp-ui :commands lsp-ui-mode
