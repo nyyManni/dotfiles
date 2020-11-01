@@ -76,6 +76,11 @@
 
 ;; Linux specific settings
 (when (eq system-type 'gnu/linux)
+
+  (add-to-list 'default-frame-alist
+               '(font . "DejaVu Sans Mono-8"))
+  (setq-default display-fill-column-indicator-character ?\u2502)
+
   (setq exec-path '("/home/hnyman/.cargo/bin"
                     "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims"
                     "/home/hnyman/.pyenv/shims"
