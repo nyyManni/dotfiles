@@ -32,6 +32,15 @@
 
 ;;; Code:
 
+
+;; Workarounds for nativecomp
+(require 'comp)
+(add-to-list 'comp-bootstrap-black-list "smartparens")
+(add-to-list 'comp-deferred-compilation-black-list "smartparens")
+(add-to-list 'comp-bootstrap-black-list "org")
+(add-to-list 'comp-deferred-compilation-black-list "org")
+
+
 (setq user-full-name       "Henrik Nyman"
       user-login-name      "hnyman"
       user-mail-address    "h@nyymanni.com"
