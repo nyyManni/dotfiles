@@ -39,6 +39,8 @@
 (add-to-list 'comp-deferred-compilation-black-list "smartparens")
 (add-to-list 'comp-bootstrap-black-list "org")
 (add-to-list 'comp-deferred-compilation-black-list "org")
+(add-to-list 'comp-bootstrap-black-list "helm-files")
+(add-to-list 'comp-deferred-compilation-black-list "helm-files")
 
 
 (setq user-full-name       "Henrik Nyman"
