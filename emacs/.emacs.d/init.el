@@ -795,7 +795,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         jiralib2-url              my-ejira-server
         jiralib2-auth            'cookie
 
-        ejira-org-directory      "/home/hnyman/org"
+        ejira-org-directory      (expand-file-name "/Users/hnyman/org")
         ejira-priorities-alist   '(("Blocker" . ?A)
                                    ("Highest" . ?B)
                                    ("High"    . ?C)
@@ -1336,9 +1336,7 @@ directory to make multiple eshell windows easier."
   :general
   (space-leader
     :keymaps '(c-mode-map c++-mode-map objc-mode-map)
-    "p c" 'projectile-compile-project
-    )
-  )
+    "p c" 'projectile-compile-project))
 
 (use-package cmake-mode)
 (use-package glsl-mode)
@@ -1583,5 +1581,9 @@ directory to make multiple eshell windows easier."
 ;;; elisp tools
 (use-package package-lint)
 (use-package flycheck-package)
+
+
+(use-package http)
+(use-package qml-mode)
 
 ;;; init.el ends here
