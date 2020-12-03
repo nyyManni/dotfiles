@@ -153,8 +153,14 @@ bindsym $mod+Shift+r restart
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
 #output eDP-1 scale 1 position 0,0
-output eDP-1 scale 1.75 position 0,0
-output DP-2 scale 1.4 position 2194,0
+output eDP-1 scale 1.75 position 4000,0
+output DP-1 scale 1.0 position 0,750
+output DP-2 scale 1.0 position 2560,0 transform "90"
+
+
+set $laptop eDP-1
+bindswitch --locked lid:on output $laptop disable
+bindswitch --locked lid:off output $laptop enable
 
 xwayland scale 2
 
@@ -168,6 +174,12 @@ input "65261:4871:ErgoDox_EZ_ErgoDox_EZ" {
     repeat_rate 40
     repeat_delay 250
     xkb_layout us
+}
+
+input "9456:320:Metadot_-_Das_Keyboard_Das_Keyboard" {
+    repeat_rate 40
+    repeat_delay 250
+    xkb_layout fus
 }
 
 
@@ -239,7 +251,9 @@ bar {
      }
 }
 
-output * bg /home/hnyman/Pictures/wallpaper.png fill
+output eDP-1 bg /home/hnyman/Pictures/landscape.png fill
+output DP-1 bg /home/hnyman/Pictures/landscape.png fill
+output DP-2 bg /home/hnyman/Pictures/pivot.png fill
 
 # Enable DPI setting for Xwayland
 exec xrdb ~/.Xresources
