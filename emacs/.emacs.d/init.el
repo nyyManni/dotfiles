@@ -155,6 +155,7 @@
 (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (blink-cursor-mode 0)
 (global-hl-line-mode 1)
+(column-number-mode)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
