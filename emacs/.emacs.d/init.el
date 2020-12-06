@@ -387,6 +387,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (evil-set-initial-state 'term-mode 'emacs)
   (evil-select-search-module 'evil-search-module 'evil-search)
+  (setq-default evil-undo-system 'undo-redo)
   (general-define-key
     :keymaps '(evil-normal-state-map)
     "M-." nil)
