@@ -35,12 +35,12 @@
 
 ;; Workarounds for nativecomp
 (require 'comp)
-(add-to-list 'comp-bootstrap-black-list "smartparens")
-(add-to-list 'comp-deferred-compilation-black-list "smartparens")
-(add-to-list 'comp-bootstrap-black-list "org")
-(add-to-list 'comp-deferred-compilation-black-list "org")
-(add-to-list 'comp-bootstrap-black-list "helm-files")
-(add-to-list 'comp-deferred-compilation-black-list "helm-files")
+(add-to-list 'comp-bootstrap-deny-list "smartparens")
+(add-to-list 'comp-deferred-compilation-deny-list "smartparens")
+(add-to-list 'comp-bootstrap-deny-list "org")
+(add-to-list 'comp-deferred-compilation-deny-list "org")
+(add-to-list 'comp-bootstrap-deny-list "helm-files")
+(add-to-list 'comp-deferred-compilation-deny-list "helm-files")
 
 
 (setq user-full-name       "Henrik Nyman"
