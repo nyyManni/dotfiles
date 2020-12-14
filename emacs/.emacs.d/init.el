@@ -384,10 +384,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         evil-want-C-d-scroll  t
         evil-want-C-u-scroll  t
         evil-want-C-i-jump    t)
+  :custom ((evil-undo-system 'undo-redo))
   :config
   (evil-set-initial-state 'term-mode 'emacs)
   (evil-select-search-module 'evil-search-module 'evil-search)
-  (setq-default evil-undo-system 'undo-redo)
   (general-define-key
     :keymaps '(evil-normal-state-map)
     "M-." nil)
