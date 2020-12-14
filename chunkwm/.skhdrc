@@ -3,13 +3,15 @@
 cmd - h : :
 
 # Start screensaver on external keyborad
-cmd - f15 : open -a /System/Library/CoreServices/ScreenSaverEngine.app
+alt - f15 : open -a /System/Library/CoreServices/ScreenSaverEngine.app
 
 # focus window
 alt - h : yabai -m window --focus west
 alt - j : yabai -m window --focus south
 alt - k : yabai -m window --focus north
 alt - l : yabai -m window --focus east
+
+alt - s : yabai -m window --toggle split
 
 # swap window
 shift + alt - h : yabai -m window --swap west
