@@ -514,7 +514,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (require 'smartparens-config)
   (general-define-key
-    :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map)
+    :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map python-mode-map
+                                   c-mode-map c++-mode-map)
     "C->" 'sp-forward-slurp-sexp)
   (sp-pair "{%" "%}"))
 
