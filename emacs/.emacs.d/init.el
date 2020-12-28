@@ -1114,9 +1114,6 @@ On multi-monitor systems the display spans across all the monitors."
     "g b"   'magit-blame
     "g f h" 'magit-log-buffer-file))
 
-(use-package evil-magit
-  :after magit)
-
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
   :config
