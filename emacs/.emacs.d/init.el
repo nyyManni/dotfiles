@@ -1420,6 +1420,8 @@ directory to make multiple eshell windows easier."
 
 (use-package json-mode)
 
+(use-package coffee-mode)
+
 (use-package rjsx-mode
   :mode "\\.js\\'"
   :init
