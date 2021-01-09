@@ -361,23 +361,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
    ";" 'counsel-find-file
    "x" 'counsel-M-x
    "A" 'counsel-apropos
-   "y"  'counse-yank-pop
-   )
-  :bind (("C-*"     . counsel-org-agenda-headlines)
-         ;; ("C-x C-f" . counsel-find-file)
-         ("C-c e l" . counsel-find-library)
-         ("C-c e q" . counsel-set-variable)
-         ;; ("C-h e l" . counsel-find-library)
-         ;; ("C-h e u" . counsel-unicode-char)
-         ;; ("C-h f"   . counsel-describe-function)
-         ("C-x r b" . counsel-bookmark)
-         ;; ("M-x"     . counsel-M-x)
-         ;; ("M-y"     . counsel-yank-pop)
-
-         ("M-s f" . counsel-file-jump)
-         ;; ("M-s g" . counsel-rg)
-         ("M-s j" . counsel-dired-jump)
-         :map ivy-minibuffer-map
+   "y"  'counse-yank-pop)
+  :bind (:map ivy-minibuffer-map
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line))
   :commands counsel-minibuffer-history
@@ -404,11 +392,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :general
   (leader-def-key
    "b" 'ivy-switch-buffer)
-
-  :bind (("C-x b" . ivy-switch-buffer)
-         ("C-x B" . ivy-switch-buffer-other-window)
-         ("M-H"   . ivy-resume))
-
   :bind (:map ivy-minibuffer-map
               ("<tab>" . ivy-alt-done)
               ("SPC"   . ivy-alt-done-or-space)
@@ -417,8 +400,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               ("C-r"   . ivy-previous-line-or-history)
               ("M-r"   . ivy-reverse-i-search))
 
-  :bind (:map ivy-switch-buffer-map
-              ("C-k" . ivy-switch-buffer-kill))
 
   :custom
   (ivy-dynamic-exhibit-delay-ms 200)
