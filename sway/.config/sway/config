@@ -157,18 +157,18 @@ bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
-set $laptop eDP-1
-set $landscape_dell DP-3
-set $pivot_dell DP-2
+set $laptop    "Unknown 0x212B 0x00000000"
+set $landscape "Dell Inc. DELL U2719D 9JWNY13"
+set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 
-output eDP-1 scale 1.75 position 4000,0
-output DP-3 scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
-output DP-2 scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
+output $laptop scale 1.75 position 4000,0
+output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
+output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
 
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
 
-xwayland scale 2
+# xwayland scale 2
 
 input "1:1:AT_Translated_Set_2_keyboard" {
     repeat_rate 40
@@ -225,7 +225,7 @@ bindsym $mod+r mode "resize"
 bar {
      position top
 
-     id "waybar"
+     id "glbar"
      # When the status_command prints a new line to stdout, swaybar updates.
      # The default just shows the current date and time.
      # status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
@@ -233,7 +233,7 @@ bar {
      # status_command /home/hnyman/projects/github/i3status-rust/target/release/i3status-rs ~/.config/sway/.i3status-rs.toml
      # status_command while ~/.config/sway/status.sh; do sleep 1; done
      # swaybar_command waybar
-     swaybar_command /home/hnyman/projects/github/waybar-gl/build/waybar-gl
+     swaybar_command /usr/local/bin/swaybar
      mode hide
      # mode hide
      hidden_state hide
@@ -251,9 +251,9 @@ bar {
      }
 }
 
-output eDP-1 bg /home/hnyman/Pictures/landscape.png fill
-output DP-3 bg /home/hnyman/Pictures/landscape.png fill
-output DP-2 bg /home/hnyman/Pictures/pivot.png fill
+output $laptop bg /home/hnyman/Pictures/landscape.png fill
+output $landscape bg /home/hnyman/Pictures/landscape.png fill
+output $pivot bg /home/hnyman/Pictures/pivot.png fill
 
 # Enable DPI setting for Xwayland
 exec xrdb ~/.Xresources
