@@ -55,6 +55,9 @@
       vc-make-backup-files t
       tab-width            2
       frame-title-format   '("" "Emacs v" emacs-version))
+
+(when (eq system-type 'gnu/linux)
+  (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
