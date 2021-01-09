@@ -54,7 +54,7 @@
       version-control      t
       vc-make-backup-files t
       tab-width            2
-      frame-title-format   '("" "Emacs v%s" emacs-version))
+      frame-title-format   '("" "Emacs v" emacs-version))
 (when (eq system-type 'darwin)
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
