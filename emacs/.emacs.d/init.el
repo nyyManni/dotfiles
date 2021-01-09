@@ -1,9 +1,10 @@
-;; init.el --- Emacs configuration
+;; init.el --- -*- lexical-binding: t -*-
 ;; Copyright (c) 2016 - 2019 Henrik Nyman
+
 
 ;; Author     : Henrik Nyman <h@nyymanni.com>
 ;; Created    : 10 Aug 2016
-;; Version    : 0.1
+;; Version    : 0.3
 
 ;; The MIT License
 
@@ -28,20 +29,9 @@
 
 ;;; Commentary:
 
-;; nyyManni's configuration for Emacs, 2019 flavor.
+;; nyyManni's configuration for Emacs, 2021 flavor.
 
 ;;; Code:
-
-
-;; Workarounds for nativecomp
-(require 'comp)
-(add-to-list 'comp-bootstrap-deny-list "smartparens")
-(add-to-list 'comp-deferred-compilation-deny-list "smartparens")
-(add-to-list 'comp-bootstrap-deny-list "org")
-(add-to-list 'comp-deferred-compilation-deny-list "org")
-(add-to-list 'comp-bootstrap-deny-list "helm-files")
-(add-to-list 'comp-deferred-compilation-deny-list "helm-files")
-
 
 (setq user-full-name       "Henrik Nyman"
       user-login-name      "hnyman"
@@ -64,8 +54,24 @@
       version-control      t
       vc-make-backup-files t
       tab-width            2
-      doc-view-resolution  300
-      frame-title-format   '("" "Emacs v" emacs-version))
+      frame-title-format   '("" "Emacs v%s" emacs-version))
+(when (eq system-type 'darwin)
+  (setq exec-path                     (append exec-path '("/usr/local/bin"))
+        default-input-method          "MacOSX"
+        default-directory             "/Users/hnyman/"
+        mac-command-modifier          'meta
+        mac-option-modifier           nil
+        mac-allow-anti-aliasing       t
+        frame-resize-pixelwise        t
+        ns-use-srgb-colorspace        nil
+        mouse-wheel-scroll-amount     '(5 ((shift) . 5) ((control)))
+        mouse-wheel-progressive-speed nil)
+
+  (setenv "SSH_AUTH_SOCK" (shell-command-to-string "launchctl getenv SSH_AUTH_SOCK | tr -d '\n'")))
+
+(let ((work-config (concat user-emacs-directory "/work-config.el")))
+  (when (file-exists-p work-config)
+    (load-file (concat user-emacs-directory "/work-config.el"))))
 
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
 (fset 'startup-echo-area-message (lambda () ""))
@@ -81,140 +87,54 @@
 (global-unset-key (kbd "C-/"))  ;; evil sets undo to 'u'
 (global-unset-key (kbd "C-?"))  ;; evil sets redo to 'C-r'
 (when window-system
-  ;; Allow me to accidentally hit C-x C-c when using graphical Emacs.
   (global-unset-key (kbd "C-z"))
+  (blink-cursor-mode 0)
   (setq confirm-kill-emacs 'y-or-n-p))
 
-;; Linux specific settings
-(when (eq system-type 'gnu/linux)
 
-  (add-to-list 'default-frame-alist
-               '(font . "DejaVu Sans Mono-8"))
-  (setq-default display-fill-column-indicator-character ?\u2502)
-
-  (setq exec-path '("/home/hnyman/.cargo/bin"
-                    "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims"
-                    "/home/hnyman/.pyenv/shims"
-                    "/home/hnyman/.pyenv/bin"
-                    "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims"
-                    "/home/hnyman/.pyenv/shims" "/home/hnyman/.pyenv/bin"
-                    "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims"
-                    "/home/hnyman/.pyenv/shims" "/home/hnyman/.pyenv/bin"
-                    "/usr/local/bin" "/usr/bin" "/bin" "/usr/games"
-                    "/usr/local/libexec/emacs/27.0.50/x86_64-pc-linux-gnu")
-
-        load-prefer-newer  t)
-  (setenv "PATH" (concat "/home/hnyman/.cargo/bin:"
-                         "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims:"
-                         "/home/hnyman/.pyenv/shims:/home/hnyman/.pyenv/bin:"
-                         "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims:"
-                         "/home/hnyman/.pyenv/shims:/home/hnyman/.pyenv/bin:"
-                         "/home/hnyman/.pyenv/plugins/pyenv-virtualenv/shims:"
-                         "/home/hnyman/.pyenv/shims:/home/hnyman/.pyenv/bin:"
-                         "/usr/local/bin:/usr/bin:/bin:/usr/games"))
-  (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
-
-  (setq byte-compile-warnings '(cl-functions))
-;; OS X specific settings
-(when (eq system-type 'darwin)
-  ;; TODO: Fix byte compiler warnings
-  (setq exec-path                     (append exec-path '("/usr/local/bin"))
-        default-input-method          "MacOSX"
-        default-directory             "/Users/hnyman/"
-        mac-command-modifier          'meta
-        mac-option-modifier           nil
-        mac-allow-anti-aliasing       t
-        frame-resize-pixelwise        t
-        ns-use-srgb-colorspace        nil
-        mouse-wheel-scroll-amount     '(5 ((shift) . 5) ((control)))
-        mouse-wheel-progressive-speed nil)
-
-  ;; Environment variables
-  (setenv "PATH" (concat "/usr/local/bin:/usr/local/opt/texinfo/bin:"
-                         "/usr/local/texlive/2018/bin/x86_64-darwin:/usr/bin:"
-                         "/bin:/usr/sbin:/sbin:/Users/hnyman/bin:"
-                         "/Users/hnyman/.cargo/bin"))
-  (setenv "SHELL"         "/bin/zsh")
-  (setenv "LC_CTYPE"      "UTF-8")
-  (setenv "LC_ALL"        "en_US.UTF-8")
-  (setenv "LANG"          "en_US.UTF-8")
-  (setenv "SSH_AUTH_SOCK" (shell-command-to-string "launchctl getenv SSH_AUTH_SOCK | tr -d '\n'")))
-
-;; Default values for configuration that is overridden in the private config.
-(defvar my-ejira-projects      '("EJ" "JL2"))
-(defvar my-ejira-server        "https://localhost:8080")
-(defvar my-ejira-kanban-boards nil)
-(defvar my-ejira-scrum-boards nil)
-(let ((work-config (concat user-emacs-directory "/work-config.el")))
-  (when (file-exists-p work-config)
-    (load-file (concat user-emacs-directory "/work-config.el"))))
-
-
-(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
-(blink-cursor-mode 0)
-(global-hl-line-mode 1)
-(column-number-mode)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(add-hook 'prog-mode-hook #'show-paren-mode)
 
-(global-set-key (kbd "<C-up>") 'shrink-window)
-(global-set-key (kbd "<C-down>") 'enlarge-window)
-(global-set-key (kbd "<C-left>") 'shrink-window-horizontally)
-(global-set-key (kbd "<C-right>") 'enlarge-window-horizontally)
 
-(global-set-key (kbd "<C-S-up>") (lambda () (interactive) (shrink-window 10)))
-(global-set-key (kbd "<C-S-down>") (lambda () (interactive) (enlarge-window 10)))
-(global-set-key (kbd "<C-S-left>") (lambda () (interactive) (shrink-window-horizontally 10)))
-(global-set-key (kbd "<C-S-right>") (lambda () (interactive) (enlarge-window-horizontally 10)))
+(setq package-user-dir (expand-file-name "sitelisp" user-emacs-directory)
+      package-archives
+      '(("gnu"   . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")))
 
-(setq-default display-line-numbers-width 4)
+(unless (bound-and-true-p package--initialized)
+  (setq package-enable-at-startup nil)          ; To prevent initializing twice
+  (package-initialize))
 
-(require 'package)
-(setq package-user-dir   "~/.emacs.d/elpa"
-      package-quickstart t
-      package-archives   '(("gnu"   . "https://elpa.gnu.org/packages/")
-                           ("melpa" . "http://melpa.org/packages/")
-                           ("org"   . "http://orgmode.org/elpa/")))
-(if (version< emacs-version "27")
-    (package-initialize))
-
-(unless (package-installed-p 'no-littering)
-  (package-refresh-contents)
-  (package-install 'no-littering))
-
-(require 'no-littering)
+(eval-and-compile
+  (setq use-package-verbose (not (bound-and-true-p byte-compile-current-file))))
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
 
-(unless (package-installed-p 'diminish)
-  (package-refresh-contents)
-  (package-install 'diminish))
+(eval-and-compile
+  (setq use-package-always-ensure t)
+  (setq use-package-expand-minimally t)
+  (setq use-package-compute-statistics t)
+  (setq use-package-enable-imenu-support t))
 
 (eval-when-compile
   (require 'use-package)
-  (setq use-package-always-ensure     t
-        use-package-check-before-init t))
+  (require 'bind-key))
+
+(use-package no-littering
+  :demand t
+  :config
+  (require 'recentf)
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory))
 
 (use-package gotham-theme
   :demand
   :if (or (daemonp) window-system)
   :config
   (load-theme 'gotham t))
-
-(defun screenshot-svg ()
-  "Save a screenshot of the current frame as an SVG image.
-Saves to a temp file and puts the filename in the kill ring."
-  (interactive)
-  (let* ((filename (make-temp-file "Emacs" nil ".svg"))
-         (data (x-export-frames nil 'svg)))
-    (with-temp-file filename
-      (insert data))
-    (kill-new filename)
-    (message filename)))
 
 (use-package doom-modeline
   :demand
@@ -232,27 +152,76 @@ Saves to a temp file and puts the filename in the kill ring."
                       :background "#444444"
                       :weight 'bold))
 
-;; Fix issue with the new :extend face attribute in emacs-27
-;; Prefer to extend to EOL as in previous emacs.
-(defun my-extend-faces-matching (regexp)
-  "Helper function to fix styling issues from the new :extend -keyword.
-Set :extend to t for faces matching REGEXP."
-  (cl-loop for f in (face-list)
-           for face = (symbol-name f)
-           when (and (string-match regexp face)
-                     (eq (face-attribute f :extend t 'default)
-                         'unspecified))
-           do (set-face-attribute f nil :extend t)))
+;; Evil
+(defconst my/leader "SPC")
+(use-package general
+  :config
+  (general-define-key
+    :states 'motion
+    "SPC" nil)
+  (general-create-definer leader-def-key
+    :states 'motion
+    :prefix my/leader
+    :prefix-map 'leader-map)
 
-(when (fboundp 'set-face-extend)
-  (set-face-attribute 'region nil :extend t)
-  (with-eval-after-load "magit"
-    (my-extend-faces-matching "\\`magit"))
-  (with-eval-after-load "helm"
-    (my-extend-faces-matching "\\`helm"))
-  (with-eval-after-load "company"
-    (my-extend-faces-matching "\\`company")))
 
+  (defun minibuffer-keyboard-quit ()
+    "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+    (interactive)
+    (if (and delete-selection-mode transient-mark-mode mark-active)
+        (setq deactivate-mark  t)
+      (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
+      (abort-recursive-edit)))
+
+  (general-define-key
+    :keymaps '(evil-normal-state-map evil-visual-state-map)
+    "<escape>" 'keyboard-quit)
+  (general-define-key
+    :keymaps '(minibuffer-local-map
+               minibuffer-local-ns-map
+               minibuffer-local-must-match-map
+               minibuffer-local-isearch-map)
+    "<escape>" 'minibuffer-keyboard-quit)
+
+  ;; Completely disable the mouse
+  (dolist (key '([drag-mouse-1] [down-mouse-1] [mouse-1]
+                 [drag-mouse-2] [down-mouse-2] [mouse-2]
+                 [drag-mouse-3] [down-mouse-3] [mouse-3]))
+    (global-unset-key key)
+    (general-define-key
+      :keymaps '(evil-motion-state-map evil-normal-state-map)
+      key nil))
+
+  ;; Disable arrow key movement
+  (dolist (key '("<left>" "<right>" "<up>" "<down>"))
+    (general-define-key :keymaps '(evil-motion-state-map) key nil)
+    (global-unset-key (kbd key)))
+  ;; (global-set-key (kbd "M-?") 'help-command)
+  (global-set-key (kbd "M-?") nil)
+  (global-set-key (kbd "C-h") 'delete-backward-char)
+  (global-set-key (kbd "M-h") 'backward-kill-word)
+
+  ; Disable toggling fullscreen with f11
+  (general-define-key "<f11>" nil)
+
+  (global-set-key (kbd "C-S-u") 'universal-argument)
+  (define-key universal-argument-map (kbd "C-S-u") 'universal-argument-more)
+
+  (leader-def-key
+    :keymaps 'override
+    "a a" 'align-regexp
+    "s w" 'whitespace-mode
+    "e"   'eval-last-sexp
+    "D"   'kill-this-buffer
+    "F"   'my-dired-here
+    "l p" 'package-list-packages
+    "s l" 'sort-lines
+    "r"   'my-reload-file
+    "i"   'indent-region
+    "I"   (lambda () (interactive) (find-file user-init-file))
+    "S"   'delete-trailing-whitespace))
 
 (defun my-reload-file ()
   "Reopen current file, preserving location of point."
@@ -289,235 +258,28 @@ Set :extend to t for faces matching REGEXP."
     (apply command args)
     (rename-buffer (concat bufname "*"))))
 
-(use-package f
-  :functions (f-dirname))
-(use-package dash-functional
-  :commands (-partial))
-
-(use-package general
-  :commands (general-define-key general-chord)
-  :functions (space-leader)
-  :config
-  (function-put #'general-define-key 'lisp-indent-function 'defun)
-  (function-put #'general-create-definer 'lisp-indent-function 'defun)
-
-  (defun minibuffer-keyboard-quit ()
-    "Abort recursive edit.
-In Delete Selection mode, if the mark is active, just deactivate it;
-then it takes a second \\[keyboard-quit] to abort the minibuffer."
-    (interactive)
-    (if (and delete-selection-mode transient-mark-mode mark-active)
-        (setq deactivate-mark  t)
-      (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
-      (abort-recursive-edit)))
-
-  (general-define-key
-    :keymaps '(evil-normal-state-map evil-visual-state-map)
-    "<escape>" 'keyboard-quit)
-  (general-define-key
-    :keymaps '(minibuffer-local-map
-               minibuffer-local-ns-map
-               minibuffer-local-must-match-map
-               minibuffer-local-isearch-map)
-    "<escape>" 'minibuffer-keyboard-quit)
-
-  ;; Completely disable the mouse
-  (dolist (key '([drag-mouse-1] [down-mouse-1] [mouse-1]
-                 [drag-mouse-2] [down-mouse-2] [mouse-2]
-                 [drag-mouse-3] [down-mouse-3] [mouse-3]))
-    (global-unset-key key)
-    (general-define-key
-      :keymaps '(evil-motion-state-map evil-normal-state-map)
-      key nil))
-
-  ;; Disable arrow key movement
-  (dolist (key '("<left>" "<right>" "<up>" "<down>"))
-    (general-define-key :keymaps '(evil-motion-state-map) key nil)
-    (global-unset-key (kbd key)))
-  (global-set-key (kbd "M-?") 'help-command)
-  (global-set-key (kbd "C-h") 'delete-backward-char)
-  (global-set-key (kbd "M-h") 'backward-kill-word)
-
-  ; Disable toggling fullscreen with f11
-  (general-define-key "<f11>" nil)
-
-  (global-set-key (kbd "C-S-u") 'universal-argument)
-  (define-key universal-argument-map (kbd "C-S-u") 'universal-argument-more)
-
-  (general-create-definer space-leader
-    :states '(normal visual insert emacs)
-    :global-prefix "C-c"
-    :non-normal-prefix "M-SPC"
-    :prefix "SPC")
-
-  (function-put #'space-leader 'lisp-indent-function 'defun)
-
-  (defun my-dired-here ()
-    (interactive)
-    (dired (f-dirname (or (buffer-file-name) "~/dummy"))))
-
-  (space-leader
-    :keymaps 'override
-    "a a" 'align-regexp
-    "s w" 'whitespace-mode
-    "e"   'eval-last-sexp
-    "D"   'kill-this-buffer
-    "F"   'my-dired-here
-    "l p" 'package-list-packages
-    "s l" 'sort-lines
-    "r"   'my-reload-file
-    "i"   'indent-region
-    "I"   (lambda () (interactive) (find-file user-init-file))
-    "S"   'delete-trailing-whitespace
-    "0"   'delete-window
-    "1"   'delete-other-windows
-    "2"   'split-window-below
-    "3"   'split-window-right))
-
 (use-package evil
-  :hook (after-init . evil-mode)
-  :commands (evil-set-initial-state evil-select-search-module)
   :init
-  (setq evil-want-integration t
-        evil-want-keybinding  nil
-        evil-search-module    'evil-search
-        evil-want-C-d-scroll  t
-        evil-want-C-u-scroll  t
-        evil-want-C-i-jump    t)
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-fine-undo t)
+  (setq evil-want-keybinding nil)
+
   :custom ((evil-undo-system 'undo-redo))
   :config
-  (evil-set-initial-state 'term-mode 'emacs)
-  (evil-select-search-module 'evil-search-module 'evil-search)
-  (general-define-key
-    :keymaps '(evil-normal-state-map)
-    "M-." nil)
-  :general
-  (general-define-key
-    :states '(normal insert visual)
-    "C-S-z" 'evil-emacs-state)
-  (general-define-key
-    :states '(emacs)
-    "C-S-z" 'evil-normal-state)
-  (space-leader
-    :keymaps 'override
-    "h" 'evil-ex-nohighlight))
+  (evil-mode 1))
 
-(use-package which-key
-  :hook (after-init . which-key-mode))
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 
 (use-package key-chord
   :hook (after-init . (lambda () (key-chord-mode t)))
-  :config
+  :general
   (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
     (general-define-key
       :keymaps '(evil-insert-state-map evil-visual-state-map)
       (general-chord chord) 'evil-normal-state)))
-
-(use-package helm
-  :hook (after-init . helm-mode)
-  :commands (helm-autoresize-mode helm-get-selection helm-preselect)
-  :functions (helm-skip-dots helm-ff-move-to-first-real-candidate)
-  :defines (helm-idle-delay helm-quick-update helm-M-x-requires-pattern
-                            helm-ff-skip-boring-files helm-ff-search-library-in-sexp
-                            helm-ff-file-name-history-use-recentf)
-  :init
-  (setq helm-candidate-number-limit           100
-        helm-idle-delay                       0.0
-        helm-input-idle-delay                 0.01
-        helm-quick-update                     t
-        helm-M-x-requires-pattern             nil
-        helm-ff-skip-boring-files             t
-        helm-move-to-line-cycle-in-source     t
-        helm-split-window-inside-p            t
-        helm-ff-search-library-in-sexp        t
-        helm-scroll-amount                    8
-        helm-ff-file-name-history-use-recentf t)
-  :config
-  (require 'helm-config)
-  (helm-autoresize-mode t)
-  (defun helm-skip-dots (old-func &rest args)
-    "Skip . and .. initially in helm-find-files.  First call OLD-FUNC with ARGS."
-    (apply old-func args)
-
-    ;; When doing rgrepping, it is usually preferred to select '.'
-    (when (not (equal (buffer-name) "*helm-mode-rgrep*"))
-      (let ((sel (helm-get-selection)))
-        (if (and (stringp sel) (string-match "/\\.$" sel))
-            (helm-next-line 2)))
-      (let ((sel (helm-get-selection))) ; if we reached .. move back
-        (if (and (stringp sel) (string-match "/\\.\\.$" sel))
-            (helm-previous-line 1)))))
-
-  ;; Override the ugly magenta color of the file extension (why doesn't it follow
-  ;; the setting from the theme...)
-  (require 'helm-files)
-  (set-face-attribute 'helm-ff-file-extension nil
-                      :foreground "#C23127")
-
-  (advice-add #'helm-preselect :around #'helm-skip-dots)
-  (advice-add #'helm-ff-move-to-first-real-candidate :around #'helm-skip-dots)
-  :general
-  (general-define-key
-    :keymaps '(helm-map)
-    "C-i" 'helm-execute-persistent-action
-    "C-k" 'helm-previous-line
-    "C-j" 'helm-next-line)
-  (general-define-key
-    "M-x" 'helm-M-x)
-  (general-define-key
-    :keymap 'helm-find-files-map
-    "<right>" 'helm-ff-RET
-    "<left>" 'backward-kill-word)
-  (space-leader
-    :keymaps 'override
-    "x" 'helm-M-x
-    "O" 'helm-occur
-    "A" 'helm-apropos
-    "y" 'helm-show-kill-ring
-    "f" 'helm-imenu
-    ";" 'helm-find-files
-    "b" 'helm-mini))
-
-(use-package helm-xref)
-(use-package helm-ag)
-
-(use-package projectile
-  :functions (projectile-register-project-type)
-  :commands (projectile-register-project-type)
-  :init
-  (setq projectile-completion-system 'default
-        projectile-enable-caching    t
-        projectile-use-git-grep      t)
-  :config
-  (projectile-register-project-type 'python  '("setup.py")
-                                    :compile "python setup.py bdist_wheel"
-                                    :test    "pytest tests")
-  (projectile-mode))
-
-(use-package helm-projectile
-  :general
-  (space-leader
-    "G P" 'helm-projectile-ag
-    "G r" 'rgrep
-    "'"   'helm-projectile-switch-project
-    ":"   'helm-projectile-find-file))
-
-(use-package smartparens
-  :defines (sp--special-self-insert-commands)
-  :hook
-  (after-init . smartparens-global-mode)
-  (after-init . show-smartparens-global-mode)
-  :init
-  (setq-default sp-escape-quotes-after-insert nil)
-  :commands (sp-pair)
-  :config
-
-  (require 'smartparens-config)
-  (general-define-key
-    :keymaps '(emacs-lisp-mode-map lisp-interaction-mode-map python-mode-map
-                                   c-mode-map c++-mode-map)
-    "C->" 'sp-forward-slurp-sexp)
-  (sp-pair "{%" "%}"))
 
 (use-package evil-commentary
   :config
@@ -557,12 +319,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps '(evil-normal-sate-map)
     "K" 'evil-jump-out-args))
 
-(use-package ediff
-  :ensure nil
-  :init
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain
-        ediff-split-window-function 'split-window-horizontally))
-
 (use-package evil-exchange
   :general
   (general-define-key
@@ -584,434 +340,215 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (global-evil-visualstar-mode 1))
 
-;; TODO: evil-ediff
-;;       evil-textobj-anyblock evil-collection
+(use-package which-key
+  :hook (after-init . which-key-mode))
 
-(use-package flycheck
-  :hook
-  (prog-mode . flycheck-mode)
-  (nxml-mode . flycheck-mode)
+;; Ivy, counsel and swiper
+
+(use-package counsel
+  :after ivy
+  :demand t
+  :diminish
+  :custom (counsel-find-file-ignore-regexp
+           (concat "\\(\\`\\.[^.]\\|"
+                   (regexp-opt completion-ignored-extensions)
+                   "\\'\\)"))
+  :general
+  (leader-def-key
+   ";" 'counsel-find-file
+   "x" 'counsel-M-x
+   "A" 'counsel-apropos
+   "y"  'counse-yank-pop
+   )
+  :bind (("C-*"     . counsel-org-agenda-headlines)
+         ;; ("C-x C-f" . counsel-find-file)
+         ("C-c e l" . counsel-find-library)
+         ("C-c e q" . counsel-set-variable)
+         ;; ("C-h e l" . counsel-find-library)
+         ;; ("C-h e u" . counsel-unicode-char)
+         ;; ("C-h f"   . counsel-describe-function)
+         ("C-x r b" . counsel-bookmark)
+         ;; ("M-x"     . counsel-M-x)
+         ;; ("M-y"     . counsel-yank-pop)
+
+         ("M-s f" . counsel-file-jump)
+         ;; ("M-s g" . counsel-rg)
+         ("M-s j" . counsel-dired-jump)
+         :map ivy-minibuffer-map
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line))
+  :commands counsel-minibuffer-history
   :init
-  (setq-default flycheck-emacs-lisp-load-path 'inherit)
-
-  ;; Disable other flycheck backends, only use lsp
-  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang rust-cargo))
+  (bind-key "M-r" #'counsel-minibuffer-history minibuffer-local-map)
   :config
+  (add-to-list 'ivy-sort-matches-functions-alist
+               '(counsel-find-file . ivy--sort-files-by-date)))
+
+(use-package counsel-projectile
+  :after (counsel projectile)
+  :config
+  (counsel-projectile-mode 1)
+  :general
+  (leader-def-key
+   "'" 'counsel-projectile-switch-project
+   ":" 'counsel-projectile-find-file))
+
+
+(use-package ivy
+  :diminish
+  :demand t
 
   :general
-  (general-define-key
-    :states '(normal visual)
-    "[ e" 'flycheck-previous-error
-    "] e" 'flycheck-next-error))
+  (leader-def-key
+   "b" 'ivy-switch-buffer)
 
-(use-package posframe)
-;; (use-package flymake-posframe
-;;   :load-path "~/.emacs.d/lisp/flymake-posframe"
-;;   :hook (flymake-mode . flymake-posframe-mode))
+  :bind (("C-x b" . ivy-switch-buffer)
+         ("C-x B" . ivy-switch-buffer-other-window)
+         ("M-H"   . ivy-resume))
 
-(use-package undo-tree
-  :general
-  (general-define-key
-    :keymaps '(undo-tree-map)
-    "C-/" nil
-    "C-?" nil)
-  (space-leader
-    :keymaps 'override
-    "u" 'undo-tree-visualize))
+  :bind (:map ivy-minibuffer-map
+              ("<tab>" . ivy-alt-done)
+              ("SPC"   . ivy-alt-done-or-space)
+              ("C-d"   . ivy-done-or-delete-char)
+              ("C-i"   . ivy-partial-or-done)
+              ("C-r"   . ivy-previous-line-or-history)
+              ("M-r"   . ivy-reverse-i-search))
 
-(use-package org
-  :ensure org-plus-contrib
-  :pin org
-  :hook
-  (org-mode . visual-line-mode)
-  (org-mode . org-indent-mode)
-  (org-capture-mode . evil-insert-state)
-  :init
+  :bind (:map ivy-switch-buffer-map
+              ("C-k" . ivy-switch-buffer-kill))
 
-  (defun my-pop-to-temp-org-buffer ()
+  :custom
+  (ivy-dynamic-exhibit-delay-ms 200)
+  (ivy-height 10)
+  (ivy-initial-inputs-alist nil t)
+  (ivy-magic-tilde nil)
+  (ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
+  (ivy-use-virtual-buffers t)
+  (ivy-wrap t)
+
+  :preface
+  (defun ivy-done-or-delete-char ()
     (interactive)
-    (pop-to-buffer "*scratch.org*")
-    (unless (derived-mode-p 'org-mode)
-      (org-mode)))
+    (call-interactively
+     (if (eolp)
+         #'ivy-immediate-done
+       #'ivy-delete-char)))
 
-  (setq org-export-async-init-file             (concat user-emacs-directory
-                                                       "/org-async-init.el")
-        org-confirm-babel-evaluate             nil
-        org-tags-column                        -100
-        org-clock-history-length               23
-        org-agenda-restore-windows-after-quit  t
-        org-clock-in-resume                    t
-        org-drawers                            '("PROPERTIES" "LOGBOOK")
-        org-clock-into-drawer                  t
-        org-clock-out-remove-zero-time-clocks  t
-        org-clock-out-when-done                t
-        org-clock-persist                      t
-        org-clock-persist-query-resume         nil
-        org-clock-auto-clock-resolution        'when-no-clock-is-running
-        org-clock-report-include-clocking-task t
-        org-time-stamp-rounding-minutes        '(1 1)
-        org-use-fast-todo-selection            t
-
-        my-misc-org-file                       "~/org/MISC.org"
-        org-indirect-buffer-display            'other-window
-
-        org-lowest-priority    ?G
-        org-priority-faces     '((?A . (:foreground "#c23127" :weight 'bold))
-                                 (?B . (:foreground "#c23127"))
-                                 (?C . (:foreground "#d26937"))
-                                 (?E . (:foreground "#2aa889"))
-                                 (?F . (:foreground "gray"))
-                                 (?G . (:foreground "gray")))
-        org-agenda-files       '("~/org")
-        org-agenda-sticky      t
-        org-todo-keywords
-        '((sequence "BLOG(b)" "TODO(t)" "NEXT(p)" "TEST" "|" "DONE(d)")
-          (sequence "WAIT(w@/!)" "|" "CANCELLED(c@/!)" "MEET(m)" "NOTE(n)"))
-
-        org-todo-keyword-faces '(("BLOG" :foreground "#343a40"    :weight bold)
-                                 ("TODO" :foreground "#c23127"    :weight bold)
-                                 ;; ("NEXT" :foreground "#d26937e"   :weight bold)
-                                 ("NEXT" :foreground "white"   :weight bold)
-                                 ("TEST" :foreground "light blue" :weight bold)
-                                 ("DONE" :foreground "#2aa889"    :weight bold))
-        org-capture-templates
-        '(("t" "task" entry (file my-misc-org-file)
-           "* TODO %?\n  %u\n" )
-          ("m" "Meeting" entry (file my-misc-org-file)
-           "* MEET %? \n  %t" :clock-in t :clock-resume t)
-          ("n" "Note" entry (file my-misc-org-file)
-           "* NOTE %?\n  %t" :clock-in t :clock-resume t)
-          ("D" "Daily" entry (file my-misc-org-file)
-           "* MEET Daily Scrum\n  %t" :clock-in t :clock-resume t)
-          ("W" "Weekly" entry (file my-misc-org-file)
-           "* MEET Weekly - Week %(format-time-string \"%W\")\n  %t"
-           :clock-in t :clock-resume t)
-          ("M" "Monthly" entry (file my-misc-org-file)
-           "* MEET Monthly - %(format-time-string \"%B %Y\")\n  %t"
-           :clock-in t :clock-resume t)
-          ("g" "General" entry (file my-misc-org-file)
-           "* %? %t\n" :clock-in t :clock-resume t)))
-  :config
-  (defun my-org-pdf-async ()
-    "Perform an async pdf export."
+  (defun ivy-alt-done-or-space ()
     (interactive)
-    (save-buffer)
-    (message "Exporting PDF...")
-    (org-latex-export-to-pdf t))
-  :general
-  (space-leader
-    :keymaps '(bibtex-mode-map)
-    "i" 'org-ref-clean-bibtex-entry)
+    (call-interactively
+     (if (= ivy--length 1)
+         #'ivy-alt-done
+       #'self-insert-command)))
 
-  (space-leader
-    :keymaps '(org-mode-map)
-    "E"     'my-org-pdf-async
-    "s a"   'outline-show-all
+  (defun ivy-switch-buffer-kill ()
+    (interactive)
+    (debug)
+    (let ((bn (ivy-state-current ivy-last)))
+      (when (get-buffer bn)
+        (kill-buffer bn))
+      (unless (buffer-live-p (ivy-state-buffer ivy-last))
+        (setf (ivy-state-buffer ivy-last)
+              (with-ivy-window (current-buffer))))
+      (setq ivy--all-candidates (delete bn ivy--all-candidates))
+      (ivy--exhibit)))
 
-    "o t c" 'org-table-create
-    "o C"   'org-ref-helm-insert-cite-link
-    "o L"   'org-ref-helm-insert-label-link
-    "o R"   'org-ref-helm-insert-ref-link
-    "p c"   'my-org-compile
+  ;; This is the value of `magit-completing-read-function', so that we see
+  ;; Magit's own sorting choices.
+  (defun my-ivy-completing-read (&rest args)
+    (let ((ivy-sort-functions-alist '((t . nil))))
+      (apply 'ivy-completing-read args)))
 
-    ;; Task management keybindings.
-    "o t i" 'org-clock-in
-    "o s"   'org-todo
-    "o e"   'org-edit-special
-    "o r f" 'helm-ejira-refile
-    "o t s" 'org-clock-display
-    "o n s" 'org-narrow-to-subtree
-    "o n w" 'widen)
-  (space-leader
-    :keymaps '(org-src-mode-map)
-    "o e"   'org-edit-src-exit)
-
-  (general-define-key
-    :keymaps '(org-agenda-mode-map)
-    "j"     'evil-next-line
-    "k"     'evil-previous-line
-    "g"     nil
-    "SPC"   nil
-    "g g"   'evil-goto-first-line
-    "g r"   'org-agenda-redo-all
-    "G"     'evil-goto-line)
-  ;; Global org bindings
-  (space-leader
-    :keymaps 'override
-    "o a"   'org-agenda
-    "o c"   'org-capture
-    "o o"   'my-pop-to-temp-org-buffer
-    "o t r" 'org-clock-in-last
-    "o t o" 'org-clock-out
-    "o t t" 'org-clock-goto
-    "o t i" 'org-clock-in))
-
-(use-package org-agenda
-  :ensure nil
-  :commands (org-add-agenda-custom-command))
-
-(use-package org-ref)
-
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
-  :init
-  (setq org-bullets-bullet-list '("◉" "○" "◆" "✸" "◇")))
-
-(use-package dash)
-(use-package dash-functional)
-(use-package ox-jira)
-(use-package f)
-(use-package s)
-(use-package request)
-(use-package language-detection)
-(use-package jiralib2)
-(use-package ejira
-  :load-path "~/.emacs.d/lisp/ejira"
-  :ensure nil
-  :commands (ejira-guess-epic-sprint-fields)
-  :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
-                                             my-add-ejira-kanban-board)
-  :init
-
-
-  (defun my-clock-fn ()
-    (cond ((org-before-first-heading-p) "???")
-          (t (let ((heading (replace-regexp-in-string
-	                     org-bracket-link-analytic-regexp "\\5"
-	                     (org-no-properties (org-get-heading t t t t)))))
-               (cond ((s-starts-with-p "ejira-" (or (org-entry-get (point-marker) "TYPE") ""))
-                      (concat
-                       (propertize (org-entry-get (point-marker) "ID") 'face 'font-lock-type-face)
-                       ": "
-                       (if (> (length heading) 30)
-                           (concat (substring heading 0 27) "...")
-                         heading)))
-                     (t heading))))))
-
-  (eval-after-load "org-clock"
-    (setq org-clock-heading-function #'my-clock-fn))
-
-  (setq request--curl-cookie-jar ""
-        jiralib2-user-login-name "hnyman"
-        jiralib2-url              my-ejira-server
-        jiralib2-auth            'cookie
-
-        ejira-org-directory      (expand-file-name "/Users/hnyman/org")
-        ejira-priorities-alist   '(("Blocker" . ?A)
-                                   ("Highest" . ?B)
-                                   ("High"    . ?C)
-                                   ("Medium"  . ?D)
-                                   ("Low"     . ?E)
-                                   ("Lowest"  . ?F)
-                                   ("Minor"   . ?G))
-        ejira-todo-states-alist  '(("To Do"                    . 2)
-                                   ("Backlog"                  . 1)
-                                   ("Selected for Development" . 2)
-                                   ("In Progress"              . 3)
-                                   ("Quality Check"            . 4)
-                                   ("Ready for QA"             . 4)
-                                   ("Verify"                   . 4)
-                                   ("Testing"                  . 4)
-                                   ("Closed"                   . 5)
-                                   ("Done"                     . 5))
-        ejira-projects           my-ejira-projects)
   :config
-  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+  (ivy-mode 1)
+  (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
 
-  :general
-  (space-leader
-    "j j"   'ejira-focus-item-under-point
-    "o j l" 'ejira-insert-link-to-current-issue
-    "o j j" 'ejira-focus-on-clocked-issue
-    "o j m" 'ejira-mention-user
-    "o j U" 'ejira-update-my-projects
-    "o b"   'ejira-agenda-board)
-  (space-leader
-    :keymaps '(org-mode-map)
-    "o j t" 'ejira-set-issuetype
-    "o j c c" 'ejira-add-comment
-    "o j c d" 'ejira-delete-comment
-    "o j a" 'ejira-assign-issue
-    "o j P" 'ejira-push-item-under-point
-    "o j u" 'ejira-pull-item-under-point
-    "o j p" 'ejira-progress-issue)
+  (defun ivy--switch-buffer-matcher (regexp candidates)
+    "Return REGEXP matching CANDIDATES.
+Skip buffers that match `ivy-ignore-buffers'."
+    (let ((res (ivy--re-filter regexp candidates)))
+      (if (or (null ivy-use-ignore)
+              (null ivy-ignore-buffers))
+          res
+        (or (cl-remove-if
+             (lambda (buf)
+               (cl-find-if
+                (lambda (f-or-r)
+                  (if (functionp f-or-r)
+                      (funcall f-or-r buf)
+                    (string-match-p f-or-r buf)))
+                ivy-ignore-buffers))
+             res)
+            (and (eq ivy-use-ignore t)
+                 res))))))
 
-  (general-define-key
-    :keymaps 'ejira-mode-map
-    "C-S-q"  'ejira-close-buffer))
 
-(use-package ejira-agenda
-  :ensure nil
+(use-package swiper
+  :after ivy
+  :bind ("C-M-s" . swiper)
+  :bind (:map swiper-map
+              ("M-y" . yank)
+              ("M-%" . swiper-query-replace)
+              ("C-." . swiper-avy)
+              ("M-c" . swiper-mc))
+  :bind (:map isearch-mode-map
+              ("C-o" . swiper-from-isearch)))
+
+
+(use-package projectile
+  :hook (after-init . projectile-mode)
+  :diminish
+  :bind* (("C-c TAB" . projectile-find-other-file)
+          ("C-c P" . (lambda () (interactive)
+                       (projectile-cleanup-known-projects)
+                       (projectile-discover-projects-in-search-path))))
+  :bind-keymap ("C-c p" . projectile-command-map)
   :config
 
-  (defun my-add-ejira-kanban-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and resolution = unresolved "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and resolution = unresolved "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and resolution = unresolved "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
+  (defun my-projectile-invalidate-cache (&rest _args)
+    ;; We ignore the args to `magit-checkout'.
+    (projectile-invalidate-cache nil))
 
-  (defun my-add-ejira-scrum-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and sprint in openSprints() "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and sprint in openSprints() "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and type != Epic "
-                                "and sprint in openSprints() "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
+  (eval-after-load 'magit-branch
+    '(progn
+       (advice-add 'magit-checkout
+                   :after #'my-projectile-invalidate-cache)
+       (advice-add 'magit-branch-and-checkout
+                   :after #'my-projectile-invalidate-cache))))
 
 
-
-  ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
-  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
-  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards)
-
-
-  ;; Add some extra agendas
-  (org-add-agenda-custom-command
-   '("A" "Assigned to me"
-     ((ejira-jql "assignee = currentUser() and resolution = unresolved"
-                 ((org-agenda-overriding-header "Assigned to me:")))))))
-
-(use-package helm-ejira
-  :load-path "~/.emacs.d/lisp/ejira"
-  :ensure nil
-  :config
-  (helm-ejira-advice)
-  :general
-  (space-leader
-    :keymaps 'override
-    "J"     'helm-ejira-focus-issue
-    "K"     'helm-ejira-focus-issue-active-sprint
-    "L"     'helm-ejira-focus-issue-assigned))
-
-(use-package ejira-hourmarking
-  :load-path "~/.emacs.d/lisp/ejira"
-  :ensure nil
-  :general
-  (general-define-key
-    :states '(normal)
-    :keymaps '(ejira-hourlog-mode-map)
-    "q" 'ejira-hourlog-quit)
-  (space-leader
-    :keymaps 'override
-    "o j h" 'ejira-hourmarking-get-hourlog))
 
 (use-package windmove
   :ensure nil
   :functions (my-frame-pos-x my-frame-not-current-but-visible-p
                              my-frame-to my-frame-center-pos my-windmove-advice)
-  :config
-  (defun my-frame-pos-x (frame)
-    "Get the x position of the FRAME on display.
-On multi-monitor systems the display spans across all the monitors."
-    (+ (car (frame-position frame))
-       (cadaar
-        (display-monitor-attributes-list frame))))
+  :general
+  (leader-def-key
+    :keymaps 'override
+    "0"   'delete-window
+    "1"   'delete-other-windows
+    "2"   'split-window-below
+    "3"   'split-window-right)
+  :bind (("C-S-j" . 'windmove-down)
+         ("C-S-k" . 'windmove-up)
+         ("C-S-h" . 'windmove-left)
+         ("C-S-l" . 'windmove-right)))
 
-  (defun my-frame-not-current-but-visible-p (frame)
-    ;; TODO: frame-visible-p does not work on OS X, so this function returns
-    ;;       also frames that are on other virtual desktops.
-    (and (frame-visible-p frame)
-         (not (eq frame (selected-frame)))))
-
-  (defun my-frame-to (direction)
-    "Find next frame to DIRECTION or nil."
-    (let* ((current-frame-pos (my-frame-pos-x (selected-frame)))
-           (frame-candidates
-            (cl-remove-if-not #'my-frame-not-current-but-visible-p
-                              (frame-list)))
-           (frame-to-left
-            (car
-             (sort
-              (cl-remove-if-not (lambda (frame) (< (my-frame-pos-x frame)
-                                                   current-frame-pos))
-                                frame-candidates)
-              (lambda (a b) (> (my-frame-pos-x a) (my-frame-pos-x b))))))
-           (frame-to-right
-            (car
-             (sort
-              (cl-remove-if-not (lambda (frame) (> (my-frame-pos-x frame)
-                                                   current-frame-pos))
-                                frame-candidates)
-              (lambda (a b) (< (my-frame-pos-x a) (my-frame-pos-x b)))))))
-
-      (cond ((eq direction 'left)
-             frame-to-left)
-            ((eq direction 'right)
-             frame-to-right)
-            (t (error "Unknown direction")))))
-
-  (defun my-frame-center-pos (&optional frame)
-    `(,(/ (frame-pixel-width frame) 2)
-      ,(/ (frame-pixel-height frame) 2)))
-
-  (defun my-windmove-advice (orig-fun dir &rest args)
-    "Extend the range of windmove to go to next and previous frames."
-    (condition-case err
-        (apply orig-fun dir (cons dir args))
-      (user-error
-       (if (or (eq dir 'left) (eq dir 'right))
-           (progn
-             (select-frame-set-input-focus
-              (or (my-frame-to dir)
-                  (signal (car err) (cdr err))))
-             (condition-case err
-                 (let ((inverted-dir (if (eq dir 'right) 'left 'right)))
-                   (while t
-                     ;; Switched frame, go as far as possible to the other
-                     ;; direction, user-error is signaled when it hits the frame
-                     ;; boundary.
-                     (apply orig-fun inverted-dir (cons inverted-dir args))))
-               (user-error nil))
-             ;; Move the mouse to the middle of the new frame. The frame switch
-             ;; may have moved the focus into a new monitor, but all of the
-             ;; keyboard shortcuts work on the monitor that currently has the
-             ;; mouse.
-             (apply 'set-mouse-pixel-position (cons (selected-frame)
-                                                    (my-frame-center-pos))))
-         (signal (car err) (cdr err))))))
-
-  (when (eq system-type 'darwin)
-    (advice-add 'windmove-do-window-select :around #'my-windmove-advice))
-
+(use-package smartparens
+  :hook (prog-mode . smartparens-mode)
+  :init
+  (setq-default sp-escape-quotes-after-insert nil)
   :general
   (general-define-key
-    "C-S-j"  'windmove-down
-    "C-S-k"  'windmove-up
-    "C-S-h"  'windmove-left
-    "C-S-l"  'windmove-right))
-
-(use-package evil-collection
-  :after evil
+    :keymaps '(emacs-lisp-mode-map
+               lisp-interaction-mode-map
+               python-mode-map
+               c-mode-map c++-mode-map)
+    "C->" 'sp-forward-slurp-sexp)
   :config
-  (evil-collection-init))
+  (require 'smartparens-config)
+  (sp-pair "{%" "%}"))
+
 
 (use-package company
   :hook
@@ -1045,7 +582,7 @@ On multi-monitor systems the display spans across all the monitors."
 
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode))
-;; Show pretty icons
+
 (use-package company-box
   :diminish
   :hook (company-mode . company-box-mode)
@@ -1053,7 +590,6 @@ On multi-monitor systems the display spans across all the monitors."
   :config
   (setq company-box-backends-colors nil)
   (setq company-box-show-single-candidate t)
-  (setq company-box-max-candidates 50)
 
   (defun company-box-icons--elisp (candidate)
     (when (derived-mode-p 'emacs-lisp-mode)
@@ -1108,71 +644,111 @@ On multi-monitor systems the display spans across all the monitors."
   :config
   (add-hook 'with-editor-mode-hook 'evil-insert-state)
   :general
-  (space-leader
+  (leader-def-key
     :keymaps 'override
     "g g"   'magit-status
     "g b"   'magit-blame
     "g f h" 'magit-log-buffer-file))
 
-(use-package git-gutter
-  :hook (prog-mode . git-gutter-mode)
+
+(use-package flycheck
+  :hook
+  (prog-mode . flycheck-mode)
+  (nxml-mode . flycheck-mode)
+  :init
+  (setq-default flycheck-emacs-lisp-load-path 'inherit)
+
+  ;; Disable other flycheck backends, only use lsp
+  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang rust-cargo)))
+
+;; LSP
+
+(use-package lsp-mode
+  :hook
+  (c-mode      . lsp-deferred)
+  (c++-mode    . lsp-deferred)
+  (objc-mode   . lsp-deferred)
+  (python-mode . lsp-deferred)
+  (rust-mode   . lsp-deferred)
+  (js2-mode    . lsp-deferred)
+  :commands (lsp lsp-deferred)
+  :custom ((lsp-diagnostics-provider :flycheck)
+           (lsp-file-watch-threshold 30000)
+           (lsp-idle-delay 0.500)
+           (lsp-enable-links nil))
+  :init
+  (setq read-process-output-max              (* 1024 1024)
+        company-minimum-prefix-length        1
+        company-idle-delay                   0.0
+        lsp-pyls-plugins-pylint-enabled      t
+        lsp-pyls-plugins-pycodestyle-enabled nil))
+
+(use-package lsp-ui :commands lsp-ui-mode
+  :init
+  (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
+
+;; C/C++
+(use-package ccls
+  :init
+  (put 'c-macro-cppflags 'safe-local-variable (lambda (_) t)))
+(use-package clang-format)
+(use-package clang-format+
+  :hook (c-mode-common . clang-format+-mode))
+(use-package glsl-mode)
+(use-package cmake-mode)
+
+
+;; JS
+(use-package rjsx-mode
+  :mode "\\.js\\'"
+  :init
+  (setq-default js-indent-level 2)
+  (general-define-key
+    :keymaps '(rjsx-mode-map)
+    "M-." #'xref-find-definitions)
+
+  (defun my-lsp-diagnostics-mode-hook (&rest _)
+    (when (eq 'rjsx-mode major-mode)
+      (setq-local flycheck-checker 'javascript-eslint)))
+  (advice-add #'lsp-flycheck-enable :after #'my-lsp-diagnostics-mode-hook))
+
+(use-package prettier-js
+  :hook ((js2-mode rsjx-mode) . prettier-js-mode)
+  :init
+  (setq prettier-js-args '("--trailing-comma" "all")))
+
+
+;; Python
+(use-package pyvenv
+  :hook (python-mode . pyvenv-tracking-mode)
+  :functions (pyvenv-virtualenvwrapper-supported)
+  :commands (pyvenv-virtualenvwrapper-supported)
   :config
-  (set-face-attribute 'git-gutter:deleted nil
-                      :height 10
-                      :width 'ultra-condensed
-                      :foreground (face-attribute 'error :foreground)
-                      :background (face-attribute 'error :foreground))
-  (set-face-attribute 'git-gutter:added nil
-                      :height 10
-                      :width 'ultra-condensed
-                      :foreground (face-attribute 'font-lock-string-face :foreground)
-                      :background (face-attribute 'font-lock-string-face :foreground))
-  (set-face-attribute 'git-gutter:modified nil
-                      :height 10
-                      :width 'ultra-condensed
-                      :foreground (face-attribute 'warning :foreground)
-                      :background (face-attribute 'warning :foreground))
-  (set-face-attribute 'git-gutter:unchanged nil
-                      :width 'ultra-condensed
-                      :height 10)
-  (set-face-attribute 'git-gutter:separator nil
-                      :width 'ultra-condensed
-                      :height 10)
+
+  ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
+  (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _))))
+
+(use-package py-autopep8
+  :hook (python-mode . py-autopep8-enable-on-save)
+  :defines (py-autopep8-options)
+  :init
+  ;; Set the line-length for autopep to something large so that it
+  ;; does not touch too long lines, it usually cannot fix them properly
+  (setq py-autopep8-options '("--max-line-length=200" "--ignore=E402" "--ignore=E731"))
   :general
   (space-leader
-    "g d" 'git-gutter:popup-hunk
-    "g u" 'git-gutter:revert-hunk))
+    :keymaps '(python-mode-map)
+    "p f" 'py-autopep8-buffer))
 
-(use-package yasnippet
-  :functions (yas-reload-all)
-  :commands (yas-reload-all)
+;; DAP
+
+(use-package dap-mode
   :config
-  (setq yas-verbosity          1
-        yas-wrap-around-region t)
+  (add-hook 'dap-stopped-hook
+            (lambda (_) (call-interactively #'dap-hydra))))
 
-  (yas-reload-all)
-  (dolist (keymap '(yas-minor-mode-map yas-keymap))
-    (define-key (eval keymap) (kbd "<tab>") nil)
-    (define-key (eval keymap) [(tab)] nil)
-    (define-key (eval keymap) (kbd "S-<tab>") nil)
-    (define-key (eval keymap) [(shift tab)] nil)
-    (define-key (eval keymap) [backtab] nil))
 
-  (yas-global-mode)
-  :general
-  (general-define-key
-    "C-;" 'yas-expand)
-  (general-define-key
-    :keymaps '(yas/keymap)
-    "<tab>" nil
-    "S-<iso-lefttab>" nil
-
-    "C-;" 'yas-next-field
-    "C-:" 'yas-prev-field))
-
-(use-package yasnippet-snippets
-  :ensure t)
-
+;; EShell
 (use-package eshell
   :ensure nil
   :defines (eshell-banner-message eshell-cmpl-cycle-completions
@@ -1214,9 +790,20 @@ directory to make multiple eshell windows easier."
   (general-define-key
     :keymaps 'eshell-mode-map
     "C-S-q" 'my-quit-eshell)
-  (space-leader
+  (leader-def-key
     :keymaps 'override
     "s e" 'my-eshell-here))
+
+(use-package systemd)
+(use-package jinja2-mode)
+(use-package apt-sources-list)
+
+(use-package package-lint)
+(use-package flycheck-package)
+
+
+(use-package http)
+(use-package qml-mode)
 
 (use-package wdired)
 
@@ -1229,361 +816,12 @@ directory to make multiple eshell windows easier."
   (editorconfig-mode 1))
 
 
-;;; Programming languages
 
-(use-package lsp-mode
-  :hook
-  (c-mode      . lsp-deferred)
-  (c++-mode    . lsp-deferred)
-  (objc-mode   . lsp-deferred)
-  (python-mode . lsp-deferred)
-  (rust-mode   . lsp-deferred)
-  (js2-mode    . lsp-deferred)
-  :commands (lsp lsp-deferred)
-  :defines (lsp-pyls-plugins-pylint-enabled lsp-pyls-plugins-pycodestyle-enabled
-            lsp-enable-links)
-  :init
-  (setq lsp-diagnostics-provider :flycheck
-        gc-cons-threshold        100000000
-        lsp-file-watch-threshold 30000
-
-        ;; Performance optimizations
-        gc-cons-threshold             100000000
-        read-process-output-max       (* 1024 1024)
-        lsp-idle-delay                0.500
-        company-minimum-prefix-length 1
-        company-idle-delay            0.0
-
-        lsp-enable-links         nil
-        lsp-pyls-plugins-pylint-enabled t
-        lsp-pyls-plugins-pycodestyle-enabled nil)
-  :config
-  ;; (require 'lsp-clients)
-  ;; Override the default pyls client with one aware of pyvenv library files
-  ;; (eval-after-load "lsp-pyls"
-  ;;   (lsp-register-client
-  ;;    (make-lsp-client
-  ;;     :new-connection (lsp-stdio-connection
-  ;;                      (lambda () lsp-clients-python-command))
-  ;;     :major-modes '(python-mode cython-mode)
-  ;;     :priority -1
-  ;;     :server-id 'pyls
-  ;;     :library-folders-fn
-  ;;     (lambda (workspace)
-  ;;       (condition-case nil
-  ;;           (let ((b (nth 0 (lsp--workspace-buffers workspace))))
-
-  ;;             ;; If there are no buffers yet, we cannot have a library file for this
-  ;;             ;; workspace, as we are most likely opening the first project file.
-  ;;             (when b
-  ;;               (with-current-buffer b
-  ;;                 (remq nil (list
-  ;;                            (pyvenv-workon-home)
-  ;;                            "/usr"
-  ;;                            pyvenv-activate
-
-  ;;                            ;; The python-binary is a symlink if the directory is a
-  ;;                            ;; virtual environment. Include the libraries in the
-  ;;                            ;; main env as well.
-  ;;                            (when pyvenv-activate
-  ;;                              (f-parent
-  ;;                               (f-parent
-  ;;                                (file-truename (f-join pyvenv-activate "bin" "python"))))))))))
-  ;;         (error nil)))
-  ;;     :initialized-fn (lambda (workspace)
-  ;;                       (with-lsp-workspace workspace
-  ;;                                           (lsp--set-configuration
-  ;;                                            (lsp-configuration-section "pyls")))))))
-  )
-
-(use-package hydra)
-(use-package lsp-ui :commands lsp-ui-mode
-  :init
-  (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
-
-;; (use-package company-lsp
-;;   :commands company-lsp
-;;   :init
-;;   (setq company-lsp-cache-candidates t))
-
-(use-package helm-lsp :commands helm-lsp-workspace-symbol)
-
-;; C/C++
-(use-package clang-format)
-(use-package ccls :after lsp-mode
-  :init
-  (put 'c-macro-cppflags 'safe-local-variable (lambda (x) t))
-
-  :config
-
-  ;; Disable other flycheck backends, only use lsp
-  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang))
-
-  ;; Override the client definition with library-folder awareness
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection (lambda () (cons ccls-executable ccls-args)))
-    :major-modes '(c-mode c++-mode cuda-mode objc-mode)
-    :server-id 'ccls
-    :multi-root nil
-    :notification-handlers
-    (lsp-ht ("$ccls/publishSkippedRanges" #'ccls--publish-skipped-ranges)
-            ("$ccls/publishSemanticHighlight" #'ccls--publish-semantic-highlight))
-    :initialization-options (lambda () ccls-initialization-options)
-    :library-folders-fn (lambda (_ws) '("/usr" "/opt"))))
-  :general
-  (space-leader
-    :keymaps '(c-mode-map c++-mode-map objc-mode-map)
-    "p c" 'projectile-compile-project))
-
-(use-package cmake-mode)
-(use-package glsl-mode)
-
-;; Clang-format
-(use-package clang-format+
-  :hook (c-mode-common . clang-format+-mode))
-;; (add-hook 'c-mode-common-hook #'clang-format+-mode)
-
-;; Python
-(use-package pyvenv
-  :hook (python-mode . pyvenv-tracking-mode)
-  :functions (pyvenv-virtualenvwrapper-supported)
-  :commands (pyvenv-virtualenvwrapper-supported)
-  :config
-
-  ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
-  (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest a))))
-
-(use-package py-autopep8
-  :hook (python-mode . py-autopep8-enable-on-save)
-  :defines (py-autopep8-options)
-  :init
-  ;; Set the line-length for autopep to something large so that it
-  ;; does not touch too long lines, it usually cannot fix them properly
-  (setq py-autopep8-options '("--max-line-length=200" "--ignore=E402" "--ignore=E731"))
-  :general
-  (space-leader
-    :keymaps '(python-mode-map)
-    "p f" 'py-autopep8-buffer))
-
-;; Rust
-(use-package rust-mode)
-
-(use-package cargo
-  :ensure t
-  :hook ((rust-mode toml-mode) . cargo-minor-mode))
-
-
-;; Swift
-(use-package swift-mode)
-
-(use-package lsp-sourcekit
-  :after lsp-mode
-  :config
-  (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain")
-
-  (setq lsp-sourcekit-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp")
-        lsp-sourcekit-extra-args '("-Xswiftc" "-sdk"
-                                   "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator13.5.sdk"
-
-                                   "-Xswiftc" "-target"
-                                   "-Xswiftc" "x86_64-apple-ios13.5-simulator"
-                                   ))
-  )
-
-(use-package swift-mode
-  :hook (swift-mode . (lambda () (lsp))))
-
-;; Groovy
-(use-package groovy-mode)
-
-;; JavaScript
-;; (use-package js2-mode
-;;   ;; :mode "\\.js\\'"
-;;   :init
-;;   (setq js2-mode-show-strict-warnings nil
-;;         js2-mode-show-parse-errors    nil))
-
-;; (use-package js-mode
-;;   :ensure nil
-;;   :init
-;;   (setq-default js-indent-level 2)
-
-
-;;   :general
-;;   (general-define-key
-;;     :keymaps '(js-mode-map)
-;;     "M-." #'xref-find-definitions)
-;;   )
-;; (use-package js2-mode
-;;   :hook (js-mode . js2-minor-mode))
-
-(use-package json-mode)
-
-(use-package coffee-mode)
-
-(use-package rjsx-mode
-  :mode "\\.js\\'"
-  :init
-  (setq-default js-indent-level 2)
-  (general-define-key
-    :keymaps '(rjsx-mode-map)
-    "M-." #'xref-find-definitions)
-
-  (defun my-lsp-diagnostics-mode-hook (&rest _)
-    (when (eq 'rjsx-mode major-mode)
-      (setq-local flycheck-checker 'javascript-eslint)))
-  (advice-add #'lsp-flycheck-enable :after #'my-lsp-diagnostics-mode-hook))
-
-(use-package prettier-js
-  :hook ((js2-mode rsjx-mode) . prettier-js-mode)
-  :init
-  (setq prettier-js-args '("--trailing-comma" "all")))
-
-(use-package emmet-mode
-  :hook (rjsx-mode css-mode js-mode)
-  :init
-  (setq emmet-expand-jsx-className? t)  ;; React support
-  )
-
-;; Debuggers
-(use-package dap-mode
-  :config
-  (add-hook 'dap-stopped-hook
-            (lambda (arg) (call-interactively #'dap-hydra))))
-
-(use-package systemd)
-(use-package jinja2-mode)
-(use-package apt-sources-list)
-
-;;; E-mail
-
-(use-package mu4e
+(use-package ediff
   :ensure nil
   :init
-  (setq mu4e-root-maildir   "~/.mail"
-        mu4e-attachment-dir "~/downloads"
-        mu4e-sent-folder    "/sent"
-        mu4e-drafts-folder  "/drafts"
-        mu4e-trash-folder   "/trash"
-        mu4e-refile-folder  "/archive"
-        mu4e-confirm-quit   nil
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain
+        ediff-split-window-function 'split-window-horizontally))
 
-        ;; Get mail
-        mu4e-get-mail-command             "mbsync protonmail"
-        mu4e-change-filenames-when-moving t
-        mu4e-update-interval              120
-
-        ;; Send mail
-        message-send-mail-function 'smtpmail-send-it
-        smtpmail-smtp-user         user-mail-address
-        smtpmail-smtp-server       "127.0.0.1"
-        smtpmail-smtp-service      1025)
-
-  :config
-
-  (add-to-list 'mu4e-bookmarks
-               '( :name  "Personal"
-                  :query "maildir:/INBOX"
-                  :key   ?m))
-  :load-path "/usr/share/emacs/site-lisp/mu4e"
-  :general
-  (space-leader
-    :keymaps 'override
-    "M" 'mu4e))
-
-(use-package mu4e-maildirs-extension
-  :after 'mu4e
-  :commands (mu4e-maildirs-extension)
-  :config
-  (mu4e-maildirs-extension))
-
-(use-package mu4e-conversation
-  :after 'mu4e)
-
-(use-package lunchtime
-  :ensure nil
-  :load-path "~/.emacs.d/lisp/lunchtime"
-  :commands (lunchtime-display-menus)
-  :config
-
-  (setq lunchtime-parsers-alist nil)
-  ;; TTY
-  (lunchtime-define-restaurant
-   "https://api.ruoka.xyz/%Y-%m-%d"
-   (mapcar
-    (lambda (restaurant)
-      `((name . ,(assoc-recursive restaurant 'name))
-        (subrestaurants
-         .
-         ,(mapcar
-           (lambda (subrestaurant)
-             `((name . ,(assoc-recursive subrestaurant 'name))
-               (menus . ,(mapcar
-                          (lambda (meal)
-                            `((name . ,(assoc-recursive meal 'name))
-                              (prices . ,(assoc-recursive meal 'prices))
-                              (menu . ,(mapcar
-                                        (lambda (part)
-                                          (assoc-recursive part 'name))
-                                        (assoc-recursive meal 'contents)))))
-                          (assoc-recursive subrestaurant 'meals)))))
-           (assoc-recursive restaurant 'menus)))))
-
-    (assoc-recursive lunchtime-response-data 'restaurants)))
-
-  ;; Hermia 6
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/110/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  ;; Hermia 5
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/107/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  :general
-  (space-leader
-    "l l" 'lunchtime-display-menus)
-  (general-define-key
-    :keymaps '(lunchtime-mode-map)
-    :states '(normal)
-    "o" 'delete-other-windows
-    "l" 'lunchtime-next-day
-    "h" 'lunchtime-previous-day
-    "j" 'lunchtime-next-restaurant
-    "k" 'lunchtime-previous-restaurant
-    "q" 'lunchtime-close))
-
-
-;;; elisp tools
-(use-package package-lint)
-(use-package flycheck-package)
-
-
-(use-package http)
-(use-package qml-mode)
-
+(provide 'init)
 ;;; init.el ends here
