@@ -57,16 +57,20 @@
       frame-title-format   '("" "Emacs v" emacs-version))
 
 (when (eq system-type 'gnu/linux)
+  (defvar ns-command-modifier nil)
+  (defvar ns-option-modifier nil)
+  (defvar ns-allow-anti-aliasing nil)
+  (defvar ns-use-srgb-colorspace nil)
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
         default-directory             "/Users/hnyman/"
-        mac-command-modifier          'meta
-        mac-option-modifier           nil
-        mac-allow-anti-aliasing       t
-        frame-resize-pixelwise        t
+        ns-command-modifier           'meta
+        ns-option-modifier            nil
+        ns-allow-anti-aliasing        t
         ns-use-srgb-colorspace        nil
+        frame-resize-pixelwise        t
         mouse-wheel-scroll-amount     '(5 ((shift) . 5) ((control)))
         mouse-wheel-progressive-speed nil)
 
