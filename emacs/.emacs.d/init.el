@@ -119,7 +119,6 @@
 (eval-and-compile
   (setq use-package-always-ensure t)
   (setq use-package-expand-minimally t)
-  (setq use-package-compute-statistics t)
   (setq use-package-enable-imenu-support t))
 
 (eval-when-compile
@@ -486,6 +485,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package projectile
   :hook (after-init . projectile-mode)
   :diminish
+  :functions (my-projectile-invalidate-cache)
   :bind* (("C-c TAB" . projectile-find-other-file)
           ("C-c P" . (lambda () (interactive)
                        (projectile-cleanup-known-projects)
@@ -534,8 +534,7 @@ Skip buffers that match `ivy-ignore-buffers'."
                c-mode-map c++-mode-map)
     "C->" 'sp-forward-slurp-sexp)
   :config
-  (require 'smartparens-config)
-  (sp-pair "{%" "%}"))
+  (require 'smartparens-config))
 
 
 (use-package company
@@ -661,17 +660,19 @@ Skip buffers that match `ivy-ignore-buffers'."
   (js2-mode    . lsp-deferred)
   :commands (lsp lsp-deferred)
   :custom ((lsp-diagnostics-provider :flycheck)
-           (lsp-file-watch-threshold 30000)
-           (lsp-idle-delay 0.500)
-           (lsp-enable-links nil))
+           (lsp-file-watch-threshold             30000)
+           (lsp-idle-delay                       0.500)
+           (lsp-enable-links                     nil)
+           (lsp-pyls-plugins-pylint-enabled      t)
+           (lsp-pyls-plugins-pycodestyle-enabled nil))
+
   :init
   (setq read-process-output-max              (* 1024 1024)
         company-minimum-prefix-length        1
-        company-idle-delay                   0.0
-        lsp-pyls-plugins-pylint-enabled      t
-        lsp-pyls-plugins-pycodestyle-enabled nil))
+        company-idle-delay                   0.0))
 
 (use-package lsp-ui :commands lsp-ui-mode
+  :commands (lsp-ui-doc-mode)
   :init
   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
 
@@ -693,12 +694,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   (setq-default js-indent-level 2)
   (general-define-key
     :keymaps '(rjsx-mode-map)
-    "M-." #'xref-find-definitions)
-
-  (defun my-lsp-diagnostics-mode-hook (&rest _)
-    (when (eq 'rjsx-mode major-mode)
-      (setq-local flycheck-checker 'javascript-eslint)))
-  (advice-add #'lsp-flycheck-enable :after #'my-lsp-diagnostics-mode-hook))
+    "M-." #'xref-find-definitions))
 
 (use-package prettier-js
   :hook ((js2-mode rsjx-mode) . prettier-js-mode)
@@ -742,7 +738,8 @@ Skip buffers that match `ivy-ignore-buffers'."
   :defines (eshell-banner-message eshell-cmpl-cycle-completions
             eshell-modify-global-environment eshell-prompt-regexp
             eshell-prompt-function)
-  :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func)
+  :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func
+                                      my-eshell-hook)
   :commands (my-eshell-here)
   :init
   (setq eshell-banner-message            ""
