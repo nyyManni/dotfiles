@@ -269,6 +269,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   :custom ((evil-undo-system 'undo-redo))
   :config
+  (general-define-key
+    :keymaps '(evil-normal-state-map)
+    "M-." nil)
+
   (evil-mode 1))
 
 (use-package evil-collection
