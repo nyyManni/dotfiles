@@ -59,7 +59,7 @@
 (when (eq system-type 'gnu/linux)
   (defvar ns-command-modifier nil)
   (defvar ns-option-modifier nil)
-  (defvar ns-allow-anti-aliasing nil)
+  (defvar ns-antialias-text nil)
   (defvar ns-use-srgb-colorspace nil)
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
@@ -68,7 +68,7 @@
         default-directory             "/Users/hnyman/"
         ns-command-modifier           'meta
         ns-option-modifier            nil
-        ns-allow-anti-aliasing        t
+        ns-antialias-text             t
         ns-use-srgb-colorspace        nil
         frame-resize-pixelwise        t
         mouse-wheel-scroll-amount     '(5 ((shift) . 5) ((control)))
