@@ -76,6 +76,10 @@
 
   (setenv "SSH_AUTH_SOCK" (shell-command-to-string "launchctl getenv SSH_AUTH_SOCK | tr -d '\n'")))
 
+(defvar my-ejira-projects      '("EJ" "JL2"))
+(defvar my-ejira-server        "https://localhost:8080")
+(defvar my-ejira-kanban-boards nil)
+(defvar my-ejira-scrum-boards nil)
 (let ((work-config (concat user-emacs-directory "/work-config.el")))
   (when (file-exists-p work-config)
     (load-file (concat user-emacs-directory "/work-config.el"))))
@@ -107,7 +111,9 @@
 (setq package-user-dir (expand-file-name "sitelisp" user-emacs-directory)
       package-archives
       '(("gnu"   . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")))
+        ("melpa" . "https://melpa.org/packages/")
+        ("org"   . "http://orgmode.org/elpa/")
+        ))
 
 (unless (bound-and-true-p package--initialized)
   (setq package-enable-at-startup nil)          ; To prevent initializing twice
@@ -221,7 +227,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
     "D"   'kill-this-buffer
-    "F"   'my-dired-here
+    "F F"   'my-dired-here
     "l p" 'package-list-packages
     "s l" 'sort-lines
     "r"   'my-reload-file
@@ -486,6 +492,13 @@ Skip buffers that match `ivy-ignore-buffers'."
               ("C-o" . swiper-from-isearch)))
 
 
+(use-package amx
+  :defer nil
+  :config
+  (amx-mode t))
+
+;; Projectile
+
 (use-package projectile
   :hook (after-init . projectile-mode)
   :diminish
@@ -635,6 +648,13 @@ Skip buffers that match `ivy-ignore-buffers'."
   :config
   (add-hook 'with-editor-mode-hook 'evil-insert-state)
   :general
+  (general-define-key
+   :keymaps 'magit-blob-mode-map
+   "p" nil
+   "n" nil
+   "b" nil
+   "r" nil
+   "f" nil)
   (leader-def-key
     :keymaps 'override
     "g g"   'magit-status
@@ -654,31 +674,89 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; LSP
 
+;; (use-package lsp-mode
+;;   :hook
+;;   (c-mode      . lsp-deferred)
+;;   (c++-mode    . lsp-deferred)
+;;   (objc-mode   . lsp-deferred)
+;;   (python-mode . lsp-deferred)
+;;   (rust-mode   . lsp-deferred)
+;;   (js2-mode    . lsp-deferred)
+;;   :commands (lsp lsp-deferred)
+;;   :custom ((lsp-diagnostics-provider :flycheck)
+;;            (lsp-file-watch-threshold             30000)
+;;            (lsp-idle-delay                       0.500)
+;;            (lsp-enable-links                     nil)
+;;            (lsp-pyls-plugins-pylint-enabled      t)
+;;            (lsp-pyls-plugins-pycodestyle-enabled nil))
+;; (setq lsp-pyls-plugins-pylint-enabled t)
+
+;;   :init
+;;   (setq read-process-output-max              (* 1024 1024)
+;;         company-minimum-prefix-length        1
+;;         company-idle-delay                   0.0))
+
 (use-package lsp-mode
+  :config
+  (setq lsp-idle-delay 0.5
+        lsp-enable-symbol-highlighting t
+        lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
+        lsp-pyls-plugins-flake8-enabled t)
+  (lsp-register-custom-settings
+   '(("pyls.plugins.pyls_mypy.enabled" t t)
+     ("pyls.plugins.pyls_mypy.live_mode" nil t)
+     ("pyls.plugins.pyls_black.enabled" t t)
+     ("pyls.plugins.pyls_isort.enabled" t t)
+
+     ;; Disable these as they're duplicated by flake8
+     ("pyls.plugins.pycodestyle.enabled" nil t)
+     ("pyls.plugins.mccabe.enabled" nil t)
+     ("pyls.plugins.pyflakes.enabled" nil t)))
   :hook
-  (c-mode      . lsp-deferred)
-  (c++-mode    . lsp-deferred)
-  (objc-mode   . lsp-deferred)
-  (python-mode . lsp-deferred)
-  (rust-mode   . lsp-deferred)
-  (js2-mode    . lsp-deferred)
-  :commands (lsp lsp-deferred)
-  :custom ((lsp-diagnostics-provider :flycheck)
-           (lsp-file-watch-threshold             30000)
-           (lsp-idle-delay                       0.500)
-           (lsp-enable-links                     nil)
-           (lsp-pyls-plugins-pylint-enabled      t)
-           (lsp-pyls-plugins-pycodestyle-enabled nil))
+  ((python-mode . lsp)
+   (lsp-mode . lsp-enable-which-key-integration))
+  :bind (:map evil-normal-state-map
+              ("gh" . lsp-describe-thing-at-point)
+              ;; :map md/leader-map
+              ;; ("Ff" . lsp-format-buffer)
+              ;; ("FR" . lsp-rename)
+              )
+  :general
+  (leader-def-key
+    "Ff" 'lsp-format-buffer
+    "FR" 'lsp-rename
+    )
+  )
 
-  :init
-  (setq read-process-output-max              (* 1024 1024)
-        company-minimum-prefix-length        1
-        company-idle-delay                   0.0))
+(use-package lsp-ui
+  :config (setq lsp-ui-sideline-show-hover t
+                lsp-ui-sideline-delay 0.5
+                lsp-ui-doc-delay 5
+                lsp-ui-sideline-ignore-duplicates t
+                lsp-ui-doc-position 'bottom
+                lsp-ui-doc-alignment 'frame
+                lsp-ui-doc-header nil
+                lsp-ui-doc-include-signature t
+                lsp-ui-doc-use-childframe t)
+  :commands lsp-ui-mode
+  :bind (:map evil-normal-state-map
+              ("gd" . lsp-ui-peek-find-definitions)
+              ("gr" . lsp-ui-peek-find-references)
+              ))
 
-(use-package lsp-ui :commands lsp-ui-mode
-  :commands (lsp-ui-doc-mode)
-  :init
-  (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
+(use-package pyvenv
+  :demand t
+  :config
+
+  ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
+  (setq pyvenv-workon "emacs")  ; Default venv
+  (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _)))
+  (pyvenv-tracking-mode 1))  ; Automatically use pyvenv-workon via dir-locals
+
+;; (use-package lsp-ui :commands lsp-ui-mode
+;;   :commands (lsp-ui-doc-mode)
+;;   :init
+;;   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
 
 ;; C/C++
 (use-package ccls
@@ -707,14 +785,14 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 
 ;; Python
-(use-package pyvenv
-  :hook (python-mode . pyvenv-tracking-mode)
-  :functions (pyvenv-virtualenvwrapper-supported)
-  :commands (pyvenv-virtualenvwrapper-supported)
-  :config
+;; (use-package pyvenv
+;;   :hook (python-mode . pyvenv-tracking-mode)
+;;   :functions (pyvenv-virtualenvwrapper-supported)
+;;   :commands (pyvenv-virtualenvwrapper-supported)
+;;   :config
 
-  ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
-  (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _))))
+;;   ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
+;;   (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _))))
 
 (use-package py-autopep8
   :hook (python-mode . py-autopep8-enable-on-save)
@@ -724,7 +802,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   ;; does not touch too long lines, it usually cannot fix them properly
   (setq py-autopep8-options '("--max-line-length=200" "--ignore=E402" "--ignore=E731"))
   :general
-  (space-leader
+  (leader-def-key
     :keymaps '(python-mode-map)
     "p f" 'py-autopep8-buffer))
 
@@ -811,6 +889,305 @@ directory to make multiple eshell windows easier."
   :init
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally))
+
+(use-package lunchtime
+  :ensure nil
+  :load-path "~/.emacs.d/lisp/lunchtime"
+  :commands (lunchtime-display-menus)
+  :config
+
+  (setq lunchtime-parsers-alist nil)
+  ;; TTY
+  (lunchtime-define-restaurant
+   "https://api.ruoka.xyz/%Y-%m-%d"
+   (mapcar
+    (lambda (restaurant)
+      `((name . ,(assoc-recursive restaurant 'name))
+        (subrestaurants
+         .
+         ,(mapcar
+           (lambda (subrestaurant)
+             `((name . ,(assoc-recursive subrestaurant 'name))
+               (menus . ,(mapcar
+                          (lambda (meal)
+                            `((name . ,(assoc-recursive meal 'name))
+                              (prices . ,(assoc-recursive meal 'prices))
+                              (menu . ,(mapcar
+                                        (lambda (part)
+                                          (assoc-recursive part 'name))
+                                        (assoc-recursive meal 'contents)))))
+                          (assoc-recursive subrestaurant 'meals)))))
+           (assoc-recursive restaurant 'menus)))))
+
+    (assoc-recursive lunchtime-response-data 'restaurants)))
+
+  ;; Hermia 6
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/110/%Y-%m-%d"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_fi)
+                                    " (" (assoc-recursive item 'properties) ")")))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+
+  ;; Hermia 5
+  (lunchtime-define-restaurant
+   "https://www.sodexo.fi/ruokalistat/output/daily_json/107/%Y-%m-%d"
+   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
+      (subrestaurants
+       .
+       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
+         (menus . ,(mapcar
+                    (lambda (item)
+                      `((name . ,(assoc-recursive item 'category))
+                        (prices . (,(assoc-recursive item 'price)))
+                        (menu . (, (concat
+                                    (assoc-recursive item 'title_fi)
+                                    " (" (assoc-recursive item 'properties) ")")))))
+                    (assoc-recursive lunchtime-response-data 'courses)))))))))
+
+  :general
+  (leader-def-key
+    "l l" 'lunchtime-display-menus)
+  (general-define-key
+    :keymaps '(lunchtime-mode-map)
+    :states '(normal)
+    "o" 'delete-other-windows
+    "l" 'lunchtime-next-day
+    "h" 'lunchtime-previous-day
+    "j" 'lunchtime-next-restaurant
+    "k" 'lunchtime-previous-restaurant
+    "q" 'lunchtime-close))
+
+
+(use-package org
+  :ensure org-plus-contrib
+  :pin org
+  :hook
+  (org-mode . visual-line-mode)
+  (org-mode . org-indent-mode)
+  (org-capture-mode . evil-insert-state)
+  :init
+
+  (defun my-pop-to-temp-org-buffer ()
+    (interactive)
+    (pop-to-buffer "*scratch.org*")
+    (unless (derived-mode-p 'org-mode)
+      (org-mode)))
+
+  (setq org-export-async-init-file             (concat user-emacs-directory
+                                                       "/org-async-init.el")
+        org-confirm-babel-evaluate             nil
+        org-tags-column                        -100
+        org-clock-history-length               23
+        org-agenda-restore-windows-after-quit  t
+        org-clock-in-resume                    t
+        org-drawers                            '("PROPERTIES" "LOGBOOK")
+        org-clock-into-drawer                  t
+        org-clock-out-remove-zero-time-clocks  t
+        org-clock-out-when-done                t
+        org-clock-persist                      t
+        org-clock-persist-query-resume         nil
+        org-clock-auto-clock-resolution        'when-no-clock-is-running
+        org-clock-report-include-clocking-task t
+        org-time-stamp-rounding-minutes        '(1 1)
+        org-use-fast-todo-selection            t
+
+        my-misc-org-file                       "~/org/MISC.org"
+        org-indirect-buffer-display            'other-window
+
+        org-lowest-priority    ?G
+        org-priority-faces     '((?A . (:foreground "#c23127" :weight 'bold))
+                                 (?B . (:foreground "#c23127"))
+                                 (?C . (:foreground "#d26937"))
+                                 (?E . (:foreground "#2aa889"))
+                                 (?F . (:foreground "gray"))
+                                 (?G . (:foreground "gray")))
+        org-agenda-files       '("~/org")
+        org-agenda-sticky      t
+        org-todo-keywords
+        '((sequence "BLOG(b)" "TODO(t)" "NEXT(p)" "TEST" "|" "DONE(d)")
+          (sequence "WAIT(w@/!)" "|" "CANCELLED(c@/!)" "MEET(m)" "NOTE(n)"))
+
+        org-todo-keyword-faces '(("BLOG" :foreground "#343a40"    :weight bold)
+                                 ("TODO" :foreground "#c23127"    :weight bold)
+                                 ;; ("NEXT" :foreground "#d26937e"   :weight bold)
+                                 ("NEXT" :foreground "white"   :weight bold)
+                                 ("TEST" :foreground "light blue" :weight bold)
+                                 ("DONE" :foreground "#2aa889"    :weight bold))
+        org-capture-templates
+        '(("t" "task" entry (file my-misc-org-file)
+           "* TODO %?\n  %u\n" )
+          ("m" "Meeting" entry (file my-misc-org-file)
+           "* MEET %? \n  %t" :clock-in t :clock-resume t)
+          ("n" "Note" entry (file my-misc-org-file)
+           "* NOTE %?\n  %t" :clock-in t :clock-resume t)
+          ("D" "Daily" entry (file my-misc-org-file)
+           "* MEET Daily Scrum\n  %t" :clock-in t :clock-resume t)
+          ("W" "Weekly" entry (file my-misc-org-file)
+           "* MEET Weekly - Week %(format-time-string \"%W\")\n  %t"
+           :clock-in t :clock-resume t)
+          ("M" "Monthly" entry (file my-misc-org-file)
+           "* MEET Monthly - %(format-time-string \"%B %Y\")\n  %t"
+           :clock-in t :clock-resume t)
+          ("g" "General" entry (file my-misc-org-file)
+           "* %? %t\n" :clock-in t :clock-resume t)))
+  :config
+  (defun my-org-pdf-async ()
+    "Perform an async pdf export."
+    (interactive)
+    (save-buffer)
+    (message "Exporting PDF...")
+    (org-latex-export-to-pdf t))
+  :general
+  (leader-def-key
+    :keymaps '(bibtex-mode-map)
+    "i" 'org-ref-clean-bibtex-entry)
+
+  (leader-def-key
+    :keymaps '(org-mode-map)
+    "E"     'my-org-pdf-async
+    "s a"   'outline-show-all
+
+    "o t c" 'org-table-create
+    "o C"   'org-ref-helm-insert-cite-link
+    "o L"   'org-ref-helm-insert-label-link
+    "o R"   'org-ref-helm-insert-ref-link
+    "p c"   'my-org-compile
+
+    ;; Task management keybindings.
+    "o t i" 'org-clock-in
+    "o s"   'org-todo
+    "o e"   'org-edit-special
+    "o r f" 'helm-ejira-refile
+    "o t s" 'org-clock-display
+    "o n s" 'org-narrow-to-subtree
+    "o n w" 'widen)
+  (leader-def-key
+    :keymaps '(org-src-mode-map)
+    "o e"   'org-edit-src-exit)
+
+  (general-define-key
+    :keymaps '(org-agenda-mode-map)
+    "j"     'evil-next-line
+    "k"     'evil-previous-line
+    "g"     nil
+    "SPC"   nil
+    "g g"   'evil-goto-first-line
+    "g r"   'org-agenda-redo-all
+    "G"     'evil-goto-line)
+  ;; Global org bindings
+  (leader-def-key
+    :keymaps 'override
+    "o a"   'org-agenda
+    "o c"   'org-capture
+    "o o"   'my-pop-to-temp-org-buffer
+    "o t r" 'org-clock-in-last
+    "o t o" 'org-clock-out
+    "o t t" 'org-clock-goto
+    "o t i" 'org-clock-in))
+
+(use-package org-agenda
+  :ensure nil
+  :commands (org-add-agenda-custom-command))
+
+(use-package org-ref)
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :init
+  (setq org-bullets-bullet-list '("◉" "○" "◆" "✸" "◇")))
+
+(use-package dash)
+(use-package dash-functional)
+(use-package ox-jira)
+(use-package f)
+(use-package s)
+(use-package request)
+(use-package language-detection)
+(use-package jiralib2)
+(use-package ejira
+  :load-path "~/.emacs.d/lisp/ejira"
+  :ensure nil
+  :commands (ejira-guess-epic-sprint-fields)
+  :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
+                                             my-add-ejira-kanban-board)
+  :init
+
+
+  (defun my-clock-fn ()
+    (cond ((org-before-first-heading-p) "???")
+          (t (let ((heading (replace-regexp-in-string
+	                     org-bracket-link-analytic-regexp "\\5"
+	                     (org-no-properties (org-get-heading t t t t)))))
+               (cond ((s-starts-with-p "ejira-" (or (org-entry-get (point-marker) "TYPE") ""))
+                      (concat
+                       (propertize (org-entry-get (point-marker) "ID") 'face 'font-lock-type-face)
+                       ": "
+                       (if (> (length heading) 30)
+                           (concat (substring heading 0 27) "...")
+                         heading)))
+                     (t heading))))))
+
+  (eval-after-load "org-clock"
+    (setq org-clock-heading-function #'my-clock-fn))
+
+  (setq request--curl-cookie-jar ""
+        jiralib2-user-login-name "hnyman"
+        jiralib2-url              my-ejira-server
+        jiralib2-auth            'cookie
+
+        ejira-org-directory      (expand-file-name "/Users/hnyman/org")
+        ejira-priorities-alist   '(("Blocker" . ?A)
+                                   ("Highest" . ?B)
+                                   ("High"    . ?C)
+                                   ("Medium"  . ?D)
+                                   ("Low"     . ?E)
+                                   ("Lowest"  . ?F)
+                                   ("Minor"   . ?G))
+        ejira-todo-states-alist  '(("To Do"                    . 2)
+                                   ("Backlog"                  . 1)
+                                   ("Selected for Development" . 2)
+                                   ("In Progress"              . 3)
+                                   ("Quality Check"            . 4)
+                                   ("Ready for QA"             . 4)
+                                   ("Verify"                   . 4)
+                                   ("Testing"                  . 4)
+                                   ("Closed"                   . 5)
+                                   ("Done"                     . 5))
+        ejira-projects           my-ejira-projects)
+  :config
+  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+
+  :general
+  (leader-def-key
+    "j j"   'ejira-focus-item-under-point
+    "o j l" 'ejira-insert-link-to-current-issue
+    "o j j" 'ejira-focus-on-clocked-issue
+    "o j m" 'ejira-mention-user
+    "o j U" 'ejira-update-my-projects
+    "o b"   'ejira-agenda-board)
+  (leader-def-key
+    :keymaps '(org-mode-map)
+    "o j t" 'ejira-set-issuetype
+    "o j c c" 'ejira-add-comment
+    "o j c d" 'ejira-delete-comment
+    "o j a" 'ejira-assign-issue
+    "o j P" 'ejira-push-item-under-point
+    "o j u" 'ejira-pull-item-under-point
+    "o j p" 'ejira-progress-issue)
+
+  (general-define-key
+    :keymaps 'ejira-mode-map
+    "C-S-q"  'ejira-close-buffer))
+
 
 (provide 'init)
 ;;; init.el ends here

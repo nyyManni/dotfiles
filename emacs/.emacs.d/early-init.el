@@ -26,6 +26,10 @@
 (push '(vertical-scroll-bars) default-frame-alist)
 (when (eq system-type 'gnu/linux)
   (push '(font . "DejaVu Sans Mono-8") default-frame-alist))
+(when (eq system-type 'darwin)
+  ;; (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
+  (push '(inhibit-double-buffering . t) default-frame-alist)
+  (push '(font . "Fira Code") default-frame-alist))
 
 ;; Resizing the Emacs frame can be a terribly expensive part of changing the
 ;; font. By inhibiting this, we easily halve startup times with fonts that are
