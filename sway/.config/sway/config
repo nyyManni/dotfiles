@@ -168,7 +168,20 @@ output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@7
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
 
-# xwayland scale 2
+
+set $lock "swaylock -f --screenshots --grace 3 --clock --effect-blur 7x5 --effect-vignette 0.5:0.5 --fade-in 0.2"
+
+bindsym $mod+XF86Launch6 exec $lock
+
+
+exec swayidle -w \
+    timeout 1200 $lock \
+    timeout 600 'swaymsg "output * dpms off"' \
+    resume 'swaymsg "output * dpms on"' \
+    timeout 30 'if pgrep swaylock; then swaymsg "output * dpms off"; fi' \
+    resume 'if pgrep swaylock; then swaymsg "output * dpms on"; fi' \
+    before-sleep $lock
+
 
 input "1:1:AT_Translated_Set_2_keyboard" {
     repeat_rate 40
