@@ -750,6 +750,8 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
   (setq pyvenv-workon "emacs")  ; Default venv
+
+  (put 'python-shell-virtualenv-root 'safe-local-variable (lambda (_) t))
   (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _)))
   (pyvenv-tracking-mode 1))  ; Automatically use pyvenv-workon via dir-locals
 
