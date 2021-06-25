@@ -149,11 +149,18 @@
   (load-theme 'gotham t))
 
 (use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
   :demand
   :init
-  (setq doom-modeline-height 24)
+  (setq doom-modeline-height 18)
   :config
-  (doom-modeline-mode))
+
+  (defun my-get-python-version ()
+    '("python" "--version"))
+  (setq doom-modeline-env-python-command #'my-get-python-version)
+
+  ;; (doom-modeline-mode)
+  )
 
 (use-package hlinum
   :hook (after-init . hlinum-activate)
@@ -273,7 +280,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package evil
   :init
   (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-  (setq evil-want-fine-undo t)
+  (setq evil-want-fine-undo nil)
   (setq evil-want-keybinding nil)
 
   :custom ((evil-undo-system 'undo-redo))
@@ -373,7 +380,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (leader-def-key
    ";" 'counsel-find-file
    "x" 'counsel-M-x
-   "A" 'counsel-apropos
+   ;;"A" 'counsel-apropos
+   "A" 'helm-apropos  ;; helm-apropos is way superior
    "y"  'counse-yank-pop)
   :bind (:map ivy-minibuffer-map
          ("C-j" . ivy-next-line)
@@ -394,8 +402,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (counsel-projectile-mode 1)
   :general
   (leader-def-key
-   "'" 'counsel-projectile-switch-project
-   ":" 'counsel-projectile-find-file))
+    "G P" 'counsel-projectile-ag
+    "'" 'counsel-projectile-switch-project
+    ":" 'counsel-projectile-find-file))
 
 
 (use-package ivy
@@ -644,7 +653,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :init
   (setq magit-branch-arguments nil)
   (when (eq system-type 'darwin)
-    (setq magit-git-executable "/usr/local/bin/git"))
+    (setq magit-git-executable "/usr/bin/git"))
   :config
   (add-hook 'with-editor-mode-hook 'evil-insert-state)
   :general
@@ -674,46 +683,34 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; LSP
 
-;; (use-package lsp-mode
-;;   :hook
-;;   (c-mode      . lsp-deferred)
-;;   (c++-mode    . lsp-deferred)
-;;   (objc-mode   . lsp-deferred)
-;;   (python-mode . lsp-deferred)
-;;   (rust-mode   . lsp-deferred)
-;;   (js2-mode    . lsp-deferred)
-;;   :commands (lsp lsp-deferred)
-;;   :custom ((lsp-diagnostics-provider :flycheck)
-;;            (lsp-file-watch-threshold             30000)
-;;            (lsp-idle-delay                       0.500)
-;;            (lsp-enable-links                     nil)
-;;            (lsp-pyls-plugins-pylint-enabled      t)
-;;            (lsp-pyls-plugins-pycodestyle-enabled nil))
-;; (setq lsp-pyls-plugins-pylint-enabled t)
+;; Create a second mode-specific hook to run after .dir-locals have been parsed
+(add-hook 'hack-local-variables-hook 'run-local-vars-mode-hook)
+(defun run-local-vars-mode-hook ()
+  "Run a hook for the `major-mode' after the local variables have been processed."
+  (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
 
-;;   :init
-;;   (setq read-process-output-max              (* 1024 1024)
-;;         company-minimum-prefix-length        1
-;;         company-idle-delay                   0.0))
+
 
 (use-package lsp-mode
   :config
+  (setq lsp-clients-python-command "pylsp")
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
         lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
-        lsp-pyls-plugins-flake8-enabled t)
-  (lsp-register-custom-settings
-   '(("pyls.plugins.pyls_mypy.enabled" t t)
-     ("pyls.plugins.pyls_mypy.live_mode" nil t)
-     ("pyls.plugins.pyls_black.enabled" t t)
-     ("pyls.plugins.pyls_isort.enabled" t t)
+        )
 
-     ;; Disable these as they're duplicated by flake8
-     ("pyls.plugins.pycodestyle.enabled" nil t)
-     ("pyls.plugins.mccabe.enabled" nil t)
-     ("pyls.plugins.pyflakes.enabled" nil t)))
+  ;; Defer running lsp for python until we have parsed .dir-locals to allow
+  ;; setting project-specific virtual environments
+  (add-hook 'python-mode-local-vars-hook (lambda ()
+                                           (when pyvenv-activate
+                                             (pyvenv-activate pyvenv-activate))
+                                           (doom-modeline-env-update-python)
+                                           (lsp)))
+  :custom
+  ((lsp-pylsp-plugins-pylint-enabled t)
+   (lsp-pylsp-plugins-flake8-enabled nil))
   :hook
-  ((python-mode . lsp)
+  ((c-mode-common . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
               ("gh" . lsp-describe-thing-at-point)
@@ -786,27 +783,6 @@ Skip buffers that match `ivy-ignore-buffers'."
   (setq prettier-js-args '("--trailing-comma" "all")))
 
 
-;; Python
-;; (use-package pyvenv
-;;   :hook (python-mode . pyvenv-tracking-mode)
-;;   :functions (pyvenv-virtualenvwrapper-supported)
-;;   :commands (pyvenv-virtualenvwrapper-supported)
-;;   :config
-
-;;   ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
-;;   (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _))))
-
-(use-package py-autopep8
-  :hook (python-mode . py-autopep8-enable-on-save)
-  :defines (py-autopep8-options)
-  :init
-  ;; Set the line-length for autopep to something large so that it
-  ;; does not touch too long lines, it usually cannot fix them properly
-  (setq py-autopep8-options '("--max-line-length=200" "--ignore=E402" "--ignore=E731"))
-  :general
-  (leader-def-key
-    :keymaps '(python-mode-map)
-    "p f" 'py-autopep8-buffer))
 
 ;; DAP
 
