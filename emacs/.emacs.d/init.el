@@ -870,6 +870,9 @@ directory to make multiple eshell windows easier."
 (use-package meson-mode)
 (use-package yaml-mode)
 
+(use-package powershell)
+
+(use-package groovy-mode)
 (use-package editorconfig
   :config
   (editorconfig-mode 1))
