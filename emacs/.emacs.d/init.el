@@ -178,6 +178,10 @@
   (general-define-key
     :states 'motion
     "SPC" nil)
+  (general-define-key
+   :keymaps '(diff-mode-map)
+   :states '(motion normal)
+   "SPC" nil)
   (general-create-definer leader-def-key
     :states 'motion
     :prefix my/leader
