@@ -184,6 +184,7 @@
     :prefix-map 'leader-map)
 
 
+
   (defun minibuffer-keyboard-quit ()
     "Abort recursive edit.
 In Delete Selection mode, if the mark is active, just deactivate it;
@@ -227,6 +228,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (global-set-key (kbd "C-S-u") 'universal-argument)
   (define-key universal-argument-map (kbd "C-S-u") 'universal-argument-more)
+
+  ;; Disable SPC bindings in modes where it interferes with the leader key
+  (general-def
+    :keymaps '(compilation-mode-map)
+    "SPC" nil)
 
   (leader-def-key
     :keymaps 'override
@@ -693,9 +699,12 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package lsp-mode
   :config
-  (setq lsp-clients-python-command "pylsp")
+  (setq lsp-clients-python-command "pylsp"
+        lsp-rust-rls-server-command "/home/hnyman/.cargo/bin/rls"
+        )
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
+        lsp-enable-links nil
         lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
         )
 
@@ -711,6 +720,7 @@ Skip buffers that match `ivy-ignore-buffers'."
    (lsp-pylsp-plugins-flake8-enabled nil))
   :hook
   ((c-mode-common . lsp)
+   (rust-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
               ("gh" . lsp-describe-thing-at-point)
@@ -768,11 +778,15 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package cmake-mode)
 
 
+;; RUST
+
+(use-package rust-mode)
+
 ;; JS
 (use-package rjsx-mode
   :mode "\\.js\\'"
   :init
-  (setq-default js-indent-level 2)
+  (setq-default js-indent-level 4)
   (general-define-key
     :keymaps '(rjsx-mode-map)
     "M-." #'xref-find-definitions))
@@ -1025,9 +1039,9 @@ directory to make multiple eshell windows easier."
     (message "Exporting PDF...")
     (org-latex-export-to-pdf t))
   :general
-  (leader-def-key
-    :keymaps '(bibtex-mode-map)
-    "i" 'org-ref-clean-bibtex-entry)
+  ;; (leader-def-key
+  ;;   :keymaps '(bibtex-mode-map)
+  ;;   "i" 'org-ref-clean-bibtex-entry)
 
   (leader-def-key
     :keymaps '(org-mode-map)
@@ -1051,6 +1065,9 @@ directory to make multiple eshell windows easier."
   (leader-def-key
     :keymaps '(org-src-mode-map)
     "o e"   'org-edit-src-exit)
+
+
+  (general-define-key :keymaps '(dired-mode-map) "SPC" nil)
 
   (general-define-key
     :keymaps '(org-agenda-mode-map)
