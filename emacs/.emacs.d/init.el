@@ -66,15 +66,15 @@
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
         default-directory             "/Users/hnyman/"
-        ns-command-modifier           'meta
+        ns-command-modifier           'control
+        ns-control-modifier           'meta
         ns-option-modifier            nil
         ns-antialias-text             t
         ns-use-srgb-colorspace        nil
         frame-resize-pixelwise        t
         mouse-wheel-scroll-amount     '(5 ((shift) . 5) ((control)))
         mouse-wheel-progressive-speed nil)
-
-  (setenv "SSH_AUTH_SOCK" (shell-command-to-string "launchctl getenv SSH_AUTH_SOCK | tr -d '\n'")))
+  )
 
 (defvar my-ejira-projects      '("EJ" "JL2"))
 (defvar my-ejira-server        "https://localhost:8080")
