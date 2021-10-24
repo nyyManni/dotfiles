@@ -63,6 +63,7 @@
   (defvar ns-use-srgb-colorspace nil)
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
+
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
         default-directory             "/Users/hnyman/"
@@ -222,7 +223,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (dolist (key '("<left>" "<right>" "<up>" "<down>"))
     (general-define-key :keymaps '(evil-motion-state-map) key nil)
     (global-unset-key (kbd key)))
-  ;; (global-set-key (kbd "M-?") 'help-command)
+  (global-set-key (kbd "M-?") 'help-command)
   (global-set-key (kbd "M-?") nil)
   (global-set-key (kbd "C-h") 'delete-backward-char)
   (global-set-key (kbd "M-h") 'backward-kill-word)
@@ -297,7 +298,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq evil-want-fine-undo nil)
   (setq evil-want-keybinding nil)
 
-  :custom ((evil-undo-system 'undo-redo))
+  :custom ((evil-undo-system 'undo-redo)
+           (evil-ex-search-persistent-highlight t))
   :config
   (general-define-key
     :keymaps '(evil-normal-state-map)
@@ -402,7 +404,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
          ("C-k" . ivy-previous-line)
          :map ivy-switch-buffer-map
          ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line))
+         ("C-k" . ivy-previous-line)
+         )
   :commands counsel-minibuffer-history
   :init
   (bind-key "M-r" #'counsel-minibuffer-history minibuffer-local-map)
@@ -418,6 +421,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (leader-def-key
     "G P" 'counsel-projectile-ag
     "'" 'counsel-projectile-switch-project
+    "f" 'counsel-imenu
     ":" 'counsel-projectile-find-file))
 
 
@@ -776,6 +780,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 ;;   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
 
 ;; C/C++
+(setq-default c-basic-offset 4)
 (use-package ccls
   :init
   (put 'c-macro-cppflags 'safe-local-variable (lambda (_) t)))
@@ -876,7 +881,6 @@ directory to make multiple eshell windows easier."
 
 (use-package package-lint)
 (use-package flycheck-package)
-
 
 (use-package http)
 (use-package qml-mode)
@@ -1159,7 +1163,7 @@ directory to make multiple eshell windows easier."
         jiralib2-url              my-ejira-server
         jiralib2-auth            'cookie
 
-        ejira-org-directory      (expand-file-name "/Users/hnyman/org")
+        ejira-org-directory      (expand-file-name "/Users/hnyman/Documents/JIRA")
         ejira-priorities-alist   '(("Blocker" . ?A)
                                    ("Highest" . ?B)
                                    ("High"    . ?C)
