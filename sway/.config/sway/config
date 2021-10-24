@@ -85,6 +85,9 @@ bindsym $mod+v split v
 
 # enter fullscreen mode for the focused container
 bindsym $mod+f fullscreen toggle
+bindsym $mod+Shift+f inhibit_fullscreen toggle
+
+for_window [app_id="chromium-browser"] inhibit_fullscreen enable
 
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+e layout toggle split
@@ -100,6 +103,7 @@ bindsym $mod+a focus parent
 
 # app launcher
 bindsym $mod+d exec /home/hnyman/.local/bin/rofi_history
+bindsym $mod+space exec /home/hnyman/.local/bin/rofi_history
 
 # switch to workspace
 bindsym $mod+1 workspace 1
@@ -161,9 +165,17 @@ set $laptop    "Unknown 0x212B 0x00000000"
 set $landscape "Dell Inc. DELL U2719D 9JWNY13"
 set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 
+set $worklandscape "Acer Technologies G247HYU T1QEE0018500"
+set $workpivot "Unknown HP E243i 6CM7280810"
+
 output $laptop scale 1.75 position 4000,0
 output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
 output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
+
+output $worklandscape scale 1.0 position 0,750
+output $workpivot scale 1.0 position 2560,0 transform "90"
+
+
 
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
@@ -176,7 +188,7 @@ bindsym $mod+XF86Launch6 exec $lock
 
 exec swayidle -w \
     timeout 1200 $lock \
-    timeout 600 'swaymsg "output * dpms off"' \
+    timeout 2400 'swaymsg "output * dpms off"' \
     resume 'swaymsg "output * dpms on"' \
     timeout 30 'if pgrep swaylock; then swaymsg "output * dpms off"; fi' \
     resume 'if pgrep swaylock; then swaymsg "output * dpms on"; fi' \
@@ -267,6 +279,9 @@ bar {
 output $laptop bg /home/hnyman/Pictures/landscape.png fill
 output $landscape bg /home/hnyman/Pictures/landscape.png fill
 output $pivot bg /home/hnyman/Pictures/pivot.png fill
+
+output $worklandscape bg /home/hnyman/Pictures/landscape.png fill
+output $workpivot bg /home/hnyman/Pictures/pivot.png fill
 
 # Enable DPI setting for Xwayland
 exec xrdb ~/.Xresources
