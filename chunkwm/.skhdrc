@@ -2,6 +2,9 @@
 # Disable macOS dumb-ass cmd-h to hide a window
 cmd - h : :
 
+# Disable macOS default ctrl-v binding
+#ctrl - v : :
+
 # Start screensaver on external keyborad
 alt - f15 : open -a /System/Library/CoreServices/ScreenSaverEngine.app
 
@@ -36,8 +39,8 @@ ctrl + alt - l : yabai -m display --focus east
 alt - f : yabai -m window --toggle zoom-fullscreen
 
 # switch desktops
-ctrl - right : yabai -m space --focus next
-ctrl - left : yabai -m space --focus prev
+# ctrl - right : yabai -m space --focus next
+# ctrl - left : yabai -m space --focus prev
 
 # focus desktop
 alt - 1 : yabai -m space --focus 1
@@ -64,6 +67,5 @@ shift + alt - 9 : yabai -m window --space  9
 shift + alt - 0 : yabai -m window --space 10
 
 # launch terminal
-# ctrl + alt - return : /Users/hnyman/bin/run-term.applescript
-ctrl + alt - return : /Users/hnyman/bin/open-kitty.sh
+ctrl + alt - return : /Users/hnyman/.local/bin/launch_iterm.sh
 
