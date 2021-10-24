@@ -238,6 +238,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps '(compilation-mode-map)
     "SPC" nil)
 
+  (defun my-dired-here ()
+    (interactive)
+    (dired (f-dirname (buffer-file-name))))
+
   (leader-def-key
     :keymaps 'override
     "a a" 'align-regexp
@@ -849,10 +853,19 @@ directory to make multiple eshell windows easier."
     (setq-local company-idle-delay nil))
   (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
+  (defun my-eshell-up ()
+    "Go one directory up in the directory tree and print a new prompt."
+    (interactive)
+    (eshell/cd "..")
+    (eshell-kill-input)
+    (eshell-send-input)  ;; Send an empty input to get a new prompt
+    (yank))
+
   :general
   (general-define-key
     :keymaps 'eshell-mode-map
-    "C-S-q" 'my-quit-eshell)
+    "C-." 'my-eshell-up
+    "C-S-x" 'my-quit-eshell)
   (leader-def-key
     :keymaps 'override
     "s e" 'my-eshell-here))
@@ -1188,7 +1201,7 @@ directory to make multiple eshell windows easier."
 
   (general-define-key
     :keymaps 'ejira-mode-map
-    "C-S-q"  'ejira-close-buffer))
+    "C-S-x"  'ejira-close-buffer))
 
 
 (provide 'init)
