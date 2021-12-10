@@ -219,6 +219,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       :keymaps '(evil-motion-state-map evil-normal-state-map)
       key nil))
 
+  ;; (general-define-key :keymaps '(evil-motion-state-map)
+  ;;                     "<tab>" nil)
+
   ;; Disable arrow key movement
   (dolist (key '("<left>" "<right>" "<up>" "<down>"))
     (general-define-key :keymaps '(evil-motion-state-map) key nil)
@@ -295,6 +298,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package evil
   :init
   (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-C-i-jump nil)
   (setq evil-want-fine-undo nil)
   (setq evil-want-keybinding nil)
 
@@ -1123,6 +1127,12 @@ directory to make multiple eshell windows easier."
   :hook (org-mode . org-bullets-mode)
   :init
   (setq org-bullets-bullet-list '("◉" "○" "◆" "✸" "◇")))
+
+(use-package org-bars
+  :load-path "~/.emacs.d/lisp/org-bars"
+  :hook  (org-mode . org-bars-mode))
+
+(use-package fish-mode)
 
 (use-package dash)
 (use-package dash-functional)
