@@ -113,7 +113,6 @@
       package-archives
       '(("gnu"   . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")
-        ("org"   . "http://orgmode.org/elpa/")
         ))
 
 (unless (bound-and-true-p package--initialized)
@@ -571,7 +570,9 @@ Skip buffers that match `ivy-ignore-buffers'."
          ("C-S-l" . 'windmove-right)))
 
 (use-package smartparens
-  :hook (prog-mode . smartparens-mode)
+  :hook
+  (prog-mode . smartparens-mode)
+  (org-mode . smartparens-mode)
   :init
   (setq-default sp-escape-quotes-after-insert nil)
   :general
@@ -988,13 +989,16 @@ directory to make multiple eshell windows easier."
 
 
 (use-package org
-  :ensure org-plus-contrib
-  :pin org
+  :ensure org
+  :pin gnu
   :hook
   (org-mode . visual-line-mode)
   (org-mode . org-indent-mode)
   (org-capture-mode . evil-insert-state)
   :init
+  (defun my-org-mode-hook ()
+    (setq evil-shift-width 2))
+  (add-hook 'org-mode-hook #'my-org-mode-hook)
 
   (defun my-pop-to-temp-org-buffer ()
     (interactive)
@@ -1039,7 +1043,7 @@ directory to make multiple eshell windows easier."
         org-todo-keyword-faces '(("BLOG" :foreground "#343a40"    :weight bold)
                                  ("TODO" :foreground "#c23127"    :weight bold)
                                  ;; ("NEXT" :foreground "#d26937e"   :weight bold)
-                                 ("NEXT" :foreground "white"   :weight bold)
+                                 ("NEXT" :foreground "white"      :weight bold)
                                  ("TEST" :foreground "light blue" :weight bold)
                                  ("DONE" :foreground "#2aa889"    :weight bold))
         org-capture-templates
@@ -1066,6 +1070,7 @@ directory to make multiple eshell windows easier."
     (save-buffer)
     (message "Exporting PDF...")
     (org-latex-export-to-pdf t))
+
   :general
   ;; (leader-def-key
   ;;   :keymaps '(bibtex-mode-map)
