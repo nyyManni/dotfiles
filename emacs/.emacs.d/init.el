@@ -1,5 +1,5 @@
 ;; init.el --- -*- lexical-binding: t -*-
-;; Copyright (c) 2016 - 2019 Henrik Nyman
+;; Copyright (c) 2016 - 2022 Henrik Nyman
 
 
 ;; Author     : Henrik Nyman <h@nyymanni.com>
@@ -415,6 +415,31 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (add-to-list 'ivy-sort-matches-functions-alist
                '(counsel-find-file . ivy--sort-files-by-date)))
+
+
+(use-package helm
+  :hook (after-init . helm-mode)
+  :init
+  (setq helm-candidate-number-limit           100
+        helm-idle-delay                       0.0
+        helm-input-idle-delay                 0.01
+        helm-quick-update                     t
+        helm-M-x-requires-pattern             nil
+        helm-ff-skip-boring-files             t
+        helm-move-to-line-cycle-in-source     t
+        helm-split-window-inside-p            t
+        helm-ff-search-library-in-sexp        t
+        helm-scroll-amount                    8
+        helm-ff-file-name-history-use-recentf t)
+  :config
+  (require 'helm-config)
+  (helm-autoresize-mode t)
+  :general
+  (general-define-key
+    :keymaps '(helm-map)
+    "C-i" 'helm-execute-persistent-action
+    "C-k" 'helm-previous-line
+    "C-j" 'helm-next-line))
 
 (use-package counsel-projectile
   :after (counsel projectile)
@@ -1035,7 +1060,7 @@ directory to make multiple eshell windows easier."
                                  (?E . (:foreground "#2aa889"))
                                  (?F . (:foreground "gray"))
                                  (?G . (:foreground "gray")))
-        org-agenda-files       '("~/org")
+        org-agenda-files       '("~/JIRA" "~/org")
         org-agenda-sticky      t
         org-todo-keywords
         '((sequence "BLOG(b)" "TODO(t)" "NEXT(p)" "TEST" "|" "DONE(d)")
@@ -1118,6 +1143,7 @@ directory to make multiple eshell windows easier."
     "o a"   'org-agenda
     "o c"   'org-capture
     "o o"   'my-pop-to-temp-org-buffer
+    "o r f" 'helm-ejira-refile
     "o t r" 'org-clock-in-last
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
@@ -1174,12 +1200,16 @@ directory to make multiple eshell windows easier."
   (eval-after-load "org-clock"
     (setq org-clock-heading-function #'my-clock-fn))
 
+  (if (eq system-type 'darwin)
+      (setq ejira-org-directory (expand-file-name "/Users/hnyman/Documents/JIRA"))
+    (setq ejira-org-directory (expand-file-name "/home/hnyman/JIRA"))
+    )
+
   (setq request--curl-cookie-jar ""
         jiralib2-user-login-name "hnyman"
         jiralib2-url              my-ejira-server
         jiralib2-auth            'cookie
 
-        ejira-org-directory      (expand-file-name "/Users/hnyman/Documents/JIRA")
         ejira-priorities-alist   '(("Blocker" . ?A)
                                    ("Highest" . ?B)
                                    ("High"    . ?C)
@@ -1222,6 +1252,18 @@ directory to make multiple eshell windows easier."
   (general-define-key
     :keymaps 'ejira-mode-map
     "C-S-x"  'ejira-close-buffer))
+
+(use-package helm-ejira
+  :load-path "~/.emacs.d/lisp/ejira"
+  :ensure nil
+  :config
+  (helm-ejira-advice)
+  :general
+  (leader-def-key
+    :keymaps 'override
+    "J"     'helm-ejira-focus-issue
+    "K"     'helm-ejira-focus-issue-active-sprint
+    "L"     'helm-ejira-focus-issue-assigned))
 
 
 (provide 'init)
