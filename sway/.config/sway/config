@@ -87,7 +87,13 @@ bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+f inhibit_fullscreen toggle
 
+for_window [app_id="chromium"] inhibit_fullscreen enable
 for_window [app_id="chromium-browser"] inhibit_fullscreen enable
+for_window [app_id="lutris"] inhibit_fullscreen enable
+
+for_window [app_id="firefox"] inhibit_fullscreen enable
+for_window [title="Firefox — Sharing Indicator"] floating enable
+for_window [title="Firefox — Sharing Indicator"] nofocus
 
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+e layout toggle split
@@ -96,7 +102,8 @@ bindsym $mod+e layout toggle split
 bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
+#bindsym $mod+space focus mode_toggle
+bindsym $mod+Control+space focus mode_toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
@@ -159,7 +166,7 @@ bindsym $mod+Control+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 
 set $laptop    "Unknown 0x212B 0x00000000"
 set $landscape "Dell Inc. DELL U2719D 9JWNY13"
@@ -247,10 +254,9 @@ bindsym $mod+r mode "resize"
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
-bar {
+bar waybar-0 {
      position top
 
-     id "glbar"
      # When the status_command prints a new line to stdout, swaybar updates.
      # The default just shows the current date and time.
      # status_command while date +'%Y-%m-%d %H:%M:%S'; do sleep 1; done
@@ -258,8 +264,9 @@ bar {
      # status_command /home/hnyman/projects/github/i3status-rust/target/release/i3status-rs ~/.config/sway/.i3status-rs.toml
      # status_command while ~/.config/sway/status.sh; do sleep 1; done
      # swaybar_command waybar
-     swaybar_command /usr/local/bin/swaybar
+     swaybar_command /usr/local/bin/waybar
      mode hide
+     modifier $mod
      # mode hide
      hidden_state hide
      # font "monospace 16"
@@ -288,3 +295,5 @@ exec xrdb ~/.Xresources
 
 exec /usr/bin/python3 /home/hnyman/.local/bin/inactive-windows-transparency.py
 exec '/usr/local/bin/mako --default-timeout 3000 --font "monospace 8" --max-visible 3'
+exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+
