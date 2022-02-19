@@ -761,6 +761,7 @@ Skip buffers that match `ivy-ignore-buffers'."
                 lsp-ui-doc-alignment 'frame
                 lsp-ui-doc-header nil
                 lsp-ui-doc-include-signature t
+                lsp-lens-enable nil
                 lsp-ui-doc-use-childframe t)
   :commands lsp-ui-mode
   :bind (:map evil-normal-state-map
