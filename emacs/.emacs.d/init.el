@@ -1265,6 +1265,35 @@ directory to make multiple eshell windows easier."
     "K"     'helm-ejira-focus-issue-active-sprint
     "L"     'helm-ejira-focus-issue-assigned))
 
+(use-package ejira-agenda
+  :ensure nil
+  :config
+
+  (defun my-add-ejira-kanban-board (key board-name &optional title)
+    (setq title (or title board-name))
+    (org-add-agenda-custom-command
+     `(,key ,title
+            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                ;; "and resolution = unresolved "
+                                "and sprint in openSprints() "
+                                "and assignee = currentUser()")
+                        ((org-agenda-overriding-header
+                          ,(concat title "\n\nAssigned to me"))))
+             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                ;; "and resolution = unresolved "
+                                "and sprint in openSprints() "
+                                "and assignee is EMPTY")
+                        ((org-agenda-overriding-header "Unassigned")))
+             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+                                ;; "and resolution = unresolved "
+                                "and sprint in openSprints() "
+                                "and assignee != currentUser()")
+                        ((org-agenda-overriding-header "Others")))))))
+
+  ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
+  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards))
+
+
 
 (provide 'init)
 ;;; init.el ends here
