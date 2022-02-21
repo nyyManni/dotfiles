@@ -94,6 +94,8 @@ for_window [app_id="lutris"] inhibit_fullscreen enable
 for_window [app_id="firefox"] inhibit_fullscreen enable
 for_window [title="Firefox — Sharing Indicator"] floating enable
 for_window [title="Firefox — Sharing Indicator"] nofocus
+for_window [title="Firefox — Sharing Indicator"] move scratchpad
+
 
 # change container layout (stacked, tabbed, toggle split)
 bindsym $mod+e layout toggle split
