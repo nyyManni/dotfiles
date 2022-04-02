@@ -735,6 +735,15 @@ Skip buffers that match `ivy-ignore-buffers'."
 (add-hook 'hack-local-variables-hook 'run-local-vars-mode-hook)
 (defun run-local-vars-mode-hook ()
   "Run a hook for the `major-mode' after the local variables have been processed."
+
+  ;; First, reset all the path hacks
+  (setenv "PATH" (s-join ":" (-remove
+                              (lambda (p) (and p (s-starts-with-p (getenv "WORKON_HOME") p)))
+                              (split-string
+                               (getenv "PATH") ":"))))
+
+  (setq exec-path (-remove (lambda (p) (and p (s-starts-with-p (getenv "WORKON_HOME") p))) exec-path))
+
   (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
 
 
@@ -742,21 +751,31 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
-        lsp-rust-rls-server-command "/home/hnyman/.cargo/bin/rls"
-        )
+        lsp-rust-rls-server-command "/home/hnyman/.cargo/bin/rls")
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
         lsp-enable-links nil
         lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
         )
 
+
+  (defun my-python-mode-hook ()
+    (when pyvenv-activate (pyvenv-activate pyvenv-activate))
+
+    (let ((venv-paths (when pyvenv-activate (pyvenv--virtual-env-bin-dirs pyvenv-activate))))
+      (setq python-shell-exec-path venv-paths)
+      (setenv "PATH" (s-join ":" (append venv-paths (split-string (getenv "PATH") ":"))))
+
+      (setq exec-path (append venv-paths exec-path))
+
+      (doom-modeline-env-update-python)
+      (lsp)))
+
+
   ;; Defer running lsp for python until we have parsed .dir-locals to allow
   ;; setting project-specific virtual environments
-  (add-hook 'python-mode-local-vars-hook (lambda ()
-                                           (when pyvenv-activate
-                                             (pyvenv-activate pyvenv-activate))
-                                           (doom-modeline-env-update-python)
-                                           (lsp)))
+  (add-hook 'python-mode-local-vars-hook 'my-python-mode-hook)
+
   :custom
   ((lsp-pylsp-plugins-pylint-enabled t)
    (lsp-pylsp-plugins-flake8-enabled nil))
@@ -845,9 +864,12 @@ Skip buffers that match `ivy-ignore-buffers'."
 ;; DAP
 
 (use-package dap-mode
+  :custom ((dap-python-debugger 'debugpy))
   :config
   (add-hook 'dap-stopped-hook
-            (lambda (_) (call-interactively #'dap-hydra))))
+            (lambda (_) (call-interactively #'dap-hydra)))
+  (require 'dap-python)
+  )
 
 
 ;; EShell
