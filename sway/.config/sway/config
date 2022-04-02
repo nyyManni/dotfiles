@@ -13,6 +13,7 @@
 #output
 
 set $mod Mod4
+set $ergodox "12951:18804:ZSA_Technology_Labs_ErgoDox_EZ"
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -90,8 +91,11 @@ bindsym $mod+Shift+f inhibit_fullscreen toggle
 for_window [app_id="chromium"] inhibit_fullscreen enable
 for_window [app_id="chromium-browser"] inhibit_fullscreen enable
 for_window [app_id="lutris"] inhibit_fullscreen enable
+# for_window [title="Wine System Tray"] move scratchpad
+
 
 for_window [app_id="firefox"] inhibit_fullscreen enable
+for_window [app_id="Firefox"] inhibit_fullscreen enable
 for_window [title="Firefox — Sharing Indicator"] floating enable
 for_window [title="Firefox — Sharing Indicator"] nofocus
 for_window [title="Firefox — Sharing Indicator"] move scratchpad
@@ -102,6 +106,7 @@ bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
+bindsym Mod1+space input $ergodox xkb_switch_layout next
 
 # change focus between tiling / floating windows
 #bindsym $mod+space focus mode_toggle
@@ -210,12 +215,16 @@ input "1:1:AT_Translated_Set_2_keyboard" {
     xkb_layout fus
 }
 
-input "12951:18804:ZSA_Technology_Labs_ErgoDox_EZ" {
+input $ergodox {
     repeat_rate 40
     repeat_delay 250
-    xkb_layout us
+    xkb_layout "us,fi"
 }
 
+input "1133:49733:Logitech_Gaming_Mouse_G400" {
+    accel_profile flat
+    pointer_accel -0.75
+}
 
 input type:touchpad {
       tap enabled
