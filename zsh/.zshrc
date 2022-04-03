@@ -9,13 +9,13 @@ if [[ $TERM == "dumb" ]]; then
 fi
 
 # Path to your oh-my-zsh installation.
-export ZSH=/home/nyman/.oh-my-zsh
+#export ZSH=/home/nyman/.oh-my-zsh
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="bureau"
+#ZSH_THEME="bureau"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -55,18 +55,19 @@ HIST_STAMPS="dd.mm.yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git nodejs heroku dirhistory) # zsh-syntax-highlighting)
+#plugins=(git nodejs heroku dirhistory) # zsh-syntax-highlighting)
 
 # User configuration
 
 
 PATH="$PATH:$(ruby -e 'print Gem.user_dir')/bin"
 export PATH
-# export MANPATH="/usr/local/man:$MANPATH"
+export MANPATH="/usr/local/man:$MANPATH"
 
 fpath=(~/.zsh/completions $fpath)
 
-source $ZSH/oh-my-zsh.sh
+#source $ZSH/oh-my-zsh.sh
+eval "$(starship init zsh)"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -78,10 +79,8 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='mvim'
 # fi
 
-export EDITOR='emacsclient -s cli -t -a ""'
-export SUDO_EDITOR='emacsclient -s cli -t -a ""'
 
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+#export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
 
 export LD_LIBRARY_PATH=/usr/local/lib
 
@@ -105,58 +104,17 @@ export TEXINPUTS=".:$HOME/texmf/tex/latex/local/::"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias xclp="xclip -selection c"
 alias egrep="egrep --color=auto --exclude-dir={.bzr,CVS,.git,.hg,.svn}"
-alias edit="emacsclient -s cli -t"
 alias sedit="sudo -e"
-alias remotewin="rdesktop -u nyman -p - -x l -g '2560x1440' -k fi -P -N -D -K -r sound:remote winkkari:3389"
-
-# Workaround for launching Telegram. Qt Applications spawn on wrong X Display.
-alias tlg='DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off; nohup telegram-desktop &> /dev/null &; sleep 1; DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900'
-
 
 setopt autolist
 
 # Custom functions
 
-# Workaround for ^L not working correctly with two-line prompt
-function clear_fixed {
-  zle -U $'clear\n'
-  zle push-line-or-edit
-}
-zle -N clear_fixed
-bindkey '^L' clear_fixed
-
-
-playsub() {
-  lang=en
-  while getopts l: opt; do
-    case $opt in
-      l) lang=$OPTARG; shift;shift;;
-      *) echo "invalid args"; exit;;
-    esac
-  done
-  subfile=$2
-  if [ -z $subfile ]; then
-    subdir=`mktemp -d /tmp/playsub_subfile.XXXX`
-    subliminal download -d "$subdir" -l $lang "$1"
-    subfile=`echo $subdir/*`
-  fi
-  mpv --fs --sub-file $subfile $1
-  [ -d $subdir ] && rm -rf $subdir
-}
-
-
-close_hud() {
-  DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --off
-}
-
-restore_hud() {
-  DISPLAY="${DISPLAY}.1" xrandr --output VGA-0 --mode 1440x900;
-}
-
 workon() {
   source "$WORKON_HOME/$1/bin/activate"
 }
 
-export PATH="/home/hnyman/.pyenv/bin:$PATH"
+# export PATH="/home/hnyman/.pyenv/bin:$PATH"
+export PATH="/Users/hnyman/.local/bin:/Users/hnyman/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+#eval "$(pyenv virtualenv-init -)"
