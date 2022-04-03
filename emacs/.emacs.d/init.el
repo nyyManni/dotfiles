@@ -64,6 +64,9 @@
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
 
+  ;; macOS does not inherit the shell environment
+  (setenv "WORKON_HOME" (expand-file-name "~/.virtualenvs"))
+
   (setq exec-path                     (append exec-path '("/usr/local/bin"))
         default-input-method          "MacOSX"
         default-directory             "/Users/hnyman/"
