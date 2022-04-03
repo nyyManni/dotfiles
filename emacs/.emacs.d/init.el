@@ -80,7 +80,7 @@
         mouse-wheel-progressive-speed nil)
   )
 
-(defvar my-ejira-projects      '("EJ" "JL2"))
+(defvar my-ejira-projects      '())
 (defvar my-ejira-server        "https://localhost:8080")
 (defvar my-ejira-kanban-boards nil)
 (defvar my-ejira-scrum-boards nil)
@@ -161,8 +161,6 @@
   (defun my-get-python-version ()
     '("python" "--version"))
   (setq doom-modeline-env-python-command #'my-get-python-version)
-
-  ;; (doom-modeline-mode)
   )
 
 (use-package hlinum
@@ -1085,7 +1083,11 @@ directory to make multiple eshell windows easier."
                                  (?E . (:foreground "#2aa889"))
                                  (?F . (:foreground "gray"))
                                  (?G . (:foreground "gray")))
-        org-agenda-files       '("~/JIRA" "~/org")
+        ;; org-agenda-files       '("~/JIRA" "~/org")
+        org-agenda-files (append (file-expand-wildcards "~/[a-zA-Z]*/org")
+                                 (file-expand-wildcards "~/[a-zA-Z]*/org/.jira-data"))
+
+
         org-agenda-sticky      t
         org-todo-keywords
         '((sequence "BLOG(b)" "TODO(t)" "NEXT(p)" "TEST" "|" "DONE(d)")
