@@ -872,8 +872,9 @@ Skip buffers that match `ivy-ignore-buffers'."
   (add-hook 'dap-stopped-hook
             (lambda (_) (call-interactively #'dap-hydra)))
   (require 'dap-python)
-  )
 
+  (when (eq system-type 'darwin)
+    (advice-add #'dap-python--pyenv-executable-find :override #'executable-find)))
 
 ;; EShell
 (use-package eshell
