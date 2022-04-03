@@ -85,6 +85,7 @@
 (defvar my-ejira-kanban-boards nil)
 (defvar my-ejira-scrum-boards  nil)
 (defvar my-misc-org-file       "~/org/MISC.org")
+(defvar my-jira-directory      (expand-file-name "~/JIRA"))
 
 (dolist (conf (file-expand-wildcards "~/[a-zA-Z]*/.emacs-init.el"))
         (message "loading configurations from: %s" conf)
@@ -1231,10 +1232,7 @@ directory to make multiple eshell windows easier."
   (eval-after-load "org-clock"
     (setq org-clock-heading-function #'my-clock-fn))
 
-  (if (eq system-type 'darwin)
-      (setq ejira-org-directory (expand-file-name "/Users/hnyman/Documents/JIRA"))
-    (setq ejira-org-directory (expand-file-name "/home/hnyman/JIRA"))
-    )
+  (setq ejira-org-directory my-jira-directory)
 
   (setq request--curl-cookie-jar ""
         jiralib2-user-login-name "hnyman"
