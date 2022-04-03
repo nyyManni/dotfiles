@@ -84,9 +84,10 @@
 (defvar my-ejira-server        "https://localhost:8080")
 (defvar my-ejira-kanban-boards nil)
 (defvar my-ejira-scrum-boards nil)
-(let ((work-config (concat user-emacs-directory "/work-config.el")))
-  (when (file-exists-p work-config)
-    (load-file (concat user-emacs-directory "/work-config.el"))))
+
+(dolist (conf (file-expand-wildcards "~/[a-zA-Z]*/.emacs-init.el"))
+        (message "loading configurations from: %s" conf)
+        (load-file conf))
 
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
 (fset 'startup-echo-area-message (lambda () ""))
