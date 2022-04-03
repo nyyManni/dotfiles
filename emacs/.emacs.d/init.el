@@ -83,7 +83,8 @@
 (defvar my-ejira-projects      '())
 (defvar my-ejira-server        "https://localhost:8080")
 (defvar my-ejira-kanban-boards nil)
-(defvar my-ejira-scrum-boards nil)
+(defvar my-ejira-scrum-boards  nil)
+(defvar my-misc-org-file       "~/org/MISC.org")
 
 (dolist (conf (file-expand-wildcards "~/[a-zA-Z]*/.emacs-init.el"))
         (message "loading configurations from: %s" conf)
@@ -1077,7 +1078,6 @@ directory to make multiple eshell windows easier."
         org-time-stamp-rounding-minutes        '(1 1)
         org-use-fast-todo-selection            t
 
-        my-misc-org-file                       "~/org/MISC.org"
         org-indirect-buffer-display            'other-window
 
         org-lowest-priority    ?G
