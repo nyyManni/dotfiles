@@ -21,7 +21,9 @@
 ;; Prevent the glimpse of un-styled Emacs by disabling these UI elements early.
 (menu-bar-mode -1)
 (unless (and (display-graphic-p) (eq system-type 'darwin))
-  (push '(menu-bar-lines . 0) default-frame-alist))
+  (push '(menu-bar-lines . 0) default-frame-alist)
+  (push '(undecorated . t) default-frame-alist))
+
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(vertical-scroll-bars) default-frame-alist)
 (when (eq system-type 'gnu/linux)
