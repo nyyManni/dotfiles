@@ -950,6 +950,7 @@ directory to make multiple eshell windows easier."
 (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
+(use-package toml-mode)
 
 (use-package powershell)
 
