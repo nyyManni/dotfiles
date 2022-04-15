@@ -227,7 +227,7 @@ input $ergodox {
 
 input "1133:49733:Logitech_Gaming_Mouse_G400" {
     accel_profile flat
-    pointer_accel -0.75
+    pointer_accel 0.0
 }
 
 input type:touchpad {
