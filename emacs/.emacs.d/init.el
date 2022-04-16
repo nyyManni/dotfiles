@@ -454,7 +454,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (counsel-projectile-mode 1)
   :general
   (leader-def-key
-    "G P" 'counsel-projectile-ag
+    "G P" 'counsel-projectile-rg
     "'" 'counsel-projectile-switch-project
     "f" 'counsel-imenu
     ":" 'counsel-projectile-find-file))
