@@ -244,7 +244,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   ;; Disable SPC bindings in modes where it interferes with the leader key
   (general-def
-    :keymaps '(compilation-mode-map)
+    :keymaps '(compilation-mode-map dired-mode-map)
     "SPC" nil)
 
   (defun my-dired-here ()
@@ -253,6 +253,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (leader-def-key
     :keymaps 'override
+    :states 'normal
     "a a" 'align-regexp
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
