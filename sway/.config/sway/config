@@ -230,6 +230,10 @@ input "1133:49733:Logitech_Gaming_Mouse_G400" {
     pointer_accel 0.0
 }
 
+input type:tablet_tool {
+    map_to_output $landscape
+}
+
 input type:touchpad {
       tap enabled
       middle_emulation disabled
