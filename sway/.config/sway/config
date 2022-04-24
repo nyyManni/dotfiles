@@ -62,8 +62,6 @@ bindsym $mod+l focus right
 
 bindsym $mod+s split toggle
 
-
-
 # alternatively, you can use the cursor keys:
 bindsym $mod+Left focus left
 bindsym $mod+Down focus down
@@ -231,6 +229,9 @@ input "1133:49733:Logitech_Gaming_Mouse_G400" {
 }
 
 input type:tablet_tool {
+    map_to_output $landscape
+}
+input type:tablet_pad {
     map_to_output $landscape
 }
 
