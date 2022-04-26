@@ -3,7 +3,10 @@ if status is-interactive
 end
 
 # Environment variable definitions
-set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+if [ (uname) != "Darwin" ]
+    # Only set SSH_AUTH_SOCK on Linux, macOS handles it via the keychain
+    set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+end
 
 starship init fish | source
 
