@@ -948,6 +948,7 @@ directory to make multiple eshell windows easier."
 
 (use-package http)
 (use-package qml-mode)
+(use-package json-mode)
 
 (use-package wdired)
 
