@@ -605,6 +605,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :hook
   (prog-mode . smartparens-mode)
   (org-mode . smartparens-mode)
+  (toml-mode . smartparens-mode)
   :init
   (setq-default sp-escape-quotes-after-insert nil)
   :general
