@@ -789,6 +789,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :hook
   ((c-mode-common . lsp)
    (rust-mode . lsp)
+   (csharp-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
               ("gh" . lsp-describe-thing-at-point)
@@ -866,7 +867,9 @@ Skip buffers that match `ivy-ignore-buffers'."
   :init
   (setq prettier-js-args '("--trailing-comma" "all")))
 
+;; C#
 
+(use-package csharp-mode)
 
 ;; DAP
 
