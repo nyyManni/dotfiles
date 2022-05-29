@@ -176,8 +176,7 @@ bindsym $mod+Control+c reload
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
-
-set $laptop    "Unknown 0x212B 0x00000000"
+set $laptop    "AU Optronics 0x212B 0x00000000"
 set $landscape "Dell Inc. DELL U2719D 9JWNY13"
 set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 
