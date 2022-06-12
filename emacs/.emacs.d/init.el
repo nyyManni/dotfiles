@@ -667,6 +667,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode))
 
+(use-package all-the-icons)
 (use-package company-box
   :diminish
   :hook (company-mode . company-box-mode)
