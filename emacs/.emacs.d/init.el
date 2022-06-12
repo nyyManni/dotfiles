@@ -770,6 +770,12 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
 
+(use-package tree-sitter
+  :config
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs)
 
 
 (use-package lsp-mode
