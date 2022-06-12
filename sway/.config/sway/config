@@ -45,7 +45,7 @@ bindsym $mod+Shift+c kill
 # bindsym $mod+F3 exec emacsclient -c -e '(switch-to-buffer "*scratch*")'
 # bindsym $mod+F4 exec QT_WAYLAND_DISABLE_WINDOWDECORATION=1 telegram-desktop
 # bindsym $mod+F12 exec swaylock --image /home/hnyman/Pictures/wallpaper-blur.png -e
-bindsym print exec grim -t png /home/hnyman/screenshot.png
+bindsym $mod+F11 exec /home/hnyman/.local/bin/slurp-no-trans
 
 
 # Disable window borders
