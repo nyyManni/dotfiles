@@ -565,12 +565,27 @@ Skip buffers that match `ivy-ignore-buffers'."
   :hook (after-init . projectile-mode)
   :diminish
   :functions (my-projectile-invalidate-cache)
+  :init
+  (setq projectile-per-project-compilation-buffer t)
   :bind* (("C-c TAB" . projectile-find-other-file)
           ("C-c P" . (lambda () (interactive)
                        (projectile-cleanup-known-projects)
                        (projectile-discover-projects-in-search-path))))
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
+  ;; Allow the compilation to use terminal control characters.
+  (ignore-errors
+    (require 'ansi-color)
+    (defun my-colorize-compilation-buffer ()
+      (when (eq major-mode 'compilation-mode)
+        (ansi-color-apply-on-region compilation-filter-start (point-max))))
+    (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
+
+  (custom-set-variables
+
+   '(safe-local-variable-values
+     '((projectile-project-compilation-cmd . "pip wheel --no-deps -w dist .")
+       (projectile-project-test-cmd . "pytest"))))
 
   (defun my-projectile-invalidate-cache (&rest _args)
     ;; We ignore the args to `magit-checkout'.
