@@ -811,6 +811,8 @@ Skip buffers that match `ivy-ignore-buffers'."
    (lsp-pylsp-plugins-flake8-enabled nil))
   :hook
   ((c-mode-common . lsp)
+   (rjsx-mode . lsp)
+   (typescript-mode . lsp)
    (rust-mode . lsp)
    (csharp-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
@@ -878,18 +880,22 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; JS
 (use-package rjsx-mode
-  :mode "\\.js\\'"
+  :mode ("\\.js\\'" "\\.tsx")
   :init
   (setq-default js-indent-level 4)
   (general-define-key
     :keymaps '(rjsx-mode-map)
-    "M-." #'xref-find-definitions))
+    "M-." #'xref-find-definitions)
+  :config
+  (setq js2-mode-show-parse-errors nil
+        js2-mode-show-strict-warnings nil))
 
 (use-package prettier-js
   :hook ((js2-mode rsjx-mode) . prettier-js-mode)
   :init
   (setq prettier-js-args '("--trailing-comma" "all")))
 
+(use-package typescript-mode)
 ;; C#
 
 (use-package csharp-mode)
