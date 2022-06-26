@@ -176,7 +176,7 @@ bindsym $mod+Control+c reload
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
-set $laptop    "AU Optronics 0x212B 0x00000000"
+set $laptop    "AU Optronics 0x212B Unknown"
 set $landscape "Dell Inc. DELL U2719D 9JWNY13"
 set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 
@@ -190,23 +190,19 @@ output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@7
 output $worklandscape scale 1.0 position 0,750
 output $workpivot scale 1.0 position 2560,0 transform "90"
 
-
-
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
 
-
-set $lock "swaylock -f --screenshots --grace 3 --clock --effect-blur 7x5 --effect-vignette 0.5:0.5 --fade-in 0.2"
+set $lock "/home/hnyman/.local/bin/lock-screen"
 
 bindsym $mod+XF86Launch6 exec $lock
 
-
 exec swayidle -w \
     timeout 1200 $lock \
-    timeout 2400 'swaymsg "output * dpms off"' \
-    resume 'swaymsg "output * dpms on"' \
-    timeout 30 'if pgrep swaylock; then swaymsg "output * dpms off"; fi' \
-    resume 'if pgrep swaylock; then swaymsg "output * dpms on"; fi' \
+    timeout 2400 'swaymsg "output * power off"' \
+    resume 'swaymsg "output * power on"' \
+    timeout 30 'if pgrep swaylock; then swaymsg "output * power off"; fi' \
+    resume 'if pgrep swaylock; then swaymsg "output * power on"; fi' \
     before-sleep $lock
 
 
