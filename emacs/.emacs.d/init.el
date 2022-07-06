@@ -813,6 +813,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :hook
   ((c-mode-common . lsp)
    (rjsx-mode . lsp)
+   (lua-mode . lsp)
    (typescript-mode . lsp)
    (rust-mode . lsp)
    (csharp-mode . lsp)
@@ -898,6 +899,8 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package typescript-mode)
 ;; C#
+
+(use-package lua-mode)
 
 (use-package csharp-mode)
 
@@ -986,6 +989,7 @@ directory to make multiple eshell windows easier."
 (use-package meson-mode)
 (use-package yaml-mode)
 (use-package toml-mode)
+(use-package dockerfile-mode)
 
 (use-package powershell)
 
