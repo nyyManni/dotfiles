@@ -1,0 +1,28 @@
+#!/usr/bin/python3
+
+# Temporarily disables transparent windows while taking a screenshot
+import os
+
+import subprocess
+import i3ipc
+
+
+slurp = subprocess.check_output(['/usr/bin/slurp']).decode('utf-8').strip()
+
+ipc = i3ipc.Connection()
+
+prev_focused = None
+for window in ipc.get_tree():
+    if window.focused:
+        prev_focused = window
+    window.command('opacity 1.0')
+
+os.chdir('/home/hnyman/Pictures/Screenshots')
+subprocess.check_output(['/usr/local/bin/grim', '-g', slurp])
+
+for window in ipc.get_tree():
+    if window.focused:
+        prev_focused = window
+    window.command('opacity 0.9')
+if prev_focused is not None:
+    prev_focused.command('opacity 1.0')

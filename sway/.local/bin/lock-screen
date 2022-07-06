@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+
+get_display_name() {
+    swaymsg -t get_outputs -r | jq '.[] | {name: .name, id: (.make + " " + .model + " " + .serial)}' | jq 'select(.id == "'"$1"'").name'  | cut -d '"' -f 2
+}
+
+# swaymsg -t get_outputs -r | jq '.[] | {name: .name, make: (.make + " " + .model + " " + .serial)}' | jq 'select(.name == "DP-5").make'
+pivot=$(get_display_name "Dell Inc. DELL U2719D 1JWNY13")
+landscape=$(get_display_name "Dell Inc. DELL U2719D 9JWNY13")
+
+exec swaylock -f --grace 3 --clock --effect-blur 7x5 --effect-vignette 0.5:0.5 --image $landscape:/home/hnyman/Pictures/landscape.png --image $pivot:/home/hnyman/Pictures/pivot.png
