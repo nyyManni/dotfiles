@@ -555,6 +555,9 @@ Skip buffers that match `ivy-ignore-buffers'."
   :bind (:map isearch-mode-map
               ("C-o" . swiper-from-isearch)))
 
+(use-package ivy-xref
+  :init
+  (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
 (use-package amx
   :defer nil
