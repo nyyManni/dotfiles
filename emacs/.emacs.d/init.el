@@ -782,7 +782,9 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
-        lsp-rust-rls-server-command "/home/hnyman/.cargo/bin/rls")
+        lsp-rust-rls-server-command "/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer"
+        lsp-rust-server 'rust-analyzer
+        )
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
         lsp-enable-links nil
