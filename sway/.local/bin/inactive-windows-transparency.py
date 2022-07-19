@@ -24,7 +24,8 @@ def on_window_focus(ipc, focused):
 
         if prev_focused.ipc_data.get('name') == 'Picture-in-Picture':
             prev_focused.command('opacity 1')
-        elif prev_focused.ipc_data.get('name').endswith('Mozilla Firefox'):
+        elif (prev_focused.ipc_data.get('name')
+              and prev_focused.ipc_data.get('name').endswith('Mozilla Firefox')):
             prev_focused.command('opacity ' + transparency_val)
 
         elif not prev_focused.ipc_data.get('inhibit_idle', False):
