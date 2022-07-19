@@ -113,6 +113,7 @@
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
+(add-hook 'latex-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'show-paren-mode)
 (when (eq system-type 'darwin)
   (add-hook 'prog-mode-hook #'pixel-scroll-precision-mode))
@@ -817,6 +818,7 @@ Skip buffers that match `ivy-ignore-buffers'."
    (rjsx-mode . lsp)
    (lua-mode . lsp)
    (typescript-mode . lsp)
+   (latex-mode . lsp)
    (rust-mode . lsp)
    (csharp-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
@@ -829,9 +831,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :general
   (leader-def-key
     "Ff" 'lsp-format-buffer
-    "FR" 'lsp-rename
-    )
-  )
+    "FR" 'lsp-rename))
 
 (use-package lsp-ui
   :config (setq lsp-ui-sideline-show-hover t
