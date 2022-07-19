@@ -197,6 +197,8 @@ set $lock "/home/hnyman/.local/bin/lock-screen"
 
 bindsym $mod+XF86Launch6 exec $lock
 
+bindsym $mod+period exec /opt/1Password/1password --quick-access
+
 exec swayidle -w \
     timeout 1200 $lock \
     timeout 2400 'swaymsg "output * power off"' \
