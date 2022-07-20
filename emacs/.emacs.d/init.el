@@ -145,6 +145,14 @@
   (require 'use-package)
   (require 'bind-key))
 
+
+(when (eq system-type 'darwin)
+  (when (memq window-system '(mac ns x))
+    (use-package exec-path-from-shell
+      :demand t
+      :config
+      (exec-path-from-shell-initialize))))
+
 (use-package no-littering
   :demand t
   :config
@@ -586,11 +594,10 @@ Skip buffers that match `ivy-ignore-buffers'."
         (ansi-color-apply-on-region compilation-filter-start (point-max))))
     (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
 
-  (custom-set-variables
-
-   '(safe-local-variable-values
-     '((projectile-project-compilation-cmd . "pip wheel --no-deps -w dist .")
-       (projectile-project-test-cmd . "pytest"))))
+  (put 'projectile-project-test-cmd 'safe-local-variable #'stringp)
+  (put 'projectile-project-compilation-cmd 'safe-local-variable #'stringp)
+  (put 'projectile-project-install-cmd 'safe-local-variable #'stringp)
+  (put 'dap-python-executable 'safe-local-variable #'stringp)
 
   (defun my-projectile-invalidate-cache (&rest _args)
     ;; We ignore the args to `magit-checkout'.
