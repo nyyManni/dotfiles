@@ -318,7 +318,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq evil-want-fine-undo nil)
   (setq evil-want-keybinding nil)
 
-  :custom ((evil-undo-system 'undo-redo)
+  :custom ((evil-undo-system 'undo-tree)
            (evil-ex-search-persistent-highlight t))
   :config
   (general-define-key
@@ -326,6 +326,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "M-." nil)
 
   (evil-mode 1))
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode)
+  :general
+  (leader-def-key
+   "u" 'undo-tree-visualize))
 
 (use-package evil-collection
   :after evil
@@ -644,7 +650,6 @@ Skip buffers that match `ivy-ignore-buffers'."
     "C->" 'sp-forward-slurp-sexp)
   :config
   (require 'smartparens-config))
-
 
 (use-package company
   :hook
