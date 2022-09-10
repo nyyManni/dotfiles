@@ -793,9 +793,14 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
-        lsp-rust-rls-server-command "/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer"
         lsp-rust-server 'rust-analyzer
-        )
+        lsp-completion-no-cache t)
+
+
+  (if (eq system-type 'darwin)
+      (setq lsp-rust-rls-server-command "/usr/local/bin/rust-analyzer")
+    (setq lsp-rust-rls-server-command "/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer"))
+
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
         lsp-enable-links nil
@@ -890,7 +895,10 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; RUST
 
-(use-package rust-mode)
+(use-package rust-mode
+  :bind (:map rust-mode-map
+         ("C-c C-c C-c" . projectile-compile-project)
+  ))
 
 ;; JS
 (use-package rjsx-mode
