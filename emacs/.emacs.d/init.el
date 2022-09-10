@@ -1295,8 +1295,8 @@ directory to make multiple eshell windows easier."
   (setq ejira-org-directory my-jira-directory)
 
   (setq request--curl-cookie-jar ""
-        jiralib2-user-login-name "hnyman"
-        jiralib2-url              my-ejira-server
+        jiralib2-user-login-name my-ejira-username
+        jiralib2-url             my-ejira-server
         jiralib2-auth            'cookie
 
         ejira-priorities-alist   '(("Blocker" . ?A)
