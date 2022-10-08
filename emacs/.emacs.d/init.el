@@ -41,6 +41,7 @@
       vc-follow-symlinks                t
       inhibit-startup-screen            t
       initial-scratch-message           ""
+      load-prefer-newer                 t
 
       inhibit-startup-message           t
       inhibit-startup-echo-area-message t
@@ -54,6 +55,8 @@
       version-control      t
       vc-make-backup-files t
       tab-width            2
+
+      warning-minimum-level :error
       frame-title-format   '("" "Emacs v" emacs-version))
 
 (when (eq system-type 'gnu/linux)
@@ -90,6 +93,7 @@
 (dolist (conf (file-expand-wildcards "~/[a-zA-Z]*/.emacs-init.el"))
         (message "loading configurations from: %s" conf)
         (load-file conf))
+
 
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
 (fset 'startup-echo-area-message (lambda () ""))
@@ -327,7 +331,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (evil-mode 1))
 (use-package undo-tree
-  :config
+  :init
   (global-undo-tree-mode)
   :general
   (leader-def-key
@@ -1302,7 +1306,7 @@ directory to make multiple eshell windows easier."
   (setq request--curl-cookie-jar ""
         jiralib2-user-login-name my-ejira-username
         jiralib2-url             my-ejira-server
-        jiralib2-auth            'cookie
+        jiralib2-auth            'token
 
         ejira-priorities-alist   '(("Blocker" . ?A)
                                    ("Highest" . ?B)
@@ -1333,6 +1337,7 @@ directory to make multiple eshell windows easier."
     "o j m" 'ejira-mention-user
     "o j U" 'ejira-update-my-projects
     "o b"   'ejira-agenda-board)
+
   (leader-def-key
     :keymaps '(org-mode-map)
     "o j t" 'ejira-set-issuetype
@@ -1342,6 +1347,12 @@ directory to make multiple eshell windows easier."
     "o j P" 'ejira-push-item-under-point
     "o j u" 'ejira-pull-item-under-point
     "o j p" 'ejira-progress-issue)
+
+  (general-define-key
+    :keymaps 'org-agenda-mode-map
+    :states '(emacs motion normal)
+    "C-j u"  'ejira-agenda-pull-item
+    "C-j s"  'ejira-agenda-progress-item)
 
   (general-define-key
     :keymaps 'ejira-mode-map
