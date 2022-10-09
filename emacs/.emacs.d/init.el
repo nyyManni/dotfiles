@@ -56,8 +56,10 @@
       vc-make-backup-files t
       tab-width            2
 
-      warning-minimum-level :error
       frame-title-format   '("" "Emacs v" emacs-version))
+
+(eval-after-load 'warnings
+  (setq warning-minimum-level :error))
 
 (when (eq system-type 'gnu/linux)
   (defvar ns-command-modifier nil)
@@ -74,6 +76,7 @@
         default-input-method          "MacOSX"
         default-directory             "/Users/hnyman/"
         ns-command-modifier           'control
+        read-process-output-max       (* 1024 1024)
         ns-control-modifier           'meta
         ns-option-modifier            nil
         ns-antialias-text             t
@@ -98,7 +101,6 @@
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
 (fset 'startup-echo-area-message (lambda () ""))
 
-(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t)))
 
 (setq-default indent-tabs-mode      nil
               fill-column           80
@@ -333,6 +335,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package undo-tree
   :init
   (global-undo-tree-mode)
+  :defer nil
   :general
   (leader-def-key
    "u" 'undo-tree-visualize))
@@ -802,8 +805,11 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
-        lsp-rust-server 'rust-analyzer
-        lsp-completion-no-cache t)
+        ;; lsp-pylsp-server-command '("pylsp", "-v")
+        lsp-pylsp-server-command '("pylsp")
+        lsp-rust-server            'rust-analyzer
+        lsp-log-io                 nil
+        lsp-completion-no-cache    nil)
 
 
   (if (eq system-type 'darwin)
@@ -836,7 +842,17 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   :custom
   ((lsp-pylsp-plugins-pylint-enabled t)
-   (lsp-pylsp-plugins-flake8-enabled nil))
+   (lsp-pylsp-plugins-pydocstyle-ignore "D401")
+   (lsp-pylsp-plugins-flake8-enabled nil)
+   ;; (lsp-pylsp-plugins-)
+   (lsp-clients-pylsp-library-directories
+    '("/usr/"
+      (expand-file-name "/.virtualenvs/")
+      (expand-file-name "/.pyenv/versions/")
+      )
+    )
+   ;; lsp-pylsp-get-pyenv-environment
+   )
   :hook
   ((c-mode-common . lsp)
    (rjsx-mode . lsp)
@@ -858,16 +874,21 @@ Skip buffers that match `ivy-ignore-buffers'."
     "FR" 'lsp-rename))
 
 (use-package lsp-ui
-  :config (setq lsp-ui-sideline-show-hover t
-                lsp-ui-sideline-delay 0.5
-                lsp-ui-doc-delay 5
-                lsp-ui-sideline-ignore-duplicates t
-                lsp-ui-doc-position 'bottom
-                lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-header nil
-                lsp-ui-doc-include-signature t
-                lsp-lens-enable nil
-                lsp-ui-doc-use-childframe t)
+  :config (setq
+           lsp-ui-sideline-show-hover t
+           lsp-ui-sideline-delay 0.5
+           lsp-ui-doc-delay 5
+           lsp-ui-doc-enable t
+           lsp-ui-sideline-enable t
+           lsp-ui-sideline-ignore-duplicates t
+           lsp-ui-doc-position 'bottom
+           lsp-ui-doc-alignment 'frame
+           ;; lsp-ui-doc-header nil
+           lsp-eldoc-enable-hover t
+           ;; lsp-ui-doc-include-signature nil
+           lsp-lens-enable nil
+           lsp-pylsp-plugins-jedi-signature-help-enabled t
+           lsp-ui-doc-use-childframe t)
   :commands lsp-ui-mode
   :bind (:map evil-normal-state-map
               ("gd" . lsp-ui-peek-find-definitions)
@@ -940,6 +961,12 @@ Skip buffers that match `ivy-ignore-buffers'."
   :config
   (add-hook 'dap-stopped-hook
             (lambda (_) (call-interactively #'dap-hydra)))
+  (dap-ui-controls-mode -1)
+  ;; (setq dap-stopped-hook
+  ;;       ;; '(dap-ui--show-many-windows)
+  ;;       nil
+  ;;       )
+
   (require 'dap-python)
 
   (when (eq system-type 'darwin)
@@ -1026,8 +1053,6 @@ directory to make multiple eshell windows easier."
 (use-package editorconfig
   :config
   (editorconfig-mode 1))
-
-
 
 (use-package ediff
   :ensure nil
@@ -1412,10 +1437,7 @@ directory to make multiple eshell windows easier."
 
   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
   (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
-  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards)
-  )
-
-
+  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
 
 (provide 'init)
 ;;; init.el ends here
