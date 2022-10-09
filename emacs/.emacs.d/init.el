@@ -188,7 +188,7 @@
   :hook (after-init . hlinum-activate)
   :config
   (set-face-attribute 'line-number-current-line nil
-                      :inherit 'linum
+                      :inherit 'line-number
                       :foreground "#CAE682"
                       :background "#444444"
                       :weight 'bold))
