@@ -332,6 +332,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "M-." nil)
 
   (evil-mode 1))
+
 (use-package undo-tree
   :init
   (global-undo-tree-mode)
@@ -959,13 +960,17 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package dap-mode
   :custom ((dap-python-debugger 'debugpy))
   :config
-  (add-hook 'dap-stopped-hook
-            (lambda (_) (call-interactively #'dap-hydra)))
   (dap-ui-controls-mode -1)
-  ;; (setq dap-stopped-hook
-  ;;       ;; '(dap-ui--show-many-windows)
-  ;;       nil
-  ;;       )
+
+  ;; Workaround for lsp workspace not being assigned to dap session
+  (defun my-dap-session-create-hook (&rest _)
+    (setf (dap--debug-session-workspace (dap--cur-session)) (nth 0 lsp--buffer-workspaces)))
+  (add-hook 'dap-session-created-hook #'my-dap-session-create-hook)
+
+  (set-face-attribute
+   'dap-ui-marker-face nil
+   :extend t
+   :background "#444444")
 
   (require 'dap-python)
 
