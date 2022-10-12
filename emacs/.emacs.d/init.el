@@ -847,9 +847,9 @@ Skip buffers that match `ivy-ignore-buffers'."
    (lsp-pylsp-plugins-flake8-enabled nil)
    ;; (lsp-pylsp-plugins-)
    (lsp-clients-pylsp-library-directories
-    '("/usr/"
-      (expand-file-name "/.virtualenvs/")
-      (expand-file-name "/.pyenv/versions/")
+    `("/usr/"
+      ,(expand-file-name "/.virtualenvs/")
+      ,(expand-file-name "/.pyenv/versions/")
       )
     )
    ;; lsp-pylsp-get-pyenv-environment
