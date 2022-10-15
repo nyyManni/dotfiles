@@ -36,6 +36,9 @@ floating_modifier $mod
 # start a terminal
 bindsym $mod+Return exec alacritty
 
+# on macOS I had to bind this to launch the terminal, so this is also in my muscle memory...
+bindsym $mod+Control+Return exec alacritty
+
 # kill focused window
 bindsym $mod+Shift+c kill
 
