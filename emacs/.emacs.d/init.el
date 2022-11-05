@@ -86,6 +86,7 @@
         mouse-wheel-progressive-speed nil)
   )
 
+(defvar my-ejira-username      "")
 (defvar my-ejira-projects      '())
 (defvar my-ejira-server        "https://localhost:8080")
 (defvar my-ejira-kanban-boards nil)
