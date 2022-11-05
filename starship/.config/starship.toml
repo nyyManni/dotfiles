@@ -14,6 +14,7 @@ $elixir\
 $elm\
 $golang\
 $haskell\
+$python\
 $java\
 $julia\
 $nodejs\
@@ -64,6 +65,10 @@ truncation_symbol = "…/"
 symbol = " "
 style = "bg:#06969A"
 format = '[ $symbol $context ]($style) $path'
+
+[python]
+style = "bg:#86BBD8 fg:#434C5E"
+format = '[ $symbol ($virtualenv): ($version) ]($style)'
 
 [elixir]
 symbol = " "
