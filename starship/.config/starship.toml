@@ -67,6 +67,7 @@ style = "bg:#06969A"
 format = '[ $symbol $context ]($style) $path'
 
 [python]
+symbol = ""
 style = "bg:#86BBD8 fg:#434C5E"
 format = '[ $symbol ($virtualenv): ($version) ]($style)'
 
@@ -81,7 +82,7 @@ style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
 [git_branch]
-symbol = ""
+symbol = ""
 style = "bg:#4C566A"
 format = '[ $symbol $branch ]($style)'
 
