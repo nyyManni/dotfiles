@@ -56,10 +56,10 @@ truncation_symbol = "…/"
 # So either put "Important Documents" before "Documents" or use the substituted version:
 # "Important  " = "  "
 
-# [c]
-# symbol = " "
-# style = "bg:#86BBD8"
-# format = '[ $symbol ($version) ]($style)'
+[c]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[ $symbol ($version) ]($style)'
 
 [docker_context]
 symbol = " "
@@ -95,10 +95,10 @@ symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
-# [haskell]
-# symbol = " "
-# style = "bg:#86BBD8"
-# format = '[ $symbol ($version) ]($style)'
+[haskell]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[ $symbol ($version) ]($style)'
 
 [java]
 symbol = " "
