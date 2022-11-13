@@ -1,7 +1,11 @@
 add_newline = false
 
+
 format = """
 [](#3B4252)\
+${custom.macos}\
+${custom.windows}\
+${custom.linux}\
 $username\
 [](bg:#434C5E fg:#3B4252)\
 $directory\
@@ -27,8 +31,7 @@ $time\
 [ ](fg:#33658A)\
 """
 command_timeout = 5000
-# Disable the blank line at the start of the prompt
-# add_newline = false
+
 
 # You can also replace your username with a neat symbol like  to save some space
 [username]
@@ -130,3 +133,24 @@ disabled = false
 time_format = "%R" # Hour:Minute Format
 style = "bg:#33658A"
 format = '[ $time ]($style)'
+
+[custom.macos]
+when = true
+os = "macos"
+format = "[$symbol  ]($style)"
+style = "bg:#3B4252"
+symbol = ""
+
+[custom.linux]
+when = true
+os = "linux"
+format = "[$symbol  ]($style)"
+style = "bg:#3B4252"
+symbol = ""
+
+[custom.windows]
+when = true
+os = "windows"
+format = "[$symbol  ]($style)"
+style = "bg:#3B4252"
+symbol = ""
