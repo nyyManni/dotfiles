@@ -125,7 +125,7 @@ format = '[ $symbol ($version) ]($style)'
 
 [rust]
 symbol = ""
-style = "bg:#86BBD8"
+style = "bg:#86BBD8 fg:#434C5E"
 format = '[ $symbol ($version) ]($style)'
 
 [time]
