@@ -56,6 +56,8 @@
       vc-make-backup-files t
       tab-width            2
 
+      ring-bell-function   'ignore
+
       frame-title-format   '("" "Emacs v" emacs-version))
 
 (eval-after-load 'warnings
