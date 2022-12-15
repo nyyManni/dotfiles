@@ -466,7 +466,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         helm-scroll-amount                    8
         helm-ff-file-name-history-use-recentf t)
   :config
-  (require 'helm-config)
+  ;; (require 'helm-config)
   (helm-autoresize-mode t)
   :general
   (general-define-key
@@ -899,6 +899,7 @@ Skip buffers that match `ivy-ignore-buffers'."
               ("gr" . lsp-ui-peek-find-references)
               ))
 
+;; Python
 (use-package pyvenv
   :demand t
   :config
@@ -914,6 +915,13 @@ Skip buffers that match `ivy-ignore-buffers'."
 ;;   :commands (lsp-ui-doc-mode)
 ;;   :init
 ;;   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
+
+(use-package py-isort
+  :custom ((py-isort-options '("--sl" "-p" "optofidelity")))
+  :general
+  (leader-def-key
+    :keymaps '(python-mode-map)
+    "s i"   'py-isort-buffer))
 
 ;; C/C++
 (setq-default c-basic-offset 4)
