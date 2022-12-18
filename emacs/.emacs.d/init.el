@@ -670,27 +670,27 @@ Skip buffers that match `ivy-ignore-buffers'."
   :init
   (setq company-tooltip-align-annotations t)
   :config
-  (defun my-complete-or-indent ()
-    "On an empty (only whitespace) line, do an indent, otherwise auto-complete."
-    (interactive)
-    (if (string-match "^[[:blank:]]*$"
-                      (buffer-substring (line-beginning-position)
-                                        (point)))
-        (indent-for-tab-command)
-      (company-complete)))
+  ;; (defun my-complete-or-indent ()
+  ;;   "On an empty (only whitespace) line, do an indent, otherwise auto-complete."
+  ;;   (interactive)
+  ;;   (if (string-match "^[[:blank:]]*$"
+  ;;                     (buffer-substring (line-beginning-position)
+  ;;                                       (point)))
+  ;;       (indent-for-tab-command)
+  ;;     (company-complete)))
 
   ;; TODO: Figure out why this needs a hook
-  (defun my-company-hook ()
-    (general-define-key
-      :keymaps '(company-active-map)
-      "<return>" 'company-complete-selection))
+  ;; (defun my-company-hook ()
+  ;;   (general-define-key
+  ;;     :keymaps '(company-active-map)
+  ;;     "<return>" 'company-complete-selection))
 
-  (add-hook 'company-mode-hook #'my-company-hook)
+  ;; (add-hook 'company-mode-hook #'my-company-hook)
   :general
 
   (general-define-key
     :states '(insert)
-    "<tab>" 'my-complete-or-indent))
+    "C-<tab>" 'company-complete))
 
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode))
@@ -1309,7 +1309,6 @@ directory to make multiple eshell windows easier."
 (use-package fish-mode)
 
 (use-package dash)
-(use-package dash-functional)
 (use-package ox-jira)
 (use-package f)
 (use-package s)
