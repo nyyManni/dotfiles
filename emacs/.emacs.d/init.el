@@ -923,6 +923,13 @@ Skip buffers that match `ivy-ignore-buffers'."
     :keymaps '(python-mode-map)
     "s i"   'py-isort-buffer))
 
+(use-package python-black
+  :after python
+  :general
+  (leader-def-key
+    :keymaps '(python-mode-map)
+    "F f"   'python-black-buffer))
+
 ;; C/C++
 (setq-default c-basic-offset 4)
 (use-package ccls
