@@ -687,10 +687,13 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   ;; (add-hook 'company-mode-hook #'my-company-hook)
   :general
-
   (general-define-key
     :states '(insert)
-    "C-<tab>" 'company-complete))
+    "C-<tab>" 'company-complete)
+  (general-define-key
+   :keymaps '(eshell-mode-map)
+    :states '(insert)
+    "<tab>" 'company-complete))
 
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode))
