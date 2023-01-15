@@ -14,6 +14,8 @@
 
 set $mod Mod4
 set $ergodox "12951:18804:ZSA_Technology_Labs_ErgoDox_EZ"
+set $g400 "1133:49733:Logitech_Gaming_Mouse_G400"
+set $builtinkeyboard "1:1:AT_Translated_Set_2_keyboard"
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -196,6 +198,7 @@ output $workpivot scale 1.0 position 2560,0 transform "90"
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
 
+# Set up screen locking
 set $lock "/home/hnyman/.local/bin/lock-screen"
 
 bindsym $mod+XF86Launch6 exec $lock
@@ -211,7 +214,23 @@ exec swayidle -w \
     before-sleep $lock
 
 
-input "1:1:AT_Translated_Set_2_keyboard" {
+# Assign workspaces to monitors
+# 1-5 to left monitor and 6+10 to right monitor
+workspace 1  output $landscape
+workspace 2  output $landscape
+workspace 3  output $landscape
+workspace 4  output $landscape
+workspace 5  output $landscape
+
+workspace 6  output $pivot
+workspace 7  output $pivot
+workspace 8  output $pivot
+workspace 9  output $pivot
+workspace 10 output $pivot
+
+
+# Set up input methods
+input $builtinkeyboard {
     repeat_rate 40
     repeat_delay 250
     xkb_layout fus
@@ -223,7 +242,7 @@ input $ergodox {
     xkb_layout "us,fi"
 }
 
-input "1133:49733:Logitech_Gaming_Mouse_G400" {
+input $g400 {
     accel_profile flat
     pointer_accel 0.0
 }
