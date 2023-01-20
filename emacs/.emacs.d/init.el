@@ -657,7 +657,9 @@ Skip buffers that match `ivy-ignore-buffers'."
     :keymaps '(emacs-lisp-mode-map
                lisp-interaction-mode-map
                python-mode-map
-               c-mode-map c++-mode-map)
+               python-ts-mode-map
+               c-mode-map c++-mode-map
+               c-ts-mode-map c++-ts-mode-map)
     "C->" 'sp-forward-slurp-sexp)
   :config
   (require 'smartparens-config))
@@ -801,14 +803,6 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
 
-(use-package tree-sitter
-  :config
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
-(use-package tree-sitter-langs)
-
-
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
@@ -846,6 +840,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   ;; Defer running lsp for python until we have parsed .dir-locals to allow
   ;; setting project-specific virtual environments
   (add-hook 'python-mode-local-vars-hook 'my-python-mode-hook)
+  (add-hook 'python-ts-mode-local-vars-hook 'my-python-mode-hook)
 
   :custom
   ((lsp-pylsp-plugins-pylint-enabled t)
@@ -862,11 +857,14 @@ Skip buffers that match `ivy-ignore-buffers'."
    )
   :hook
   ((c-mode-common . lsp)
+   (c-ts-mode . lsp)
+   (c++-ts-mode . lsp)
    (rjsx-mode . lsp)
    (lua-mode . lsp)
    (typescript-mode . lsp)
    (latex-mode . lsp)
    (rust-mode . lsp)
+   (rust-ts-mode . lsp)
    (csharp-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
@@ -923,14 +921,14 @@ Skip buffers that match `ivy-ignore-buffers'."
   :custom ((py-isort-options '("--sl" "-p" "optofidelity")))
   :general
   (leader-def-key
-    :keymaps '(python-mode-map)
+    :keymaps '(python-mode-map python-ts-mode-map)
     "s i"   'py-isort-buffer))
 
 (use-package python-black
   :after python
   :general
   (leader-def-key
-    :keymaps '(python-mode-map)
+    :keymaps '(python-mode-map python-ts-mode-map)
     "F f"   'python-black-buffer))
 
 ;; C/C++
@@ -940,7 +938,10 @@ Skip buffers that match `ivy-ignore-buffers'."
   (put 'c-macro-cppflags 'safe-local-variable (lambda (_) t)))
 (use-package clang-format)
 (use-package clang-format+
-  :hook (c-mode-common . clang-format+-mode))
+  :hook
+  (c-mode-common . clang-format+-mode)
+  (c-ts-mode . clang-format+-mode)
+  (c++-ts-mode . clang-format+-mode))
 (use-package glsl-mode)
 (use-package cmake-mode)
 
@@ -948,7 +949,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 ;; RUST
 
 (use-package rust-mode
-  :bind (:map rust-mode-map
+  :bind (:map rust-ts-mode-map
          ("C-c C-c C-c" . projectile-compile-project)
   ))
 
@@ -1463,6 +1464,37 @@ directory to make multiple eshell windows easier."
   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
   (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
   (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
+
+
+;; Tree-sitter
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(python "https://github.com/tree-sitter/tree-sitter-python.git"))
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(rust "https://github.com/tree-sitter/tree-sitter-rust.git"))
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(c "https://github.com/tree-sitter/tree-sitter-c.git"))
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(c++ "https://github.com/tree-sitter/tree-sitter-cpp.git"))
+
+(add-to-list 'major-mode-remap-alist
+             '(python-mode . python-ts-mode))
+
+(add-to-list 'major-mode-remap-alist
+             '(rust-mode . rust-ts-mode))
+
+(add-to-list 'major-mode-remap-alist
+             '(c-mode . c-ts-mode))
+
+(add-to-list 'major-mode-remap-alist
+             '(c++-mode . c++-ts-mode))
 
 (provide 'init)
 ;;; init.el ends here
