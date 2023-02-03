@@ -55,6 +55,7 @@
       version-control      t
       vc-make-backup-files t
       tab-width            2
+      tab-always-indent    'complete
 
       ring-bell-function   'ignore
 
@@ -672,26 +673,13 @@ Skip buffers that match `ivy-ignore-buffers'."
   :init
   (setq company-tooltip-align-annotations t)
   :config
-  ;; (defun my-complete-or-indent ()
-  ;;   "On an empty (only whitespace) line, do an indent, otherwise auto-complete."
-  ;;   (interactive)
-  ;;   (if (string-match "^[[:blank:]]*$"
-  ;;                     (buffer-substring (line-beginning-position)
-  ;;                                       (point)))
-  ;;       (indent-for-tab-command)
-  ;;     (company-complete)))
-
-  ;; TODO: Figure out why this needs a hook
-  ;; (defun my-company-hook ()
-  ;;   (general-define-key
-  ;;     :keymaps '(company-active-map)
-  ;;     "<return>" 'company-complete-selection))
-
-  ;; (add-hook 'company-mode-hook #'my-company-hook)
+  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
   :general
   (general-define-key
     :states '(insert)
-    "C-<tab>" 'company-complete)
+    ;; "<tab>" 'indent-for-tab-command
+    "C-<tab>" 'company-complete
+    )
   (general-define-key
    :keymaps '(eshell-mode-map)
     :states '(insert)
