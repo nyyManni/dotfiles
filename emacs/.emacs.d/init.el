@@ -125,6 +125,7 @@
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'latex-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'show-paren-mode)
+
 (when (eq system-type 'darwin)
   (add-hook 'prog-mode-hook #'pixel-scroll-precision-mode))
 
@@ -174,7 +175,13 @@
   :demand
   :if (or (daemonp) window-system)
   :config
-  (load-theme 'gotham t))
+  (load-theme 'gotham t)
+
+  (set-face-attribute 'line-number-current-line nil
+                      :inherit 'line-number
+                      :foreground "#CAE682"
+                      :background "#444444"
+                      :weight 'bold))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -187,15 +194,6 @@
     '("python" "--version"))
   (setq doom-modeline-env-python-command #'my-get-python-version)
   )
-
-(use-package hlinum
-  :hook (after-init . hlinum-activate)
-  :config
-  (set-face-attribute 'line-number-current-line nil
-                      :inherit 'line-number
-                      :foreground "#CAE682"
-                      :background "#444444"
-                      :weight 'bold))
 
 ;; Evil
 (defconst my/leader "SPC")
@@ -847,7 +845,9 @@ Skip buffers that match `ivy-ignore-buffers'."
   ((c-mode-common . lsp)
    (c-ts-mode . lsp)
    (c++-ts-mode . lsp)
-   (rjsx-mode . lsp)
+   (typescript-ts-mode . lsp)
+   (js-ts-mode . lsp)
+   (tsx-ts-mode . lsp)
    (lua-mode . lsp)
    (typescript-mode . lsp)
    (latex-mode . lsp)
@@ -887,6 +887,8 @@ Skip buffers that match `ivy-ignore-buffers'."
               ("gd" . lsp-ui-peek-find-definitions)
               ("gr" . lsp-ui-peek-find-references)
               ))
+
+(use-package lsp-ivy)
 
 ;; Python
 (use-package pyvenv
@@ -942,23 +944,24 @@ Skip buffers that match `ivy-ignore-buffers'."
   ))
 
 ;; JS
-(use-package rjsx-mode
-  :mode ("\\.js\\'" "\\.tsx")
-  :init
-  (setq-default js-indent-level 4)
-  (general-define-key
-    :keymaps '(rjsx-mode-map)
-    "M-." #'xref-find-definitions)
-  :config
-  (setq js2-mode-show-parse-errors nil
-        js2-mode-show-strict-warnings nil))
+;; (use-package typescript-mode)
+(use-package tsx-ts-mode
+  :ensure nil
+  :mode ("\\.tsx"))
+
+(use-package typescript-ts-mode
+  :ensure nil
+  :mode ("\\.ts"))
+
+(use-package js-ts-mode
+  :ensure nil
+  :mode ("\\.js"))
 
 (use-package prettier-js
   :hook ((js2-mode rsjx-mode) . prettier-js-mode)
   :init
   (setq prettier-js-args '("--trailing-comma" "all")))
 
-(use-package typescript-mode)
 ;; C#
 
 (use-package lua-mode)
@@ -1472,6 +1475,14 @@ directory to make multiple eshell windows easier."
  'treesit-language-source-alist
  '(c++ "https://github.com/tree-sitter/tree-sitter-cpp.git"))
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(javascript "https://github.com/tree-sitter/tree-sitter-javascript.git"))
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript.git" "typescript/src")))
+
 (add-to-list 'major-mode-remap-alist
              '(python-mode . python-ts-mode))
 
@@ -1483,6 +1494,8 @@ directory to make multiple eshell windows easier."
 
 (add-to-list 'major-mode-remap-alist
              '(c++-mode . c++-ts-mode))
+
+
 
 (provide 'init)
 ;;; init.el ends here
