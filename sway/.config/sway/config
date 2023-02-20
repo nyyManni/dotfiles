@@ -123,7 +123,7 @@ bindsym $mod+Control+space focus mode_toggle
 bindsym $mod+a focus parent
 
 # app launcher
-bindsym $mod+d exec /home/hnyman/.local/bin/rofi_history
+# bindsym $mod+d exec /home/hnyman/.local/bin/rofi_history
 bindsym $mod+space exec /home/hnyman/.local/bin/rofi_history
 
 # switch to workspace
