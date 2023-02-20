@@ -661,7 +661,16 @@ Skip buffers that match `ivy-ignore-buffers'."
                c-ts-mode-map c++-ts-mode-map)
     "C->" 'sp-forward-slurp-sexp)
   :config
-  (require 'smartparens-config))
+  (require 'smartparens-config)
+
+  ;; Fix for tree-sit mode
+  (sp-with-modes 'python-ts-mode
+    (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p) :post-handlers '(:add sp-python-fix-tripple-quotes))
+    (sp-local-pair "\"" "\"" :post-handlers '(:add sp-python-fix-tripple-quotes))
+    (sp-local-pair "'''" "'''")
+    (sp-local-pair "\\'" "\\'")
+    (sp-local-pair "\"\"\"" "\"\"\"")
+    (sp-local-pair "(" ")" :post-handlers '(:add sp-python-maybe-add-colon-python))))
 
 (use-package company
   :hook
