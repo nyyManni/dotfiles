@@ -876,21 +876,35 @@ Skip buffers that match `ivy-ignore-buffers'."
     "FR" 'lsp-rename))
 
 (use-package lsp-ui
-  :config (setq
-           lsp-ui-sideline-show-hover t
-           lsp-ui-sideline-delay 0.5
-           lsp-ui-doc-delay 5
-           lsp-ui-doc-enable t
-           lsp-ui-sideline-enable t
-           lsp-ui-sideline-ignore-duplicates t
-           lsp-ui-doc-position 'bottom
-           lsp-ui-doc-alignment 'frame
-           ;; lsp-ui-doc-header nil
-           lsp-eldoc-enable-hover t
-           ;; lsp-ui-doc-include-signature nil
-           lsp-lens-enable nil
-           lsp-pylsp-plugins-jedi-signature-help-enabled t
-           lsp-ui-doc-use-childframe t)
+  :config
+  (setq lsp-ui-sideline-show-hover t
+        lsp-ui-sideline-delay 0.5
+        lsp-ui-doc-delay 5
+        lsp-ui-doc-enable t
+        lsp-ui-sideline-enable t
+        lsp-ui-sideline-ignore-duplicates t
+        lsp-ui-doc-position 'bottom
+        lsp-ui-doc-alignment 'frame
+        ;; lsp-ui-doc-header nil
+        lsp-eldoc-enable-hover t
+        ;; lsp-ui-doc-include-signature nil
+        lsp-lens-enable nil
+        lsp-pylsp-plugins-jedi-signature-help-enabled t
+        lsp-ui-doc-use-childframe t)
+
+
+  ;; Fix the bad alignment of the sideline
+  (defun my-lsp-ui-sideline--align (orig-fun &rest args)
+    (* 0.85 (apply orig-fun args)))
+
+  (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
+
+  (advice-add #'lsp-ui-sideline--compute-height :override (lambda (&rest _) '(height 0.96 )
+                                                          ))
+  :custom
+  (lsp-ui-sideline-current-symbol '((t (:inherit font-lock-constant-face
+					         :box (:line-width -1 :color "#b58900")
+					         :weight ultra-bold))))
   :commands lsp-ui-mode
   :bind (:map evil-normal-state-map
               ("gd" . lsp-ui-peek-find-definitions)
