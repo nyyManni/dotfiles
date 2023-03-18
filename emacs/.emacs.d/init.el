@@ -140,6 +140,7 @@
   (setq package-enable-at-startup nil)          ; To prevent initializing twice
   (package-initialize))
 
+
 (eval-and-compile
   (setq use-package-verbose (not (bound-and-true-p byte-compile-current-file))))
 
@@ -323,6 +324,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (other-window 1)
     (apply command args)
     (rename-buffer (concat bufname "*"))))
+
+(use-package direnv
+  :defer nil
+  :config
+  (direnv-mode))
 
 (use-package evil
   :init
@@ -788,21 +794,6 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; LSP
 
-;; Create a second mode-specific hook to run after .dir-locals have been parsed
-(add-hook 'hack-local-variables-hook 'run-local-vars-mode-hook)
-(defun run-local-vars-mode-hook ()
-  "Run a hook for the `major-mode' after the local variables have been processed."
-
-  ;; First, reset all the path hacks
-  (setenv "PATH" (s-join ":" (-remove
-                              (lambda (p) (and p (s-starts-with-p (getenv "WORKON_HOME") p)))
-                              (split-string
-                               (getenv "PATH") ":"))))
-
-  (setq exec-path (-remove (lambda (p) (and p (s-starts-with-p (getenv "WORKON_HOME") p))) exec-path))
-
-  (run-hooks (intern (concat (symbol-name major-mode) "-local-vars-hook"))))
-
 (use-package lsp-mode
   :config
   (setq lsp-clients-python-command "pylsp"
@@ -824,41 +815,23 @@ Skip buffers that match `ivy-ignore-buffers'."
         )
 
 
-  (defun my-python-mode-hook ()
-    (when pyvenv-activate (pyvenv-activate pyvenv-activate))
-
-    (let ((venv-paths (when pyvenv-activate (pyvenv--virtual-env-bin-dirs pyvenv-activate))))
-      (setq python-shell-exec-path venv-paths)
-      (setenv "PATH" (s-join ":" (append venv-paths (split-string (getenv "PATH") ":"))))
-
-      (setq exec-path (append venv-paths exec-path))
-
-      (doom-modeline-env-update-python)
-      (lsp)))
-
-
-  ;; Defer running lsp for python until we have parsed .dir-locals to allow
-  ;; setting project-specific virtual environments
-  (add-hook 'python-mode-local-vars-hook 'my-python-mode-hook)
-  (add-hook 'python-ts-mode-local-vars-hook 'my-python-mode-hook)
 
   :custom
   ((lsp-pylsp-plugins-pylint-enabled t)
    (lsp-pylsp-plugins-pydocstyle-ignore "D401")
    (lsp-pylsp-plugins-flake8-enabled nil)
-   ;; (lsp-pylsp-plugins-)
    (lsp-clients-pylsp-library-directories
     `("/usr/"
       ,(expand-file-name "/.virtualenvs/")
       ,(expand-file-name "/.pyenv/versions/")
       )
     )
-   ;; lsp-pylsp-get-pyenv-environment
    )
   :hook
   ((c-mode-common . lsp)
    (c-ts-mode . lsp)
    (c++-ts-mode . lsp)
+   (python-ts-mode . lsp)
    (typescript-ts-mode . lsp)
    (js-ts-mode . lsp)
    (tsx-ts-mode . lsp)
@@ -871,9 +844,6 @@ Skip buffers that match `ivy-ignore-buffers'."
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
               ("gh" . lsp-describe-thing-at-point)
-              ;; :map md/leader-map
-              ;; ("Ff" . lsp-format-buffer)
-              ;; ("FR" . lsp-rename)
               )
   :general
   (leader-def-key
@@ -900,7 +870,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   ;; Fix the bad alignment of the sideline
   (defun my-lsp-ui-sideline--align (orig-fun &rest args)
-    (* 0.85 (apply orig-fun args)))
+    (* 1.00 (apply orig-fun args)))
 
   (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
 
@@ -918,23 +888,9 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package lsp-ivy)
 
+
 ;; Python
-(use-package pyvenv
-  :demand t
-  :config
-
-  ;; Don't waste time with virtualenvwrapper. It is slow and we don't use it
-  (setq pyvenv-workon "emacs")  ; Default venv
-
-  (put 'python-shell-virtualenv-root 'safe-local-variable (lambda (_) t))
-  (advice-add #'pyvenv-virtualenvwrapper-supported :override (lambda (&rest _)))
-  (pyvenv-tracking-mode 1))  ; Automatically use pyvenv-workon via dir-locals
-
-;; (use-package lsp-ui :commands lsp-ui-mode
-;;   :commands (lsp-ui-doc-mode)
-;;   :init
-;;   (add-hook 'lsp-ui-mode-hook (lambda () (interactive) (lsp-ui-doc-mode 0))))
-
+ (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
 (use-package py-isort
   :custom ((py-isort-options '("--sl" "-p" "optofidelity")))
   :general
@@ -942,12 +898,6 @@ Skip buffers that match `ivy-ignore-buffers'."
     :keymaps '(python-mode-map python-ts-mode-map)
     "s i"   'py-isort-buffer))
 
-(use-package python-black
-  :after python
-  :general
-  (leader-def-key
-    :keymaps '(python-mode-map python-ts-mode-map)
-    "F f"   'python-black-buffer))
 
 ;; C/C++
 (setq-default c-basic-offset 4)
@@ -972,7 +922,6 @@ Skip buffers that match `ivy-ignore-buffers'."
   ))
 
 ;; JS
-;; (use-package typescript-mode)
 (use-package tsx-ts-mode
   :ensure nil
   :mode ("\\.tsx"))
@@ -1082,7 +1031,9 @@ directory to make multiple eshell windows easier."
 (use-package flycheck-package)
 
 (use-package http)
-(use-package qml-mode)
+(use-package qml-mode
+  :mode ("\\.qmlproject"))
+
 (use-package json-mode)
 
 (use-package wdired)
