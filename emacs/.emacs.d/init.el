@@ -887,7 +887,12 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   ;; Fix the bad alignment of the sideline
   (defun my-lsp-ui-sideline--align (orig-fun &rest args)
-    (* 0.90 (apply orig-fun args)))
+
+    ;; Of course this depends on the font, and scaling and shit
+    ;; These work for me
+    (if (eq system-type 'darwin)
+        (* 1.00 (apply orig-fun args))
+      (* 0.90 (apply orig-fun args))))
 
   (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
 
@@ -933,10 +938,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; RUST
 
-(use-package rust-mode
-  :bind (:map rust-ts-mode-map
-              ("C-c C-c C-c" . projectile-compile-project)
-              ))
+(use-package rust-mode)
 
 (use-package rustic)
 
