@@ -12,6 +12,7 @@ function mkvenv -d "Create virtual environment NAME with Python version VERSION"
 
     echo "==> Installing LSP libraries..."
     $WORKON_HOME/$name/bin/python -m pip install 'python-lsp-server[all]' pylint debugpy python-lsp-black pytest pylsp-mypy
+    $WORKON_HOME/$name/bin/python -m pip uninstall rope
 
     echo "==> Finished"
 end
