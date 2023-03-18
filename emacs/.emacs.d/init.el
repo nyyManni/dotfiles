@@ -98,8 +98,8 @@
 (defvar my-jira-directory      (expand-file-name "~/JIRA"))
 
 (dolist (conf (file-expand-wildcards "~/[a-zA-Z]*/.emacs-init.el"))
-        (message "loading configurations from: %s" conf)
-        (load-file conf))
+  (message "loading configurations from: %s" conf)
+  (load-file conf))
 
 
 (defvar user-hostname (shell-command-to-string "hostname |sed 's/\\.local//' |tr -d '\n'"))
@@ -206,8 +206,8 @@
 (use-package general
   :config
   (general-define-key
-    :states 'motion
-    "SPC" nil)
+   :states 'motion
+   "SPC" nil)
   (general-define-key
    :keymaps '(diff-mode-map)
    :states '(motion normal)
@@ -230,14 +230,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (abort-recursive-edit)))
 
   (general-define-key
-    :keymaps '(evil-normal-state-map evil-visual-state-map)
-    "<escape>" 'keyboard-quit)
+   :keymaps '(evil-normal-state-map evil-visual-state-map)
+   "<escape>" 'keyboard-quit)
   (general-define-key
-    :keymaps '(minibuffer-local-map
-               minibuffer-local-ns-map
-               minibuffer-local-must-match-map
-               minibuffer-local-isearch-map)
-    "<escape>" 'minibuffer-keyboard-quit)
+   :keymaps '(minibuffer-local-map
+              minibuffer-local-ns-map
+              minibuffer-local-must-match-map
+              minibuffer-local-isearch-map)
+   "<escape>" 'minibuffer-keyboard-quit)
 
   ;; Completely disable the mouse
   (dolist (key '([drag-mouse-1] [down-mouse-1] [mouse-1]
@@ -245,8 +245,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                  [drag-mouse-3] [down-mouse-3] [mouse-3]))
     (global-unset-key key)
     (general-define-key
-      :keymaps '(evil-motion-state-map evil-normal-state-map)
-      key nil))
+     :keymaps '(evil-motion-state-map evil-normal-state-map)
+     key nil))
 
   ;; (general-define-key :keymaps '(evil-motion-state-map)
   ;;                     "<tab>" nil)
@@ -260,8 +260,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "C-h") 'delete-backward-char)
   (global-set-key (kbd "M-h") 'backward-kill-word)
 
-  ; Disable toggling fullscreen with f11
-  (general-define-key "<f11>" nil)
+  (general-define-key "<f11>" nil) ; Disable toggling fullscreen with f11
 
   (global-set-key (kbd "C-S-u") 'universal-argument)
   (define-key universal-argument-map (kbd "C-S-u") 'universal-argument-more)
@@ -311,8 +310,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       ;; Buffer with name already exists
       (message "buffer already taken")
       (setq bufname (if firstp
-                       (progn (setq firstp nil)
-                              (concat bufname "<2>"))
+                        (progn (setq firstp nil)
+                               (concat bufname "<2>"))
 
                       ;; Increment the number
                       (let* ((regex "\\(.*<\\)\\([0-9]+\\)\\(>\\)" )
@@ -341,8 +340,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
            (evil-ex-search-persistent-highlight t))
   :config
   (general-define-key
-    :keymaps '(evil-normal-state-map)
-    "M-." nil)
+   :keymaps '(evil-normal-state-map)
+   "M-." nil)
 
   (evil-mode 1))
 
@@ -352,7 +351,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :defer nil
   :general
   (leader-def-key
-   "u" 'undo-tree-visualize))
+    "u" 'undo-tree-visualize))
 
 (use-package evil-collection
   :after evil
@@ -364,8 +363,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :general
   (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
     (general-define-key
-      :keymaps '(evil-insert-state-map evil-visual-state-map)
-      (general-chord chord) 'evil-normal-state)))
+     :keymaps '(evil-insert-state-map evil-visual-state-map)
+     (general-chord chord) 'evil-normal-state)))
 
 (use-package evil-commentary
   :config
@@ -379,45 +378,45 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package evil-indent-plus
   :general
   (general-define-key
-    :keymaps '(evil-inner-text-objects-map)
-    "i" 'evil-indent-plus-i-indent
-    "I" 'evil-indent-plus-i-indent-up
-    "J" 'evil-indent-plus-i-indent-up-down)
+   :keymaps '(evil-inner-text-objects-map)
+   "i" 'evil-indent-plus-i-indent
+   "I" 'evil-indent-plus-i-indent-up
+   "J" 'evil-indent-plus-i-indent-up-down)
   (general-define-key
-    :keymaps '(evil-outer-text-objects-map)
-    "i" 'evil-indent-plus-a-indent
-    "I" 'evil-indent-plus-a-indent-up
-    "J" 'evil-indent-plus-a-indent-up-down))
+   :keymaps '(evil-outer-text-objects-map)
+   "i" 'evil-indent-plus-a-indent
+   "I" 'evil-indent-plus-a-indent-up
+   "J" 'evil-indent-plus-a-indent-up-down))
 
 (use-package evil-args
   :general
   (general-define-key
-    :keymaps '(evil-inner-text-objects-map)
-    "a" 'evil-inner-arg)
+   :keymaps '(evil-inner-text-objects-map)
+   "a" 'evil-inner-arg)
   (general-define-key
-    :keymaps '(evil-outer-text-objects-map)
-    "a" 'evil-outer-arg)
+   :keymaps '(evil-outer-text-objects-map)
+   "a" 'evil-outer-arg)
   (general-define-key
-    :keymaps '(evil-normal-sate-map evil-motion-state-map)
-    "L" 'evil-forward-arg
-    "H" 'evil-backward-arg)
+   :keymaps '(evil-normal-sate-map evil-motion-state-map)
+   "L" 'evil-forward-arg
+   "H" 'evil-backward-arg)
   (general-define-key
-    :keymaps '(evil-normal-sate-map)
-    "K" 'evil-jump-out-args))
+   :keymaps '(evil-normal-sate-map)
+   "K" 'evil-jump-out-args))
 
 (use-package evil-exchange
   :general
   (general-define-key
-    :keymaps '(evil-normal-state-map evil-visual-state-map)
-    "g x" 'evil-exchange
-    "g X" 'evil-exchange-cancel))
+   :keymaps '(evil-normal-state-map evil-visual-state-map)
+   "g x" 'evil-exchange
+   "g X" 'evil-exchange-cancel))
 
 (use-package evil-numbers
   :general
   (general-define-key
-    :states '(normal)
-    "C-a" 'evil-numbers/inc-at-pt
-    "C-z" 'evil-numbers/dec-at-pt))
+   :states '(normal)
+   "C-a" 'evil-numbers/inc-at-pt
+   "C-z" 'evil-numbers/dec-at-pt))
 
 (use-package evil-visualstar
   :defines (evil-visualstar/persistent)
@@ -441,18 +440,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                    "\\'\\)"))
   :general
   (leader-def-key
-   ";" 'counsel-find-file
-   "x" 'counsel-M-x
-   ;;"A" 'counsel-apropos
-   "A" 'helm-apropos  ;; helm-apropos is way superior
-   "y"  'counse-yank-pop)
+    ";" 'counsel-find-file
+    "x" 'counsel-M-x
+    ;;"A" 'counsel-apropos
+    "A" 'helm-apropos  ;; helm-apropos is way superior
+    "y"  'counse-yank-pop)
   :bind (:map ivy-minibuffer-map
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         )
+              ("C-j" . ivy-next-line)
+              ("C-k" . ivy-previous-line)
+              :map ivy-switch-buffer-map
+              ("C-j" . ivy-next-line)
+              ("C-k" . ivy-previous-line)
+              )
   :commands counsel-minibuffer-history
   :init
   (bind-key "M-r" #'counsel-minibuffer-history minibuffer-local-map)
@@ -480,10 +479,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (helm-autoresize-mode t)
   :general
   (general-define-key
-    :keymaps '(helm-map)
-    "C-i" 'helm-execute-persistent-action
-    "C-k" 'helm-previous-line
-    "C-j" 'helm-next-line))
+   :keymaps '(helm-map)
+   "C-i" 'helm-execute-persistent-action
+   "C-k" 'helm-previous-line
+   "C-j" 'helm-next-line))
 
 (use-package counsel-projectile
   :after (counsel projectile)
@@ -503,7 +502,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   :general
   (leader-def-key
-   "b" 'ivy-switch-buffer)
+    "b" 'ivy-switch-buffer)
   :bind (:map ivy-minibuffer-map
               ("<tab>" . ivy-alt-done)
               ("SPC"   . ivy-alt-done-or-space)
@@ -664,13 +663,13 @@ Skip buffers that match `ivy-ignore-buffers'."
   (setq-default sp-escape-quotes-after-insert nil)
   :general
   (general-define-key
-    :keymaps '(emacs-lisp-mode-map
-               lisp-interaction-mode-map
-               python-mode-map
-               python-ts-mode-map
-               c-mode-map c++-mode-map
-               c-ts-mode-map c++-ts-mode-map)
-    "C->" 'sp-forward-slurp-sexp)
+   :keymaps '(emacs-lisp-mode-map
+              lisp-interaction-mode-map
+              python-mode-map
+              python-ts-mode-map
+              c-mode-map c++-mode-map
+              c-ts-mode-map c++-ts-mode-map)
+   "C->" 'sp-forward-slurp-sexp)
   :config
   (require 'smartparens-config)
 
@@ -694,14 +693,14 @@ Skip buffers that match `ivy-ignore-buffers'."
   (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
   :general
   (general-define-key
-    :states '(insert)
-    ;; "<tab>" 'indent-for-tab-command
-    "C-<tab>" 'company-complete
-    )
+   :states '(insert)
+   ;; "<tab>" 'indent-for-tab-command
+   "C-<tab>" 'company-complete
+   )
   (general-define-key
    :keymaps '(eshell-mode-map)
-    :states '(insert)
-    "<tab>" 'company-complete))
+   :states '(insert)
+   "<tab>" 'company-complete))
 
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode))
@@ -871,19 +870,19 @@ Skip buffers that match `ivy-ignore-buffers'."
   (lsp-ui-doc-enable nil)
   :config
   (setq ;;lsp-ui-sideline-show-hover t
-        lsp-ui-sideline-delay 0.5
-        lsp-ui-doc-delay 5
-        lsp-ui-doc-enable t
-        lsp-ui-sideline-enable t
-        lsp-ui-sideline-ignore-duplicates t
-        lsp-ui-doc-position 'bottom
-        lsp-ui-doc-alignment 'frame
-        ;; lsp-ui-doc-header nil
-        lsp-eldoc-enable-hover t
-        ;; lsp-ui-doc-include-signature nil
-        lsp-lens-enable nil
-        lsp-pylsp-plugins-jedi-signature-help-enabled t
-        lsp-ui-doc-use-childframe t)
+   lsp-ui-sideline-delay 0.5
+   lsp-ui-doc-delay 5
+   lsp-ui-doc-enable t
+   lsp-ui-sideline-enable t
+   lsp-ui-sideline-ignore-duplicates t
+   lsp-ui-doc-position 'bottom
+   lsp-ui-doc-alignment 'frame
+   ;; lsp-ui-doc-header nil
+   lsp-eldoc-enable-hover t
+   ;; lsp-ui-doc-include-signature nil
+   lsp-lens-enable nil
+   lsp-pylsp-plugins-jedi-signature-help-enabled t
+   lsp-ui-doc-use-childframe t)
 
 
   ;; Fix the bad alignment of the sideline
@@ -893,7 +892,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
 
   (advice-add #'lsp-ui-sideline--compute-height :override (lambda (&rest _) '(height 0.96 )
-                                                          ))
+                                                            ))
   :custom
   (lsp-ui-sideline-current-symbol '((t (:inherit font-lock-constant-face
 					         :box (:line-width -1 :color "#b58900")
@@ -908,7 +907,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 
 ;; Python
- (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
 (use-package py-isort
   :custom ((py-isort-options '("--sl" "-p" "optofidelity")))
   :general
@@ -936,8 +935,8 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package rust-mode
   :bind (:map rust-ts-mode-map
-         ("C-c C-c C-c" . projectile-compile-project)
-  ))
+              ("C-c C-c C-c" . projectile-compile-project)
+              ))
 
 (use-package rustic)
 
@@ -991,8 +990,8 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package eshell
   :ensure nil
   :defines (eshell-banner-message eshell-cmpl-cycle-completions
-            eshell-modify-global-environment eshell-prompt-regexp
-            eshell-prompt-function)
+                                  eshell-modify-global-environment eshell-prompt-regexp
+                                  eshell-prompt-function)
   :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func
                                       my-eshell-hook)
   :commands (my-eshell-here)
@@ -1036,9 +1035,9 @@ directory to make multiple eshell windows easier."
 
   :general
   (general-define-key
-    :keymaps 'eshell-mode-map
-    "C-." 'my-eshell-up
-    "C-S-x" 'my-quit-eshell)
+   :keymaps 'eshell-mode-map
+   "C-." 'my-eshell-up
+   "C-S-x" 'my-quit-eshell)
   (leader-def-key
     :keymaps 'override
     "s e" 'my-eshell-here))
@@ -1144,14 +1143,14 @@ directory to make multiple eshell windows easier."
   (leader-def-key
     "l l" 'lunchtime-display-menus)
   (general-define-key
-    :keymaps '(lunchtime-mode-map)
-    :states '(normal)
-    "o" 'delete-other-windows
-    "l" 'lunchtime-next-day
-    "h" 'lunchtime-previous-day
-    "j" 'lunchtime-next-restaurant
-    "k" 'lunchtime-previous-restaurant
-    "q" 'lunchtime-close))
+   :keymaps '(lunchtime-mode-map)
+   :states '(normal)
+   "o" 'delete-other-windows
+   "l" 'lunchtime-next-day
+   "h" 'lunchtime-previous-day
+   "j" 'lunchtime-next-restaurant
+   "k" 'lunchtime-previous-restaurant
+   "q" 'lunchtime-close))
 
 
 (use-package org
@@ -1273,14 +1272,14 @@ directory to make multiple eshell windows easier."
   (general-define-key :keymaps '(dired-mode-map) "SPC" nil)
 
   (general-define-key
-    :keymaps '(org-agenda-mode-map)
-    "j"     'evil-next-line
-    "k"     'evil-previous-line
-    "g"     nil
-    "SPC"   nil
-    "g g"   'evil-goto-first-line
-    "g r"   'org-agenda-redo-all
-    "G"     'evil-goto-line)
+   :keymaps '(org-agenda-mode-map)
+   "j"     'evil-next-line
+   "k"     'evil-previous-line
+   "g"     nil
+   "SPC"   nil
+   "g g"   'evil-goto-first-line
+   "g r"   'org-agenda-redo-all
+   "G"     'evil-goto-line)
   ;; Global org bindings
   (leader-def-key
     :keymaps 'override
@@ -1391,14 +1390,14 @@ directory to make multiple eshell windows easier."
     "o j p" 'ejira-progress-issue)
 
   (general-define-key
-    :keymaps 'org-agenda-mode-map
-    :states '(emacs motion normal)
-    "C-j u"  'ejira-agenda-pull-item
-    "C-j s"  'ejira-agenda-progress-item)
+   :keymaps 'org-agenda-mode-map
+   :states '(emacs motion normal)
+   "C-j u"  'ejira-agenda-pull-item
+   "C-j s"  'ejira-agenda-progress-item)
 
   (general-define-key
-    :keymaps 'ejira-mode-map
-    "C-S-x"  'ejira-close-buffer))
+   :keymaps 'ejira-mode-map
+   "C-S-x"  'ejira-close-buffer))
 
 (use-package helm-ejira
   :load-path "~/.emacs.d/lisp/ejira"
