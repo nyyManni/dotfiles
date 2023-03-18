@@ -805,8 +805,8 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 
   (if (eq system-type 'darwin)
-      (setq lsp-rust-rls-server-command "/usr/local/bin/rust-analyzer")
-    (setq lsp-rust-rls-server-command "/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer"))
+      (setq lsp-rust-analyzer-server-command '("/usr/local/bin/rust-analyzer"))
+    (setq lsp-rust-analyzer-server-command '("/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer")))
 
   (setq lsp-idle-delay 0.5
         lsp-enable-symbol-highlighting t
@@ -817,16 +817,30 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 
   :custom
-  ((lsp-pylsp-plugins-pylint-enabled t)
-   (lsp-pylsp-plugins-pydocstyle-ignore "D401")
-   (lsp-pylsp-plugins-flake8-enabled nil)
-   (lsp-clients-pylsp-library-directories
-    `("/usr/"
-      ,(expand-file-name "/.virtualenvs/")
-      ,(expand-file-name "/.pyenv/versions/")
-      )
-    )
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-eldoc-render-all t)
+  (lsp-idle-delay 0.6)
+  ;; This controls the overlays that display type and other hints inline. Enable
+  ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
+  ;; effect on open projects.
+  (lsp-rust-analyzer-server-display-inlay-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
+  (lsp-rust-analyzer-display-chaining-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
+  (lsp-rust-analyzer-display-closure-return-type-hints t)
+  (lsp-rust-analyzer-display-parameter-hints nil)
+  (lsp-rust-analyzer-display-reborrow-hints nil)
+
+  (lsp-pylsp-plugins-pylint-enabled t)
+  (lsp-pylsp-plugins-pydocstyle-ignore "D401")
+  (lsp-pylsp-plugins-flake8-enabled nil)
+  (lsp-clients-pylsp-library-directories
+   `("/usr/"
+     ,(expand-file-name "/.virtualenvs/")
+     ,(expand-file-name "/.pyenv/versions/")
+     )
    )
+
   :hook
   ((c-mode-common . lsp)
    (c-ts-mode . lsp)
@@ -851,8 +865,12 @@ Skip buffers that match `ivy-ignore-buffers'."
     "FR" 'lsp-rename))
 
 (use-package lsp-ui
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-doc-enable nil)
   :config
-  (setq lsp-ui-sideline-show-hover t
+  (setq ;;lsp-ui-sideline-show-hover t
         lsp-ui-sideline-delay 0.5
         lsp-ui-doc-delay 5
         lsp-ui-doc-enable t
@@ -870,7 +888,7 @@ Skip buffers that match `ivy-ignore-buffers'."
 
   ;; Fix the bad alignment of the sideline
   (defun my-lsp-ui-sideline--align (orig-fun &rest args)
-    (* 1.00 (apply orig-fun args)))
+    (* 0.90 (apply orig-fun args)))
 
   (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
 
@@ -920,6 +938,8 @@ Skip buffers that match `ivy-ignore-buffers'."
   :bind (:map rust-ts-mode-map
          ("C-c C-c C-c" . projectile-compile-project)
   ))
+
+(use-package rustic)
 
 ;; JS
 (use-package tsx-ts-mode
@@ -1180,7 +1200,8 @@ directory to make multiple eshell windows easier."
                                  (?F . (:foreground "gray"))
                                  (?G . (:foreground "gray")))
         ;; org-agenda-files       '("~/JIRA" "~/org")
-        org-agenda-files (append (file-expand-wildcards "~/[a-zA-Z]*/org")
+        org-agenda-files (append (file-expand-wildcards "~/org")
+                                 (file-expand-wildcards "~/[a-zA-Z]*/org")
                                  (file-expand-wildcards "~/[a-zA-Z]*/org/.jira-data"))
 
 
