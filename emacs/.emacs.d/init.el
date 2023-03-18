@@ -156,6 +156,11 @@
   (require 'use-package)
   (require 'bind-key))
 
+(use-package auto-compile
+  :defer nil
+  :config
+  (auto-compile-on-load-mode)
+  (auto-compile-on-save-mode))
 
 (when (eq system-type 'darwin)
   (when (memq window-system '(mac ns x))
