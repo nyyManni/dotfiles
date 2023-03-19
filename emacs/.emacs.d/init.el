@@ -326,8 +326,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package direnv
   :defer nil
+  :after lsp-mode
   :config
-  (direnv-mode))
+  (direnv-mode)
+  (advice-add 'lsp :before #'direnv-update-environment))
 
 (use-package evil
   :init
@@ -488,6 +490,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :after (counsel projectile)
   :config
   (counsel-projectile-mode 1)
+  (setq counsel-projectile-switch-project-action #'counsel-projectile-switch-project-action-find-file)
   :general
   (leader-def-key
     "G P" 'counsel-projectile-rg
@@ -510,7 +513,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               ("C-i"   . ivy-partial-or-done)
               ("C-r"   . ivy-previous-line-or-history)
               ("M-r"   . ivy-reverse-i-search))
-
 
   :custom
   (ivy-dynamic-exhibit-delay-ms 200)
@@ -605,6 +607,8 @@ Skip buffers that match `ivy-ignore-buffers'."
   :diminish
   :functions (my-projectile-invalidate-cache)
   :init
+  (setq projectile-sort-order 'recentf)
+  (setq projectile-completion-system 'ivy)
   (setq projectile-per-project-compilation-buffer t)
   :bind* (("C-c TAB" . projectile-find-other-file)
           ("C-c P" . (lambda () (interactive)
@@ -619,6 +623,7 @@ Skip buffers that match `ivy-ignore-buffers'."
       (when (eq major-mode 'compilation-mode)
         (ansi-color-apply-on-region compilation-filter-start (point-max))))
     (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
+
 
   (put 'projectile-project-test-cmd 'safe-local-variable #'stringp)
   (put 'projectile-project-compilation-cmd 'safe-local-variable #'stringp)
