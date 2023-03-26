@@ -122,6 +122,8 @@
 
 
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+
+(set-face-attribute 'fill-column-indicator nil :height 1.1)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'conf-mode-hook #'display-line-numbers-mode)
 (add-hook 'latex-mode-hook #'display-line-numbers-mode)
