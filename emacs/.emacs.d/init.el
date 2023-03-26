@@ -53,6 +53,7 @@
       custom-file          (concat user-emacs-directory "/customize-ignored.el")
       delete-old-versions  -1
       version-control      t
+      display-line-numbers-type 'relative
       vc-make-backup-files t
       tab-width            2
       tab-always-indent    'complete
