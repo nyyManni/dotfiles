@@ -881,6 +881,7 @@ Skip buffers that match `ivy-ignore-buffers'."
    lsp-ui-sideline-delay 0.5
    lsp-ui-doc-delay 5
    lsp-ui-doc-enable t
+   lsp-ui-sideline-show-symbol t
    lsp-ui-sideline-enable t
    lsp-ui-sideline-ignore-duplicates t
    lsp-ui-doc-position 'bottom
@@ -892,20 +893,14 @@ Skip buffers that match `ivy-ignore-buffers'."
    lsp-pylsp-plugins-jedi-signature-help-enabled t
    lsp-ui-doc-use-childframe t)
 
+  (when (eq system-type 'gnu/linux)
+    (set-face-attribute
+     'lsp-ui-sideline-symbol-info nil
+     :height 0.96))
 
-  ;; Fix the bad alignment of the sideline
-  (defun my-lsp-ui-sideline--align (orig-fun &rest args)
+  (require 'lsp-ui-sideline)
+  (defun lsp-ui-sideline--compute-height nil '(height unspecified))
 
-    ;; Of course this depends on the font, and scaling and shit
-    ;; These work for me
-    (if (eq system-type 'darwin)
-        (* 1.00 (apply orig-fun args))
-      (* 0.90 (apply orig-fun args))))
-
-  (advice-add 'lsp-ui-sideline--align :around #'my-lsp-ui-sideline--align)
-
-  (advice-add #'lsp-ui-sideline--compute-height :override (lambda (&rest _) '(height 0.96 )
-                                                            ))
   :custom
   (lsp-ui-sideline-current-symbol '((t (:inherit font-lock-constant-face
 					         :box (:line-width -1 :color "#b58900")
@@ -913,10 +908,7 @@ Skip buffers that match `ivy-ignore-buffers'."
   :commands lsp-ui-mode
   :bind (:map evil-normal-state-map
               ("gd" . lsp-ui-peek-find-definitions)
-              ("gr" . lsp-ui-peek-find-references)
-              ))
-
-(use-package lsp-ivy)
+              ("gr" . lsp-ui-peek-find-references)))
 
 
 ;; Python
@@ -949,6 +941,15 @@ Skip buffers that match `ivy-ignore-buffers'."
 (use-package rust-mode)
 
 (use-package rustic)
+
+(use-package rustic-ts-mode
+  :ensure nil
+  :after rustic
+  :load-path "~/.emacs.d/lisp/rustic-ts-mode"
+  :config
+
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
+  (require 'rustic-ts-mode))
 
 ;; JS
 (use-package tsx-ts-mode
