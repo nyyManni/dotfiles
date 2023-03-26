@@ -137,20 +137,20 @@ format = '[ $time ]($style)'
 [custom.macos]
 when = true
 os = "macos"
-format = "[$symbol  ]($style)"
+format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
 symbol = ""
 
 [custom.linux]
 when = true
 os = "linux"
-format = "[$symbol  ]($style)"
+format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
 symbol = ""
 
 [custom.windows]
 when = true
 os = "windows"
-format = "[$symbol  ]($style)"
+format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
 symbol = ""
