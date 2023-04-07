@@ -948,9 +948,10 @@ Skip buffers that match `ivy-ignore-buffers'."
   :after rustic
   :load-path "~/.emacs.d/lisp/rustic-ts-mode"
   :config
-
-  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
-  (require 'rustic-ts-mode))
+  (require 'rust-ts-mode)
+  (require 'rustic-ts-mode)
+  (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode)))
 
 ;; JS
 (use-package tsx-ts-mode
@@ -1502,8 +1503,8 @@ directory to make multiple eshell windows easier."
 (add-to-list 'major-mode-remap-alist
              '(python-mode . python-ts-mode))
 
-(add-to-list 'major-mode-remap-alist
-             '(rust-mode . rust-ts-mode))
+;; (add-to-list 'major-mode-remap-alist
+;;              '(rust-mode . rust-ts-mode))
 
 (add-to-list 'major-mode-remap-alist
              '(c-mode . c-ts-mode))
