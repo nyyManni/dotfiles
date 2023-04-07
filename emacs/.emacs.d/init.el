@@ -862,6 +862,7 @@ Skip buffers that match `ivy-ignore-buffers'."
    (rust-mode . lsp)
    (rust-ts-mode . lsp)
    (csharp-mode . lsp)
+   (java-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map evil-normal-state-map
               ("gh" . lsp-describe-thing-at-point)
@@ -1052,6 +1053,11 @@ directory to make multiple eshell windows easier."
   (leader-def-key
     :keymaps 'override
     "s e" 'my-eshell-here))
+
+(use-package lsp-java)
+
+(use-package web-mode
+  :mode ("\\.jsp"))
 
 (use-package systemd)
 (use-package jinja2-mode)
