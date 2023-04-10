@@ -90,6 +90,30 @@
         mouse-wheel-progressive-speed nil)
   )
 
+(define-obsolete-variable-alias
+    'native-comp-deferred-compilation-deny-list
+      'native-comp-jit-compilation-deny-list
+        "Renamed in emacs#95692f6")
+
+(setq straight-repository-branch "develop")
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(setq straight-use-package-by-default t)
+
+(straight-use-package 'use-package)
+
 (defvar my-ejira-username      "")
 (defvar my-ejira-projects      '())
 (defvar my-ejira-server        "https://localhost:8080")
@@ -131,25 +155,6 @@
 
 (when (eq system-type 'darwin)
   (add-hook 'prog-mode-hook #'pixel-scroll-precision-mode))
-
-
-(setq package-user-dir (expand-file-name "sitelisp" user-emacs-directory)
-      package-archives
-      '(("gnu"   . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")
-        ))
-
-(unless (bound-and-true-p package--initialized)
-  (setq package-enable-at-startup nil)          ; To prevent initializing twice
-  (package-initialize))
-
-
-(eval-and-compile
-  (setq use-package-verbose (not (bound-and-true-p byte-compile-current-file))))
-
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
 
 (eval-and-compile
   (setq use-package-always-ensure t)
