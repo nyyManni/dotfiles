@@ -1189,7 +1189,7 @@ directory to make multiple eshell windows easier."
 
 (use-package org
   :ensure org
-  :pin gnu
+  :straight (:type built-in)
   :hook
   (org-mode . visual-line-mode)
   (org-mode . org-indent-mode)
