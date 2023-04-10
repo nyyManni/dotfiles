@@ -1091,6 +1091,8 @@ directory to make multiple eshell windows easier."
 
 (use-package wdired)
 
+(use-package dired+)
+
 (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
