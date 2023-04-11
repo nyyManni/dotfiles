@@ -1113,8 +1113,7 @@ directory to make multiple eshell windows easier."
         ediff-split-window-function 'split-window-horizontally))
 
 (use-package lunchtime
-  :ensure nil
-  :load-path "~/.emacs.d/lisp/lunchtime"
+  :straight (lunchtime :type git :host github :repo "nyyManni/lunchtime.el")
   :commands (lunchtime-display-menus)
   :config
 
@@ -1187,7 +1186,6 @@ directory to make multiple eshell windows easier."
    "j" 'lunchtime-next-restaurant
    "k" 'lunchtime-previous-restaurant
    "q" 'lunchtime-close))
-
 
 (use-package org
   :ensure org
@@ -1340,7 +1338,7 @@ directory to make multiple eshell windows easier."
   (setq org-bullets-bullet-list '("◉" "○" "◆" "✸" "◇")))
 
 (use-package org-bars
-  :load-path "~/.emacs.d/lisp/org-bars"
+  :straight (org-bars :type git :host github :repo "tonyaldon/org-bars")
   :hook  (org-mode . org-bars-mode))
 
 (use-package fish-mode)
@@ -1353,8 +1351,7 @@ directory to make multiple eshell windows easier."
 (use-package language-detection)
 (use-package jiralib2)
 (use-package ejira
-  :load-path "~/.emacs.d/lisp/ejira"
-  :ensure nil
+  :straight (ejira :type git :host github :repo "nyyManni/ejira")
   :commands (ejira-guess-epic-sprint-fields)
   :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
                                              my-add-ejira-kanban-board)
@@ -1436,8 +1433,7 @@ directory to make multiple eshell windows easier."
    "C-S-x"  'ejira-close-buffer))
 
 (use-package helm-ejira
-  :load-path "~/.emacs.d/lisp/ejira"
-  :ensure nil
+  :straight (helm-ejira :type git :host github :repo "nyyManni/ejira")
   :config
   (helm-ejira-advice)
   :general
@@ -1449,6 +1445,7 @@ directory to make multiple eshell windows easier."
 
 (use-package ejira-agenda
   :ensure nil
+  :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
   :config
 
   (defun my-add-ejira-kanban-board (key board-name &optional title)
