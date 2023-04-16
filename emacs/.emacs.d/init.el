@@ -1,10 +1,10 @@
 ;; init.el --- -*- lexical-binding: t -*-
-;; Copyright (c) 2016 - 2022 Henrik Nyman
+;; Copyright (c) 2016 - 2023 Henrik Nyman
 
 
 ;; Author     : Henrik Nyman <h@nyymanni.com>
 ;; Created    : 10 Aug 2016
-;; Version    : 0.3
+;; Version    : 0.4
 
 ;; The MIT License
 
@@ -29,7 +29,7 @@
 
 ;;; Commentary:
 
-;; nyyManni's configuration for Emacs, 2021 flavor.
+;; nyyManni's configuration for Emacs, 2023 flavor.
 
 ;;; Code:
 
