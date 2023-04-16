@@ -198,7 +198,23 @@
                       :inherit 'line-number
                       :foreground "#CAE682"
                       :background "#444444"
-                      :weight 'bold))
+                      :weight 'bold)
+
+  (eval-after-load 'flymake
+    (progn
+      (require 'flymake)
+    (set-face-attribute
+     'flymake-error nil
+     :underline `(:style wave :color ,(face-attribute 'error :foreground)))
+
+    (set-face-attribute
+     'flymake-warning nil
+     :underline `(:style wave :color ,(face-attribute 'warning :foreground)))
+
+    (set-face-attribute
+     'flymake-note nil
+     :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
+
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -209,8 +225,7 @@
 
   (defun my-get-python-version ()
     '("python" "--version"))
-  (setq doom-modeline-env-python-command #'my-get-python-version)
-  )
+  (setq doom-modeline-env-python-command #'my-get-python-version))
 
 ;; Evil
 (defconst my/leader "SPC")
@@ -295,6 +310,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     ";"   'find-file
     ":"   'project-find-file
     "a a" 'align-regexp
+    "a f" 'describe-function
+    "a s" 'describe-symbol
+    "a v" 'describe-variable
+    "a k" 'describe-key
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
     "D"   'kill-this-buffer
@@ -480,8 +499,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (leader-def-key
     "y" 'consult-yank-from-kill-ring))
 
-;; (use-package consult-lsp)
-
 (use-package embark
   :ensure t
 
@@ -498,7 +515,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
   ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
   ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
@@ -605,7 +622,25 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
 
+(use-package eldoc
+  :straight (:type built-in)
+  :custom
+  (eldoc-echo-area-use-multiline-p nil))
 
+
+(use-package sideline
+  :hook (flymake-mode . sideline-mode)
+  :init
+  (setq sideline-flymake-display-mode 'point) ; 'point to show errors only on point
+                                              ; 'line to show errors on the current line
+  (setq sideline-backends-right '(sideline-flymake)))
+
+(use-package sideline-flymake)
+
+(use-package flymake
+  :straight (:type built-in)
+  :hook
+  (emacs-lisp-mode . flymake-mode))
 
 (use-package magit
   :defines (magit-branch-arguments magit-git-executable)
@@ -629,19 +664,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "g b"   'magit-blame
     "g f h" 'magit-log-buffer-file))
 
-
-;; (use-package flycheck
-;;   :hook
-;;   (prog-mode . flycheck-mode)
-;;   (nxml-mode . flycheck-mode)
-;;   :init
-;;   (setq-default flycheck-emacs-lisp-load-path 'inherit)
-
-;;   ;; Disable other flycheck backends, only use lsp
-;;   (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang rust-cargo)))
-
 ;; LSP
-
 
 (use-package xref
   :straight (:type built-in)
@@ -654,187 +677,40 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :straight (:type built-in)
   :hook
   (python-ts-mode . eglot-ensure)
-  (rustic-mode . eglot-ensure) 
+  (rustic-mode . eglot-ensure)
   (c-ts-mode . eglot-ensure)
   (c++-ts-mode . eglot-ensure)
+  :init
+  (setq-default eglot-workspace-configuration
+                '((pylsp
+                   (plugins
+                    (pylint (enabled . t))
+                    (jedi_completion (fuzzy . t))
+                    (pydocstyle
+                     (enabled . nil)
+                     (addIgnore . "D401"))
+                    (mccabe (enabled . nil))
+                    (pycodestyle (enabled . nil))
+                    (pyls_isort (enabled . t))
+                    (autopep8 (enabled . nil))
+                    (flake8 (enabled . nil))
+                    (pyflakes (enabled . nil))
+                    (yapf (enabled . nil))
+                    (rope_autoimport (enabled . nil))
+                    (rope_completion (enabled . nil))
+                    (black (enabled . t))
+                    (ruff (enabled . nil))
+                    (mypy
+                     (enabled . t)
+                     (live_mode . t)
+                     (strict . nil))))))
+
   :general
   (leader-def-key
     :keymaps 'eglot-mode-map
     "F F" 'eglot-format))
 
 (use-package markdown-mode)
-
-(setq-default eglot-workspace-configuration
-      '((pylsp                                  
-         (plugins                               
-          (pylint (enabled . t))
-          (jedi_completion (fuzzy . t))        
-          (pydocstyle
-           (enabled . nil)
-           (addIgnore . "D401")
-
-                      )
-          (mccabe (enabled . nil))
-          (pycodestyle (enabled . nil))
-          ;; (pydocstyle
-          ;;  (enabled . nil)
-          ;;  ;; (convention . "pep257")
-          ;;  ;; (addIgnore . "D401")
-          ;;  )
-          (pyls_isort (enabled . t))
-          (autopep8 (enabled . nil))
-          (flake8 (enabled . nil))
-          (pyflakes (enabled . nil))
-          (yapf (enabled . nil))
-          (rope_autoimport (enabled . nil))
-          (rope_completion (enabled . nil))
-          (black (enabled . t))
-          (ruff (enabled . nil))
-          (mypy
-           (enabled . t)
-           (live_mode . t)
-           (strict . nil)
-           )
-
-          ))))
-
-
-(use-package flymake
-  :straight (:type built-in)
-  :init
-
-    (set-face-attribute
-     'flymake-error nil
-     :underline `(:style wave :color ,(face-attribute 'error :foreground)))
-
-    (set-face-attribute
-     'flymake-warning nil
-     :underline `(:style wave :color ,(face-attribute 'warning :foreground)))
-
-    (set-face-attribute
-     'flymake-note nil
-     :underline `(:style wave :color ,(face-attribute 'success :foreground)))
-
-
-    
-    
-    
-
-    )
-;;     (set-face-attribute
-;;      'lsp-ui-sideline-symbol-info nil
-;;      :height 0.96))
-
-
-;; (use-package lsp-mode
-;;   :config
-;;   (setq lsp-clients-python-command "pylsp"
-;;         ;; lsp-pylsp-server-command '("pylsp", "-v")
-;;         lsp-pylsp-server-command '("pylsp")
-;;         lsp-rust-server            'rust-analyzer
-;;         lsp-log-io                 nil
-;;         lsp-completion-no-cache    nil)
-
-
-;;   (if (eq system-type 'darwin)
-;;       (setq lsp-rust-analyzer-server-command '("/usr/local/bin/rust-analyzer"))
-;;     (setq lsp-rust-analyzer-server-command '("/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer")))
-
-;;   (setq lsp-idle-delay 0.5
-;;         lsp-enable-symbol-highlighting t
-;;         lsp-enable-links nil
-;;         lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
-;;         )
-
-
-;;   :custom
-;;   (lsp-rust-analyzer-cargo-watch-command "clippy")
-;;   (lsp-eldoc-render-all t)
-;;   (lsp-idle-delay 0.6)
-;;   ;; This controls the overlays that display type and other hints inline. Enable
-;;   ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
-;;   ;; effect on open projects.
-;;   (lsp-rust-analyzer-server-display-inlay-hints t)
-;;   (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-;;   (lsp-rust-analyzer-display-chaining-hints t)
-;;   (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-;;   (lsp-rust-analyzer-display-closure-return-type-hints t)
-;;   (lsp-rust-analyzer-display-parameter-hints nil)
-;;   (lsp-rust-analyzer-display-reborrow-hints nil)
-
-;;   (lsp-pylsp-plugins-pylint-enabled t)
-;;   (lsp-pylsp-plugins-pydocstyle-ignore "D401")
-;;   (lsp-pylsp-plugins-flake8-enabled nil)
-;;   (lsp-clients-pylsp-library-directories
-;;    `("/usr/"
-;;      ,(expand-file-name "/.virtualenvs/")
-;;      ,(expand-file-name "/.pyenv/versions/")
-;;      )
-;;    )
-
-;;   :hook
-;;   ((c-mode-common . lsp)
-;;    (c-ts-mode . lsp)
-;;    (c++-ts-mode . lsp)
-;;    (python-ts-mode . lsp)
-;;    (typescript-ts-mode . lsp)
-;;    (js-ts-mode . lsp)
-;;    (tsx-ts-mode . lsp)
-;;    (lua-mode . lsp)
-;;    (typescript-mode . lsp)
-;;    (latex-mode . lsp)
-;;    (rust-mode . lsp)
-;;    (rust-ts-mode . lsp)
-;;    (csharp-mode . lsp)
-;;    (java-mode . lsp)
-;;    (lsp-mode . lsp-enable-which-key-integration))
-;;   :bind (:map evil-normal-state-map
-;;               ("gh" . lsp-describe-thing-at-point)
-;;               )
-;;   :general
-;;   (leader-def-key
-;;     "Ff" 'lsp-format-buffer
-;;     "FR" 'lsp-rename))
-
-;; (use-package lsp-ui
-;;   :custom
-;;   (lsp-ui-peek-always-show t)
-;;   (lsp-ui-sideline-show-hover t)
-;;   (lsp-ui-doc-enable nil)
-;;   :config
-;;   (setq ;;lsp-ui-sideline-show-hover t
-;;    lsp-ui-sideline-delay 0.5
-;;    lsp-ui-doc-delay 5
-;;    lsp-ui-doc-enable t
-;;    lsp-ui-sideline-show-symbol t
-;;    lsp-ui-sideline-enable t
-;;    lsp-ui-sideline-ignore-duplicates t
-;;    lsp-ui-doc-position 'bottom
-;;    lsp-ui-doc-alignment 'frame
-;;    ;; lsp-ui-doc-header nil
-;;    lsp-eldoc-enable-hover t
-;;    ;; lsp-ui-doc-include-signature nil
-;;    lsp-lens-enable nil
-;;    lsp-pylsp-plugins-jedi-signature-help-enabled t
-;;    lsp-ui-doc-use-childframe t)
-
-;;   (when (eq system-type 'gnu/linux)
-;;     (set-face-attribute
-;;      'lsp-ui-sideline-symbol-info nil
-;;      :height 0.96))
-
-;;   (require 'lsp-ui-sideline)
-;;   (defun lsp-ui-sideline--compute-height nil '(height unspecified))
-
-;;   :custom
-;;   (lsp-ui-sideline-current-symbol '((t (:inherit font-lock-constant-face
-;; 					         :box (:line-width -1 :color "#b58900")
-;; 					         :weight ultra-bold))))
-;;   :commands lsp-ui-mode
-;;   :bind (:map evil-normal-state-map
-;;               ("gd" . lsp-ui-peek-find-definitions)
-;;               ("gr" . lsp-ui-peek-find-references)))
-
 
 ;; Python
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
@@ -848,9 +724,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; C/C++
 (setq-default c-basic-offset 4)
-;; (use-package ccls
-;;   :init
-;;   (put 'c-macro-cppflags 'safe-local-variable (lambda (_) t)))
 (use-package clang-format)
 (use-package clang-format+
   :hook
@@ -886,20 +759,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
   )
 
-;; (use-package rustic-ts-mode
-;;   :ensure nil
-;;   :after rustic
-;;   :load-path "~/.emacs.d/lisp/rustic-ts-mode"
-;;   :config
-;;   (require 'rust-ts-mode)
-;;   (require 'rustic-ts-mode)
-;;   (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
-;;   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode)))
-
-;; JS
-;; (use-package tsx-ts-mode
-;;   :ensure nil
-;;   :mode ("\\.tsx"))
 
 (use-package typescript-ts-mode
   :ensure nil
@@ -919,28 +778,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package lua-mode)
 
 (use-package csharp-mode)
-
-;; DAP
-
-;; (use-package dap-mode
-;;   :custom ((dap-python-debugger 'debugpy))
-;;   :config
-;;   (dap-ui-controls-mode -1)
-
-;;   ;; Workaround for lsp workspace not being assigned to dap session
-;;   (defun my-dap-session-create-hook (&rest _)
-;;     (setf (dap--debug-session-workspace (dap--cur-session)) (nth 0 lsp--buffer-workspaces)))
-;;   (add-hook 'dap-session-created-hook #'my-dap-session-create-hook)
-
-;;   (set-face-attribute
-;;    'dap-ui-marker-face nil
-;;    :extend t
-;;    :background "#444444")
-
-;;   (require 'dap-python)
-
-;;   (when (eq system-type 'darwin)
-;;     (advice-add #'dap-python--pyenv-executable-find :override #'executable-find)))
 
 ;; EShell
 (use-package eshell
@@ -1040,80 +877,6 @@ directory to make multiple eshell windows easier."
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally))
 
-(use-package lunchtime
-  :straight (lunchtime :type git :host github :repo "nyyManni/lunchtime.el")
-  :commands (lunchtime-display-menus)
-  :config
-
-  (setq lunchtime-parsers-alist nil)
-  ;; TTY
-  (lunchtime-define-restaurant
-   "https://api.ruoka.xyz/%Y-%m-%d"
-   (mapcar
-    (lambda (restaurant)
-      `((name . ,(assoc-recursive restaurant 'name))
-        (subrestaurants
-         .
-         ,(mapcar
-           (lambda (subrestaurant)
-             `((name . ,(assoc-recursive subrestaurant 'name))
-               (menus . ,(mapcar
-                          (lambda (meal)
-                            `((name . ,(assoc-recursive meal 'name))
-                              (prices . ,(assoc-recursive meal 'prices))
-                              (menu . ,(mapcar
-                                        (lambda (part)
-                                          (assoc-recursive part 'name))
-                                        (assoc-recursive meal 'contents)))))
-                          (assoc-recursive subrestaurant 'meals)))))
-           (assoc-recursive restaurant 'menus)))))
-
-    (assoc-recursive lunchtime-response-data 'restaurants)))
-
-  ;; Hermia 6
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/110/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  ;; Hermia 5
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/107/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  :general
-  (leader-def-key
-    "l l" 'lunchtime-display-menus)
-  (general-define-key
-   :keymaps '(lunchtime-mode-map)
-   :states '(normal)
-   "o" 'delete-other-windows
-   "l" 'lunchtime-next-day
-   "h" 'lunchtime-previous-day
-   "j" 'lunchtime-next-restaurant
-   "k" 'lunchtime-previous-restaurant
-   "q" 'lunchtime-close))
 
 (use-package org
   :ensure org
@@ -1255,7 +1018,7 @@ directory to make multiple eshell windows easier."
     "o t i" 'org-clock-in))
 
 (use-package org-agenda
-  
+
   :straight (:type built-in)
   :commands (org-add-agenda-custom-command))
 
