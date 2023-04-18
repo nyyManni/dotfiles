@@ -976,16 +976,12 @@ directory to make multiple eshell windows easier."
     "s a"   'outline-show-all
 
     "o t c" 'org-table-create
-    ;; "o C"   'org-ref-helm-insert-cite-link
-    ;; "o L"   'org-ref-helm-insert-label-link
-    ;; "o R"   'org-ref-helm-insert-ref-link
     "p c"   'my-org-compile
 
     ;; Task management keybindings.
     "o t i" 'org-clock-in
     "o s"   'org-todo
     "o e"   'org-edit-special
-    ;; "o r f" 'helm-ejira-refile
     "o t s" 'org-clock-display
     "o n s" 'org-narrow-to-subtree
     "o n w" 'widen)
@@ -1011,7 +1007,6 @@ directory to make multiple eshell windows easier."
     "o a"   'org-agenda
     "o c"   'org-capture
     "o o"   'my-pop-to-temp-org-buffer
-    ;; "o r f" 'helm-ejira-refile
     "o t r" 'org-clock-in-last
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
@@ -1043,7 +1038,7 @@ directory to make multiple eshell windows easier."
 (use-package language-detection)
 (use-package jiralib2)
 (use-package ejira
-  :straight (ejira :type git :host github :repo "nyyManni/ejira")
+  :straight (ejira :type git :host github :repo "nyyManni/ejira" :branch "ejira-completion")
   :commands (ejira-guess-epic-sprint-fields)
   :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
                                              my-add-ejira-kanban-board)
@@ -1102,7 +1097,11 @@ directory to make multiple eshell windows easier."
     "o j j" 'ejira-focus-on-clocked-issue
     "o j m" 'ejira-mention-user
     "o j U" 'ejira-update-my-projects
-    "o b"   'ejira-agenda-board)
+    "o b"   'ejira-agenda-board
+
+    "J"     'ejira-completion-focus-issue
+    "K"     'ejira-completion-focus-issue-active-sprint
+    "L"     'ejira-completion-focus-issue-assigned)
 
   (leader-def-key
     :keymaps '(org-mode-map)
@@ -1124,61 +1123,50 @@ directory to make multiple eshell windows easier."
    :keymaps 'ejira-mode-map
    "C-S-x"  'ejira-close-buffer))
 
-;; (use-package helm-ejira
-;;   :straight (helm-ejira :type git :host github :repo "nyyManni/ejira")
+;; (use-package ejira-agenda
+;;   :ensure nil
+;;   :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
 ;;   :config
-;;   (helm-ejira-advice)
-;;   :general
-;;   (leader-def-key
-;;     :keymaps 'override
-;;     "J"     'helm-ejira-focus-issue
-;;     "K"     'helm-ejira-focus-issue-active-sprint
-;;     "L"     'helm-ejira-focus-issue-assigned))
 
-(use-package ejira-agenda
-  :ensure nil
-  :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
-  :config
+;;   (defun my-add-ejira-kanban-board (key board-name &optional title)
+;;     (setq title (or title board-name))
+;;     (org-add-agenda-custom-command
+;;      `(,key ,title
+;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee = currentUser()")
+;;                         ((org-agenda-overriding-header
+;;                           ,(concat title "\n\nAssigned to me"))))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee is EMPTY")
+;;                         ((org-agenda-overriding-header "Unassigned")))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee != currentUser()")
+;;                         ((org-agenda-overriding-header "Others")))))))
 
-  (defun my-add-ejira-kanban-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
+;;   (defun my-add-ejira-scrum-board (key board-name &optional title)
+;;     (setq title (or title board-name))
+;;     (org-add-agenda-custom-command
+;;      `(,key ,title
+;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee = currentUser()")
+;;                         ((org-agenda-overriding-header
+;;                           ,(concat title "\n\nAssigned to me"))))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee is EMPTY")
+;;                         ((org-agenda-overriding-header "Unassigned")))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee != currentUser()")
+;;                         ((org-agenda-overriding-header "Others")))))))
 
-  (defun my-add-ejira-scrum-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
-
-  ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
-  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
-  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
+;;   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
+;;   (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
+;;   (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
 
 
 ;; Tree-sitter
