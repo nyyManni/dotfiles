@@ -471,8 +471,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :init
   (vertico-mode)
   :bind (:map vertico-map
-              ("C-j" . next-line)
-              ("C-k" . previous-line)))
+              ("C-{" . vertico-previous-group)
+              ("C-}" . vertico-next-group)
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)))
 
 (use-package savehist
   :init
