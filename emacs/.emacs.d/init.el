@@ -227,6 +227,18 @@
     '("python" "--version"))
   (setq doom-modeline-env-python-command #'my-get-python-version))
 
+(defun my-put-file-name-on-clipboard ()
+  "Put the current file name on the clipboard"
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (with-temp-buffer
+        (insert filename)
+        (clipboard-kill-region (point-min) (point-max)))
+      (message filename))))
+
 ;; Evil
 (defconst my/leader "SPC")
 (use-package general
@@ -317,6 +329,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
     "D"   'kill-this-buffer
+    "Y"   'my-put-file-name-on-clipboard
     "F F" 'my-dired-here
     "l p" 'package-list-packages
     "s l" 'sort-lines
@@ -499,7 +512,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         xref-show-definitions-function #'consult-xref)
   :general
   (leader-def-key
-    "y" 'consult-yank-from-kill-ring))
+    "G P" 'consult-ripgrep
+    "y"   'consult-yank-from-kill-ring))
 
 (use-package embark
   :ensure t
@@ -864,6 +878,7 @@ directory to make multiple eshell windows easier."
 (use-package yaml-mode)
 (use-package toml-mode)
 (use-package dockerfile-mode)
+(use-package csv-mode)
 
 (use-package powershell)
 
@@ -1091,6 +1106,7 @@ directory to make multiple eshell windows easier."
         ejira-projects           my-ejira-projects)
   :config
   (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+  (ejira-guess-epic-sprint-fields)
 
   :general
   (leader-def-key
