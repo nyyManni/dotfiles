@@ -1,10 +1,10 @@
 ;; init.el --- -*- lexical-binding: t -*-
-;; Copyright (c) 2016 - 2022 Henrik Nyman
+;; Copyright (c) 2016 - 2023 Henrik Nyman
 
 
 ;; Author     : Henrik Nyman <h@nyymanni.com>
 ;; Created    : 10 Aug 2016
-;; Version    : 0.3
+;; Version    : 0.4
 
 ;; The MIT License
 
@@ -29,9 +29,10 @@
 
 ;;; Commentary:
 
-;; nyyManni's configuration for Emacs, 2021 flavor.
+;; nyyManni's configuration for Emacs, 2023 flavor.
 
 ;;; Code:
+
 
 (setq user-full-name       "Henrik Nyman"
       user-login-name      "hnyman"
@@ -46,6 +47,8 @@
       inhibit-startup-message           t
       inhibit-startup-echo-area-message t
       sentence-end-double-space nil
+
+      read-extended-command-predicate #'command-completion-default-include-p
 
       backup-directory-alist         '(("." . "~/.emacs.d/backups/"))
       auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t))
@@ -91,9 +94,9 @@
   )
 
 (define-obsolete-variable-alias
-    'native-comp-deferred-compilation-deny-list
-      'native-comp-jit-compilation-deny-list
-        "Renamed in emacs#95692f6")
+  'native-comp-deferred-compilation-deny-list
+  'native-comp-jit-compilation-deny-list
+  "Renamed in emacs#95692f6")
 
 (setq straight-repository-branch "develop")
 
@@ -195,7 +198,23 @@
                       :inherit 'line-number
                       :foreground "#CAE682"
                       :background "#444444"
-                      :weight 'bold))
+                      :weight 'bold)
+
+  (eval-after-load 'flymake
+    (progn
+      (require 'flymake)
+    (set-face-attribute
+     'flymake-error nil
+     :underline `(:style wave :color ,(face-attribute 'error :foreground)))
+
+    (set-face-attribute
+     'flymake-warning nil
+     :underline `(:style wave :color ,(face-attribute 'warning :foreground)))
+
+    (set-face-attribute
+     'flymake-note nil
+     :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
+
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -206,8 +225,19 @@
 
   (defun my-get-python-version ()
     '("python" "--version"))
-  (setq doom-modeline-env-python-command #'my-get-python-version)
-  )
+  (setq doom-modeline-env-python-command #'my-get-python-version))
+
+(defun my-put-file-name-on-clipboard ()
+  "Put the current file name on the clipboard"
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (when filename
+      (with-temp-buffer
+        (insert filename)
+        (clipboard-kill-region (point-min) (point-max)))
+      (message filename))))
 
 ;; Evil
 (defconst my/leader "SPC")
@@ -285,11 +315,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (leader-def-key
     :keymaps 'override
     :states 'normal
+    "A"   'describe-symbol
+    "b"   'switch-to-buffer
+    "x"   'execute-extended-command
+    "'"   'project-switch-project
+    ";"   'find-file
+    ":"   'project-find-file
     "a a" 'align-regexp
+    "a f" 'describe-function
+    "a s" 'describe-symbol
+    "a v" 'describe-variable
+    "a k" 'describe-key
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
     "D"   'kill-this-buffer
-    "F F"   'my-dired-here
+    "Y"   'my-put-file-name-on-clipboard
+    "F F" 'my-dired-here
     "l p" 'package-list-packages
     "s l" 'sort-lines
     "r"   'my-reload-file
@@ -334,10 +375,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package direnv
   :defer nil
-  :after lsp-mode
+  ;; :after lsp-mode
   :config
   (direnv-mode)
-  (advice-add 'lsp :before #'direnv-update-environment))
+  (advice-add 'eglot-ensure :before #'direnv-update-environment)
+  )
 
 (use-package evil
   :init
@@ -370,6 +412,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package key-chord
   :hook (after-init . (lambda () (key-chord-mode t)))
+  :custom
+  ;; To overcome regression from:
+  ;; https://github.com/emacsorphanage/key-chord/commit/e724def60fdf6473858f2962ae276cf4413473eb
+  (key-chord-safety-interval-forward 0)
+  (key-chord-safety-interval-backward 0)
   :general
   (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
     (general-define-key
@@ -438,36 +485,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package which-key
   :hook (after-init . which-key-mode))
 
-;; Ivy, counsel and swiper
-
-(use-package counsel
-  :after ivy
-  :demand t
-  :diminish
-  :custom (counsel-find-file-ignore-regexp
-           (concat "\\(\\`\\.[^.]\\|"
-                   (regexp-opt completion-ignored-extensions)
-                   "\\'\\)"))
-  :general
-  (leader-def-key
-    ";" 'counsel-find-file
-    "x" 'counsel-M-x
-    ;;"A" 'counsel-apropos
-    "A" 'helm-apropos  ;; helm-apropos is way superior
-    "y"  'counse-yank-pop)
-  :bind (:map ivy-minibuffer-map
-              ("C-j" . ivy-next-line)
-              ("C-k" . ivy-previous-line)
-              :map ivy-switch-buffer-map
-              ("C-j" . ivy-next-line)
-              ("C-k" . ivy-previous-line)
-              )
-  :commands counsel-minibuffer-history
+(use-package vertico
   :init
-  (bind-key "M-r" #'counsel-minibuffer-history minibuffer-local-map)
-  :config
-  (add-to-list 'ivy-sort-matches-functions-alist
-               '(counsel-find-file . ivy--sort-files-by-date)))
+  (vertico-mode)
+  :bind (:map vertico-map
+              ("C-{" . vertico-previous-group)
+              ("C-}" . vertico-next-group)
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous)))
+
+(use-package savehist
+  :init
+  (savehist-mode))
 
 (use-package marginalia
   :bind (("M-A" . marginalia-cycle)
@@ -481,186 +510,48 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
-(use-package helm
-  :hook (after-init . helm-mode)
+(use-package consult
   :init
-  (setq helm-candidate-number-limit           100
-        helm-idle-delay                       0.0
-        helm-input-idle-delay                 0.01
-        helm-quick-update                     t
-        helm-M-x-requires-pattern             nil
-        helm-ff-skip-boring-files             t
-        helm-move-to-line-cycle-in-source     t
-        helm-split-window-inside-p            t
-        helm-ff-search-library-in-sexp        t
-        helm-scroll-amount                    8
-        helm-ff-file-name-history-use-recentf t)
-  :config
-  ;; (require 'helm-config)
-  (helm-autoresize-mode t)
-  :general
-  (general-define-key
-   :keymaps '(helm-map)
-   "C-i" 'helm-execute-persistent-action
-   "C-k" 'helm-previous-line
-   "C-j" 'helm-next-line))
-
-(use-package counsel-projectile
-  :after (counsel projectile)
-  :config
-  (counsel-projectile-mode 1)
-  (setq counsel-projectile-switch-project-action #'counsel-projectile-switch-project-action-find-file)
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
   :general
   (leader-def-key
-    "G P" 'counsel-projectile-rg
-    "'" 'counsel-projectile-switch-project
-    "f" 'counsel-imenu
-    ":" 'counsel-projectile-find-file))
+    "G P" 'consult-ripgrep
+    "y"   'consult-yank-from-kill-ring))
 
+(use-package embark
+  :ensure t
 
-(use-package ivy
-  :diminish
-  :demand t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ;; ("C-h B" . embark-bindings)
+   ) ;; alternative for `describe-bindings'
 
-  :general
-  (leader-def-key
-    "b" 'ivy-switch-buffer)
-  :bind (:map ivy-minibuffer-map
-              ("<tab>" . ivy-alt-done)
-              ("SPC"   . ivy-alt-done-or-space)
-              ("C-d"   . ivy-done-or-delete-char)
-              ("C-i"   . ivy-partial-or-done)
-              ("C-r"   . ivy-previous-line-or-history)
-              ("M-r"   . ivy-reverse-i-search))
-
-  :custom
-  (ivy-dynamic-exhibit-delay-ms 200)
-  (ivy-height 10)
-  (ivy-initial-inputs-alist nil t)
-  (ivy-magic-tilde nil)
-  (ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
-  (ivy-use-virtual-buffers t)
-  (ivy-wrap t)
-
-  :preface
-  (defun ivy-done-or-delete-char ()
-    (interactive)
-    (call-interactively
-     (if (eolp)
-         #'ivy-immediate-done
-       #'ivy-delete-char)))
-
-  (defun ivy-alt-done-or-space ()
-    (interactive)
-    (call-interactively
-     (if (= ivy--length 1)
-         #'ivy-alt-done
-       #'self-insert-command)))
-
-  (defun ivy-switch-buffer-kill ()
-    (interactive)
-    (debug)
-    (let ((bn (ivy-state-current ivy-last)))
-      (when (get-buffer bn)
-        (kill-buffer bn))
-      (unless (buffer-live-p (ivy-state-buffer ivy-last))
-        (setf (ivy-state-buffer ivy-last)
-              (with-ivy-window (current-buffer))))
-      (setq ivy--all-candidates (delete bn ivy--all-candidates))
-      (ivy--exhibit)))
-
-  ;; This is the value of `magit-completing-read-function', so that we see
-  ;; Magit's own sorting choices.
-  (defun my-ivy-completing-read (&rest args)
-    (let ((ivy-sort-functions-alist '((t . nil))))
-      (apply 'ivy-completing-read args)))
-
-  :config
-  (ivy-mode 1)
-  (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
-
-  (defun ivy--switch-buffer-matcher (regexp candidates)
-    "Return REGEXP matching CANDIDATES.
-Skip buffers that match `ivy-ignore-buffers'."
-    (let ((res (ivy--re-filter regexp candidates)))
-      (if (or (null ivy-use-ignore)
-              (null ivy-ignore-buffers))
-          res
-        (or (cl-remove-if
-             (lambda (buf)
-               (cl-find-if
-                (lambda (f-or-r)
-                  (if (functionp f-or-r)
-                      (funcall f-or-r buf)
-                    (string-match-p f-or-r buf)))
-                ivy-ignore-buffers))
-             res)
-            (and (eq ivy-use-ignore t)
-                 res))))))
-
-
-(use-package swiper
-  :after ivy
-  :bind ("C-M-s" . swiper)
-  :bind (:map swiper-map
-              ("M-y" . yank)
-              ("M-%" . swiper-query-replace)
-              ("C-." . swiper-avy)
-              ("M-c" . swiper-mc))
-  :bind (:map isearch-mode-map
-              ("C-o" . swiper-from-isearch)))
-
-(use-package ivy-xref
   :init
-  (setq xref-show-xrefs-function 'ivy-xref-show-xrefs))
 
-(use-package amx
-  :defer nil
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
   :config
-  (amx-mode t))
 
-;; Projectile
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
 
-(use-package projectile
-  :hook (after-init . projectile-mode)
-  :diminish
-  :functions (my-projectile-invalidate-cache)
-  :init
-  (setq projectile-sort-order 'recentf)
-  (setq projectile-completion-system 'ivy)
-  (setq projectile-per-project-compilation-buffer t)
-  :bind* (("C-c TAB" . projectile-find-other-file)
-          ("C-c P" . (lambda () (interactive)
-                       (projectile-cleanup-known-projects)
-                       (projectile-discover-projects-in-search-path))))
-  :bind-keymap ("C-c p" . projectile-command-map)
-  :config
-  ;; Allow the compilation to use terminal control characters.
-  (ignore-errors
-    (require 'ansi-color)
-    (defun my-colorize-compilation-buffer ()
-      (when (eq major-mode 'compilation-mode)
-        (ansi-color-apply-on-region compilation-filter-start (point-max))))
-    (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
-
-
-  (put 'projectile-project-test-cmd 'safe-local-variable #'stringp)
-  (put 'projectile-project-compilation-cmd 'safe-local-variable #'stringp)
-  (put 'projectile-project-install-cmd 'safe-local-variable #'stringp)
-  (put 'dap-python-executable 'safe-local-variable #'stringp)
-
-  (defun my-projectile-invalidate-cache (&rest _args)
-    ;; We ignore the args to `magit-checkout'.
-    (projectile-invalidate-cache nil))
-
-  (eval-after-load 'magit-branch
-    '(progn
-       (advice-add 'magit-checkout
-                   :after #'my-projectile-invalidate-cache)
-       (advice-add 'magit-branch-and-checkout
-                   :after #'my-projectile-invalidate-cache))))
-
-
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package windmove
   :ensure nil
@@ -706,81 +597,71 @@ Skip buffers that match `ivy-ignore-buffers'."
     (sp-local-pair "\"\"\"" "\"\"\"")
     (sp-local-pair "(" ")" :post-handlers '(:add sp-python-maybe-add-colon-python))))
 
-(use-package company
-  :hook
-  (prog-mode . company-mode)
-  (eshell-mode . company-mode)
-  :functions (my-complete-or-indent my-company-hook)
-  :init
-  (setq company-tooltip-align-annotations t)
-  :config
-  (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  :general
-  (general-define-key
-   :states '(insert)
-   ;; "<tab>" 'indent-for-tab-command
-   "C-<tab>" 'company-complete
-   )
-  (general-define-key
-   :keymaps '(eshell-mode-map)
-   :states '(insert)
-   "<tab>" 'company-complete))
-
-(use-package company-posframe
-  :hook (company-mode . company-posframe-mode))
-
 (use-package all-the-icons)
-(use-package company-box
-  :diminish
-  :hook (company-mode . company-box-mode)
-  :init (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+
+
+(use-package corfu
+  ;; Optional customizations
+  :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  (corfu-preview-current nil)       ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.
+  ;; This is recommended since Dabbrev can be used globally (M-/).
+  ;; See also `corfu-exclude-modes'.
+  :init
+  (global-corfu-mode)
+
   :config
-  (setq company-box-backends-colors nil)
-  (setq company-box-show-single-candidate t)
+  (defun corfu-move-to-minibuffer ()
+    (interactive)
+    (let ((completion-extra-properties corfu--extra)
+          completion-cycle-threshold completion-cycling)
+      (apply #'consult-completion-in-region completion-in-region--data)))
+  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
+  )
 
-  (defun company-box-icons--elisp (candidate)
-    (when (derived-mode-p 'emacs-lisp-mode)
-      (let ((sym (intern candidate)))
-        (cond ((fboundp sym) 'Function)
-              ((featurep sym) 'Module)
-              ((facep sym) 'Color)
-              ((boundp sym) 'Variable)
-              ((symbolp sym) 'Text)
-              (t . nil)))))
+;; Optionally use the `orderless' completion style.
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))))
 
-  (with-eval-after-load 'all-the-icons
-    (declare-function all-the-icons-faicon 'all-the-icons)
-    (declare-function all-the-icons-fileicon 'all-the-icons)
-    (declare-function all-the-icons-material 'all-the-icons)
-    (declare-function all-the-icons-octicon 'all-the-icons)
-    (setq company-box-icons-all-the-icons
-          `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.7 :v-adjust -0.15))
-            (Text . ,(all-the-icons-faicon "book" :height 0.68 :v-adjust -0.15))
-            (Method . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-            (Function . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-            (Constructor . ,(all-the-icons-faicon "cube" :height 0.7 :v-adjust -0.05 :face 'font-lock-constant-face))
-            (Field . ,(all-the-icons-faicon "tags" :height 0.65 :v-adjust -0.15 :face 'font-lock-warning-face))
-            (Variable . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face))
-            (Class . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
-            (Interface . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01))
-            (Module . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.15))
-            (Property . ,(all-the-icons-octicon "package" :height 0.7 :v-adjust -0.05 :face 'font-lock-warning-face)) ;; Golang module
-            (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.7 :v-adjust -0.15))
-            (Value . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'font-lock-constant-face))
-            (Enum . ,(all-the-icons-material "storage" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-orange))
-            (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.7 :v-adjust -0.15))
-            (Snippet . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))
-            (Color . ,(all-the-icons-material "palette" :height 0.7 :v-adjust -0.15))
-            (File . ,(all-the-icons-faicon "file-o" :height 0.7 :v-adjust -0.05))
-            (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.7 :v-adjust -0.15))
-            (Folder . ,(all-the-icons-octicon "file-directory" :height 0.7 :v-adjust -0.05))
-            (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.7 :v-adjust -0.15 :face 'all-the-icons-blueb))
-            (Constant . ,(all-the-icons-faicon "tag" :height 0.7 :v-adjust -0.05))
-            (Struct . ,(all-the-icons-faicon "clone" :height 0.65 :v-adjust 0.01 :face 'font-lock-constant-face))
-            (Event . ,(all-the-icons-faicon "bolt" :height 0.7 :v-adjust -0.05 :face 'all-the-icons-orange))
-            (Operator . ,(all-the-icons-fileicon "typedoc" :height 0.65 :v-adjust 0.05))
-            (TypeParameter . ,(all-the-icons-faicon "hashtag" :height 0.65 :v-adjust 0.07 :face 'font-lock-const-face))
-            (Template . ,(all-the-icons-faicon "code" :height 0.7 :v-adjust 0.02 :face 'font-lock-variable-name-face))))))
+(use-package eldoc
+  :straight (:type built-in)
+  :custom
+  (eldoc-echo-area-use-multiline-p nil))
+
+
+(use-package sideline
+  :hook (flymake-mode . sideline-mode)
+  :init
+  (setq sideline-flymake-display-mode 'point) ; 'point to show errors only on point
+                                              ; 'line to show errors on the current line
+  (setq sideline-backends-right '(sideline-flymake)))
+
+(use-package sideline-flymake)
+
+(use-package flymake
+  :straight (:type built-in)
+  :hook
+  (emacs-lisp-mode . flymake-mode))
 
 (use-package magit
   :defines (magit-branch-arguments magit-git-executable)
@@ -804,129 +685,54 @@ Skip buffers that match `ivy-ignore-buffers'."
     "g b"   'magit-blame
     "g f h" 'magit-log-buffer-file))
 
-
-(use-package flycheck
-  :hook
-  (prog-mode . flycheck-mode)
-  (nxml-mode . flycheck-mode)
-  :init
-  (setq-default flycheck-emacs-lisp-load-path 'inherit)
-
-  ;; Disable other flycheck backends, only use lsp
-  (setq-default flycheck-disabled-checkers '(c/c++-gcc c/c++-clang rust-cargo)))
-
 ;; LSP
 
-(use-package lsp-mode
-  :config
-  (setq lsp-clients-python-command "pylsp"
-        ;; lsp-pylsp-server-command '("pylsp", "-v")
-        lsp-pylsp-server-command '("pylsp")
-        lsp-rust-server            'rust-analyzer
-        lsp-log-io                 nil
-        lsp-completion-no-cache    nil)
+(use-package xref
+  :straight (:type built-in)
+  :init
+  (setq xref-prompt-for-identifier nil)
+  :bind
+  (("M-?" . xref-find-references)))
 
-
-  (if (eq system-type 'darwin)
-      (setq lsp-rust-analyzer-server-command '("/usr/local/bin/rust-analyzer"))
-    (setq lsp-rust-analyzer-server-command '("/home/hnyman/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-analyzer")))
-
-  (setq lsp-idle-delay 0.5
-        lsp-enable-symbol-highlighting t
-        lsp-enable-links nil
-        lsp-enable-snippet nil  ;; Not supported by company capf, which is the recommended company backend
-        )
-
-
-
-  :custom
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  ;; This controls the overlays that display type and other hints inline. Enable
-  ;; / disable as you prefer. Well require a `lsp-workspace-restart' to have an
-  ;; effect on open projects.
-  (lsp-rust-analyzer-server-display-inlay-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-  (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-  (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
-
-  (lsp-pylsp-plugins-pylint-enabled t)
-  (lsp-pylsp-plugins-pydocstyle-ignore "D401")
-  (lsp-pylsp-plugins-flake8-enabled nil)
-  (lsp-clients-pylsp-library-directories
-   `("/usr/"
-     ,(expand-file-name "/.virtualenvs/")
-     ,(expand-file-name "/.pyenv/versions/")
-     )
-   )
-
+(use-package eglot
+  :straight (:type built-in)
   :hook
-  ((c-mode-common . lsp)
-   (c-ts-mode . lsp)
-   (c++-ts-mode . lsp)
-   (python-ts-mode . lsp)
-   (typescript-ts-mode . lsp)
-   (js-ts-mode . lsp)
-   (tsx-ts-mode . lsp)
-   (lua-mode . lsp)
-   (typescript-mode . lsp)
-   (latex-mode . lsp)
-   (rust-mode . lsp)
-   (rust-ts-mode . lsp)
-   (csharp-mode . lsp)
-   (java-mode . lsp)
-   (lsp-mode . lsp-enable-which-key-integration))
-  :bind (:map evil-normal-state-map
-              ("gh" . lsp-describe-thing-at-point)
-              )
+  (python-ts-mode . eglot-ensure)
+  (java-mode . eglot-ensure)
+  (rustic-mode . eglot-ensure)
+  (c-ts-mode . eglot-ensure)
+  (c++-ts-mode . eglot-ensure)
+  :init
+  (setq-default eglot-workspace-configuration
+                '((pylsp
+                   (plugins
+                    (pylint (enabled . t))
+                    (jedi_completion (fuzzy . t))
+                    (pydocstyle
+                     (enabled . nil)
+                     (addIgnore . "D401"))
+                    (mccabe (enabled . nil))
+                    (pycodestyle (enabled . nil))
+                    (pyls_isort (enabled . t))
+                    (autopep8 (enabled . nil))
+                    (flake8 (enabled . nil))
+                    (pyflakes (enabled . nil))
+                    (yapf (enabled . nil))
+                    (rope_autoimport (enabled . nil))
+                    (rope_completion (enabled . nil))
+                    (black (enabled . t))
+                    (ruff (enabled . nil))
+                    (mypy
+                     (enabled . t)
+                     (live_mode . t)
+                     (strict . nil))))))
+
   :general
   (leader-def-key
-    "Ff" 'lsp-format-buffer
-    "FR" 'lsp-rename))
+    :keymaps 'eglot-mode-map
+    "F F" 'eglot-format))
 
-(use-package lsp-ui
-  :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil)
-  :config
-  (setq ;;lsp-ui-sideline-show-hover t
-   lsp-ui-sideline-delay 0.5
-   lsp-ui-doc-delay 5
-   lsp-ui-doc-enable t
-   lsp-ui-sideline-show-symbol t
-   lsp-ui-sideline-enable t
-   lsp-ui-sideline-ignore-duplicates t
-   lsp-ui-doc-position 'bottom
-   lsp-ui-doc-alignment 'frame
-   ;; lsp-ui-doc-header nil
-   lsp-eldoc-enable-hover t
-   ;; lsp-ui-doc-include-signature nil
-   lsp-lens-enable nil
-   lsp-pylsp-plugins-jedi-signature-help-enabled t
-   lsp-ui-doc-use-childframe t)
-
-  (when (eq system-type 'gnu/linux)
-    (set-face-attribute
-     'lsp-ui-sideline-symbol-info nil
-     :height 0.96))
-
-  (require 'lsp-ui-sideline)
-  (defun lsp-ui-sideline--compute-height nil '(height unspecified))
-
-  :custom
-  (lsp-ui-sideline-current-symbol '((t (:inherit font-lock-constant-face
-					         :box (:line-width -1 :color "#b58900")
-					         :weight ultra-bold))))
-  :commands lsp-ui-mode
-  :bind (:map evil-normal-state-map
-              ("gd" . lsp-ui-peek-find-definitions)
-              ("gr" . lsp-ui-peek-find-references)))
-
+(use-package markdown-mode)
 
 ;; Python
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
@@ -940,9 +746,6 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 ;; C/C++
 (setq-default c-basic-offset 4)
-(use-package ccls
-  :init
-  (put 'c-macro-cppflags 'safe-local-variable (lambda (_) t)))
 (use-package clang-format)
 (use-package clang-format+
   :hook
@@ -957,30 +760,35 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package rust-mode)
 
-(use-package rustic)
-
-(use-package rustic-ts-mode
-  :ensure nil
-  :after rustic
-  :load-path "~/.emacs.d/lisp/rustic-ts-mode"
+(use-package rustic
+  :init
+  (setq rustic-lsp-client 'eglot)
   :config
-  (require 'rust-ts-mode)
-  (require 'rustic-ts-mode)
-  (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
-  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode)))
+  (define-derived-mode rustic-mode rust-ts-mode "Rustic"
+    "Major mode for Rust code.
+\\{rustic-mode-map}"
+    :group 'rustic
 
-;; JS
-(use-package tsx-ts-mode
-  :ensure nil
-  :mode ("\\.tsx"))
+    ;; (when (bound-and-true-p rustic-cargo-auto-add-missing-dependencies)
+    ;;   (add-hook 'lsp-after-diagnostics-hook 'rustic-cargo-add-missing-dependencies-hook nil t))
+
+    (add-hook 'before-save-hook 'rustic-before-save-hook nil t)
+    (add-hook 'after-save-hook 'rustic-after-save-hook nil t))
+
+  (require 'rust-ts-mode)
+  ;; (require 'rustic-ts-mode)
+  (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
+  )
+
 
 (use-package typescript-ts-mode
   :ensure nil
   :mode ("\\.ts"))
 
-(use-package js-ts-mode
-  :ensure nil
-  :mode ("\\.js"))
+;; (use-package js-ts-mode
+;;   :ensure nil
+;;   :mode ("\\.js"))
 
 (use-package prettier-js
   :hook ((js2-mode rsjx-mode) . prettier-js-mode)
@@ -991,33 +799,9 @@ Skip buffers that match `ivy-ignore-buffers'."
 
 (use-package lua-mode)
 
-(use-package csharp-mode)
-
-;; DAP
-
-(use-package dap-mode
-  :custom ((dap-python-debugger 'debugpy))
-  :config
-  (dap-ui-controls-mode -1)
-
-  ;; Workaround for lsp workspace not being assigned to dap session
-  (defun my-dap-session-create-hook (&rest _)
-    (setf (dap--debug-session-workspace (dap--cur-session)) (nth 0 lsp--buffer-workspaces)))
-  (add-hook 'dap-session-created-hook #'my-dap-session-create-hook)
-
-  (set-face-attribute
-   'dap-ui-marker-face nil
-   :extend t
-   :background "#444444")
-
-  (require 'dap-python)
-
-  (when (eq system-type 'darwin)
-    (advice-add #'dap-python--pyenv-executable-find :override #'executable-find)))
-
 ;; EShell
 (use-package eshell
-  :ensure nil
+  :straight (:type built-in)
   :defines (eshell-banner-message eshell-cmpl-cycle-completions
                                   eshell-modify-global-environment eshell-prompt-regexp
                                   eshell-prompt-function)
@@ -1071,7 +855,10 @@ directory to make multiple eshell windows easier."
     :keymaps 'override
     "s e" 'my-eshell-here))
 
-(use-package lsp-java)
+;; (use-package lsp-java)
+(use-package eglot-java
+  :init
+  (setq eglot-java-server-install-dir (expand-file-name "~/.emacs.d/share/eclipse.jdt.ls")))
 
 (use-package web-mode
   :mode ("\\.jsp"))
@@ -1081,7 +868,7 @@ directory to make multiple eshell windows easier."
 (use-package apt-sources-list)
 
 (use-package package-lint)
-(use-package flycheck-package)
+;; (use-package flycheck-package)
 
 (use-package http)
 (use-package qml-mode
@@ -1098,6 +885,7 @@ directory to make multiple eshell windows easier."
 (use-package yaml-mode)
 (use-package toml-mode)
 (use-package dockerfile-mode)
+(use-package csv-mode)
 
 (use-package powershell)
 
@@ -1107,85 +895,12 @@ directory to make multiple eshell windows easier."
   (editorconfig-mode 1))
 
 (use-package ediff
-  :ensure nil
+  :straight (:type built-in)
+
   :init
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally))
 
-(use-package lunchtime
-  :straight (lunchtime :type git :host github :repo "nyyManni/lunchtime.el")
-  :commands (lunchtime-display-menus)
-  :config
-
-  (setq lunchtime-parsers-alist nil)
-  ;; TTY
-  (lunchtime-define-restaurant
-   "https://api.ruoka.xyz/%Y-%m-%d"
-   (mapcar
-    (lambda (restaurant)
-      `((name . ,(assoc-recursive restaurant 'name))
-        (subrestaurants
-         .
-         ,(mapcar
-           (lambda (subrestaurant)
-             `((name . ,(assoc-recursive subrestaurant 'name))
-               (menus . ,(mapcar
-                          (lambda (meal)
-                            `((name . ,(assoc-recursive meal 'name))
-                              (prices . ,(assoc-recursive meal 'prices))
-                              (menu . ,(mapcar
-                                        (lambda (part)
-                                          (assoc-recursive part 'name))
-                                        (assoc-recursive meal 'contents)))))
-                          (assoc-recursive subrestaurant 'meals)))))
-           (assoc-recursive restaurant 'menus)))))
-
-    (assoc-recursive lunchtime-response-data 'restaurants)))
-
-  ;; Hermia 6
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/110/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  ;; Hermia 5
-  (lunchtime-define-restaurant
-   "https://www.sodexo.fi/ruokalistat/output/daily_json/107/%Y-%m-%d"
-   `(((name . ,(assoc-recursive lunchtime-response-data 'meta 'ref_title))
-      (subrestaurants
-       .
-       (((name . "Lounas") ;; Sodexo has only one restaurant per menu item
-         (menus . ,(mapcar
-                    (lambda (item)
-                      `((name . ,(assoc-recursive item 'category))
-                        (prices . (,(assoc-recursive item 'price)))
-                        (menu . (, (concat
-                                    (assoc-recursive item 'title_fi)
-                                    " (" (assoc-recursive item 'properties) ")")))))
-                    (assoc-recursive lunchtime-response-data 'courses)))))))))
-
-  :general
-  (leader-def-key
-    "l l" 'lunchtime-display-menus)
-  (general-define-key
-   :keymaps '(lunchtime-mode-map)
-   :states '(normal)
-   "o" 'delete-other-windows
-   "l" 'lunchtime-next-day
-   "h" 'lunchtime-previous-day
-   "j" 'lunchtime-next-restaurant
-   "k" 'lunchtime-previous-restaurant
-   "q" 'lunchtime-close))
 
 (use-package org
   :ensure org
@@ -1285,16 +1000,12 @@ directory to make multiple eshell windows easier."
     "s a"   'outline-show-all
 
     "o t c" 'org-table-create
-    "o C"   'org-ref-helm-insert-cite-link
-    "o L"   'org-ref-helm-insert-label-link
-    "o R"   'org-ref-helm-insert-ref-link
     "p c"   'my-org-compile
 
     ;; Task management keybindings.
     "o t i" 'org-clock-in
     "o s"   'org-todo
     "o e"   'org-edit-special
-    "o r f" 'helm-ejira-refile
     "o t s" 'org-clock-display
     "o n s" 'org-narrow-to-subtree
     "o n w" 'widen)
@@ -1320,14 +1031,14 @@ directory to make multiple eshell windows easier."
     "o a"   'org-agenda
     "o c"   'org-capture
     "o o"   'my-pop-to-temp-org-buffer
-    "o r f" 'helm-ejira-refile
     "o t r" 'org-clock-in-last
     "o t o" 'org-clock-out
     "o t t" 'org-clock-goto
     "o t i" 'org-clock-in))
 
 (use-package org-agenda
-  :ensure nil
+
+  :straight (:type built-in)
   :commands (org-add-agenda-custom-command))
 
 (use-package org-ref)
@@ -1351,7 +1062,7 @@ directory to make multiple eshell windows easier."
 (use-package language-detection)
 (use-package jiralib2)
 (use-package ejira
-  :straight (ejira :type git :host github :repo "nyyManni/ejira")
+  :straight (ejira :type git :host github :repo "nyyManni/ejira" :branch "ejira-completion")
   :commands (ejira-guess-epic-sprint-fields)
   :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
                                              my-add-ejira-kanban-board)
@@ -1402,6 +1113,7 @@ directory to make multiple eshell windows easier."
         ejira-projects           my-ejira-projects)
   :config
   (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
+  (ejira-guess-epic-sprint-fields)
 
   :general
   (leader-def-key
@@ -1410,7 +1122,11 @@ directory to make multiple eshell windows easier."
     "o j j" 'ejira-focus-on-clocked-issue
     "o j m" 'ejira-mention-user
     "o j U" 'ejira-update-my-projects
-    "o b"   'ejira-agenda-board)
+    "o b"   'ejira-agenda-board
+
+    "J"     'ejira-completion-focus-issue
+    "K"     'ejira-completion-focus-issue-active-sprint
+    "L"     'ejira-completion-focus-issue-assigned)
 
   (leader-def-key
     :keymaps '(org-mode-map)
@@ -1432,61 +1148,50 @@ directory to make multiple eshell windows easier."
    :keymaps 'ejira-mode-map
    "C-S-x"  'ejira-close-buffer))
 
-(use-package helm-ejira
-  :straight (helm-ejira :type git :host github :repo "nyyManni/ejira")
-  :config
-  (helm-ejira-advice)
-  :general
-  (leader-def-key
-    :keymaps 'override
-    "J"     'helm-ejira-focus-issue
-    "K"     'helm-ejira-focus-issue-active-sprint
-    "L"     'helm-ejira-focus-issue-assigned))
+;; (use-package ejira-agenda
+;;   :ensure nil
+;;   :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
+;;   :config
 
-(use-package ejira-agenda
-  :ensure nil
-  :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
-  :config
+;;   (defun my-add-ejira-kanban-board (key board-name &optional title)
+;;     (setq title (or title board-name))
+;;     (org-add-agenda-custom-command
+;;      `(,key ,title
+;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee = currentUser()")
+;;                         ((org-agenda-overriding-header
+;;                           ,(concat title "\n\nAssigned to me"))))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee is EMPTY")
+;;                         ((org-agenda-overriding-header "Unassigned")))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and resolution = unresolved "
+;;                                 "and assignee != currentUser()")
+;;                         ((org-agenda-overriding-header "Others")))))))
 
-  (defun my-add-ejira-kanban-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and resolution = unresolved "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
+;;   (defun my-add-ejira-scrum-board (key board-name &optional title)
+;;     (setq title (or title board-name))
+;;     (org-add-agenda-custom-command
+;;      `(,key ,title
+;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee = currentUser()")
+;;                         ((org-agenda-overriding-header
+;;                           ,(concat title "\n\nAssigned to me"))))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee is EMPTY")
+;;                         ((org-agenda-overriding-header "Unassigned")))
+;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
+;;                                 "and sprint in openSprints() "
+;;                                 "and assignee != currentUser()")
+;;                         ((org-agenda-overriding-header "Others")))))))
 
-  (defun my-add-ejira-scrum-board (key board-name &optional title)
-    (setq title (or title board-name))
-    (org-add-agenda-custom-command
-     `(,key ,title
-            ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee = currentUser()")
-                        ((org-agenda-overriding-header
-                          ,(concat title "\n\nAssigned to me"))))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee is EMPTY")
-                        ((org-agenda-overriding-header "Unassigned")))
-             (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-                                "and sprint in openSprints() "
-                                "and assignee != currentUser()")
-                        ((org-agenda-overriding-header "Others")))))))
-
-  ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
-  (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
-  (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
+;;   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
+;;   (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
+;;   (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
 
 
 ;; Tree-sitter
@@ -1527,6 +1232,8 @@ directory to make multiple eshell windows easier."
 (add-to-list 'major-mode-remap-alist
              '(c++-mode . c++-ts-mode))
 
+(add-to-list 'major-mode-remap-alist
+             '(c-or-c++-mode . c-or-c++-ts-mode))
 
 
 (provide 'init)
