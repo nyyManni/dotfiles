@@ -188,7 +188,7 @@ set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 set $worklandscape "Acer Technologies G247HYU T1QEE0018500"
 set $workpivot "Unknown HP E243i 6CM7280810"
 
-output $laptop scale 1.75 position 4000,0
+output $laptop scale 2.0 position 4000,0
 output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
 output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
 
@@ -233,7 +233,7 @@ workspace 10 output $pivot
 input $builtinkeyboard {
     repeat_rate 40
     repeat_delay 250
-    xkb_layout fus
+    xkb_layout "fus,fi"
 }
 
 input $ergodox {
