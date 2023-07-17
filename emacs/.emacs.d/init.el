@@ -412,6 +412,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package key-chord
   :hook (after-init . (lambda () (key-chord-mode t)))
+  :custom
+  ;; To overcome regression from:
+  ;; https://github.com/emacsorphanage/key-chord/commit/e724def60fdf6473858f2962ae276cf4413473eb
+  (key-chord-safety-interval-forward 0)
+  (key-chord-safety-interval-backward 0)
   :general
   (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
     (general-define-key
@@ -693,6 +698,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :straight (:type built-in)
   :hook
   (python-ts-mode . eglot-ensure)
+  (java-mode . eglot-ensure)
   (rustic-mode . eglot-ensure)
   (c-ts-mode . eglot-ensure)
   (c++-ts-mode . eglot-ensure)
@@ -793,8 +799,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package lua-mode)
 
-(use-package csharp-mode)
-
 ;; EShell
 (use-package eshell
   :straight (:type built-in)
@@ -852,6 +856,9 @@ directory to make multiple eshell windows easier."
     "s e" 'my-eshell-here))
 
 ;; (use-package lsp-java)
+(use-package eglot-java
+  :init
+  (setq eglot-java-server-install-dir (expand-file-name "~/.emacs.d/share/eclipse.jdt.ls")))
 
 (use-package web-mode
   :mode ("\\.jsp"))
@@ -1225,6 +1232,8 @@ directory to make multiple eshell windows easier."
 (add-to-list 'major-mode-remap-alist
              '(c++-mode . c++-ts-mode))
 
+(add-to-list 'major-mode-remap-alist
+             '(c-or-c++-mode . c-or-c++-ts-mode))
 
 
 (provide 'init)
