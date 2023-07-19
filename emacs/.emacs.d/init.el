@@ -330,7 +330,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "e"   'eval-last-sexp
     "D"   'kill-this-buffer
     "Y"   'my-put-file-name-on-clipboard
-    "F F" 'my-dired-here
+    "f f" 'my-dired-here
     "l p" 'package-list-packages
     "s l" 'sort-lines
     "r"   'my-reload-file
