@@ -15,5 +15,7 @@ status is-interactive; and pyenv init - | source
 
 alias yabai-start "yabai --stop-service"
 alias yabai-stop "yabai --start-service"
+alias wappuradio "mplayer http://stream.wappuradio.fi/wappuradio1.opus"
+
 function fish_greeting
 end

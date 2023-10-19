@@ -139,6 +139,7 @@
               comint-process-echoes t)
 
 (fset 'yes-or-no-p 'y-or-n-p)
+(setopt use-short-answers t)
 
 (global-unset-key (kbd "C-/"))  ;; evil sets undo to 'u'
 (global-unset-key (kbd "C-?"))  ;; evil sets redo to 'C-r'
@@ -624,6 +625,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :init
   (global-corfu-mode)
 
+  :bind (:map corfu-map
+              ("C-j" . corfu-next)
+              ("C-k" . corfu-previous))
+
   :config
   (defun corfu-move-to-minibuffer ()
     (interactive)
@@ -632,6 +637,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (apply #'consult-completion-in-region completion-in-region--data)))
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
   )
+
+(defun corfu-enable-in-minibuffer ()
+  "Enable Corfu in the minibuffer if `completion-at-point' is bound."
+  (when (where-is-internal #'completion-at-point (list (current-local-map)))
+    ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
+    (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
+                corfu-popupinfo-delay nil)
+    (corfu-mode 1)))
+(add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
 
 ;; Optionally use the `orderless' completion style.
 (use-package orderless
@@ -1195,46 +1209,11 @@ directory to make multiple eshell windows easier."
 
 
 ;; Tree-sitter
-
-(add-to-list
- 'treesit-language-source-alist
- '(python "https://github.com/tree-sitter/tree-sitter-python.git"))
-
-(add-to-list
- 'treesit-language-source-alist
- '(rust "https://github.com/tree-sitter/tree-sitter-rust.git"))
-
-(add-to-list
- 'treesit-language-source-alist
- '(c "https://github.com/tree-sitter/tree-sitter-c.git"))
-
-(add-to-list
- 'treesit-language-source-alist
- '(c++ "https://github.com/tree-sitter/tree-sitter-cpp.git"))
-
-(add-to-list
- 'treesit-language-source-alist
- '(javascript "https://github.com/tree-sitter/tree-sitter-javascript.git"))
-
-(add-to-list
- 'treesit-language-source-alist
- '(typescript . ("https://github.com/tree-sitter/tree-sitter-typescript.git" "typescript/src")))
-
-(add-to-list 'major-mode-remap-alist
-             '(python-mode . python-ts-mode))
-
-;; (add-to-list 'major-mode-remap-alist
-;;              '(rust-mode . rust-ts-mode))
-
-(add-to-list 'major-mode-remap-alist
-             '(c-mode . c-ts-mode))
-
-(add-to-list 'major-mode-remap-alist
-             '(c++-mode . c++-ts-mode))
-
-(add-to-list 'major-mode-remap-alist
-             '(c-or-c++-mode . c-or-c++-ts-mode))
-
+(use-package treesit-auto
+  :demand t
+  :config
+  (setq treesit-auto-install 'prompt)
+  (global-treesit-auto-mode))
 
 (provide 'init)
 ;;; init.el ends here
