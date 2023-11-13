@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Simple Spotify Control
+# Just call ./spotify_control --help
+
+case "$1" in
+  "playpause" )
+      echo playpause | nc -U /run/user/1000/ncspot/ncspot.sock -q 0
+    exit $?
+  ;;
+  "next" )
+      echo next | nc -U /run/user/1000/ncspot/ncspot.sock -q 0
+    exit $?
+  ;;
+  "previous" )
+      echo previous | nc -U /run/user/1000/ncspot/ncspot.sock -q 0
+    exit $?
+  ;;
+  "stop" )
+      echo stop | nc -U /run/user/1000/ncspot/ncspot.sock -q 0
+    exit $?
+  ;;
+  "play" )
+      echo play | nc -U /run/user/1000/ncspot/ncspot.sock -q 0
+    exit $?
+  ;;
+  *)
+    echo "Usage: $0 [command]"
+    echo "  commands are: playpause, next, previous, stop, play"
+    exit 1
+  ;;
+esac
+

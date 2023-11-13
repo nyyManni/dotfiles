@@ -158,14 +158,14 @@ bindsym XF86AudioMute exec pactl set-sink-mute 1 toggle
 bindsym XF86AudioLowerVolume exec /home/hnyman/.local/bin/volume_control down
 bindsym XF86AudioRaiseVolume exec /home/hnyman/.local/bin/volume_control up
 
-# bindsym XF86AudioPlay exec /home/hnyman/.local/bin/spotify_control playpause
+bindsym XF86AudioPlay exec /home/hnyman/.local/bin/spotify_control playpause
 
-# bindsym XF86AudioNext exec /home/hnyman/.local/bin/spotify_control next
-# bindsym XF86AudioPrev exec /home/hnyman/.local/bin/spotify_control previous
+bindsym XF86AudioNext exec /home/hnyman/.local/bin/spotify_control next
+bindsym XF86AudioPrev exec /home/hnyman/.local/bin/spotify_control previous
 
-bindsym XF86AudioPlay exec /usr/bin/mpc toggle
-bindsym XF86AudioNext exec /usr/bin/mpc next
-bindsym XF86AudioPrev exec /usr/bin/mpc prev
+# bindsym XF86AudioPlay exec /usr/bin/mpc toggle
+# bindsym XF86AudioNext exec /usr/bin/mpc next
+# bindsym XF86AudioPrev exec /usr/bin/mpc prev
 
 
 # Control display brightness
@@ -189,8 +189,10 @@ set $worklandscape "Acer Technologies G247HYU T1QEE0018500"
 set $workpivot "Unknown HP E243i 6CM7280810"
 
 output $laptop scale 2.0 position 4000,0
-output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
-output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
+# output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
+#output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
+output $landscape scale 1.0 position 0,750
+output $pivot scale 1.0 position 2560,0 transform "90"
 
 output $worklandscape scale 1.0 position 0,750
 output $workpivot scale 1.0 position 2560,0 transform "90"
@@ -231,14 +233,14 @@ workspace 10 output $pivot
 
 # Set up input methods
 input $builtinkeyboard {
-    repeat_rate 40
-    repeat_delay 250
+    repeat_rate 60
+    repeat_delay 175
     xkb_layout "fus,fi"
 }
 
 input $ergodox {
-    repeat_rate 40
-    repeat_delay 250
+    repeat_rate 60
+    repeat_delay 175
     xkb_layout "us,fi"
 }
 
