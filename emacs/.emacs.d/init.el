@@ -716,6 +716,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (rustic-mode . eglot-ensure)
   (c-ts-mode . eglot-ensure)
   (c++-ts-mode . eglot-ensure)
+  (js-ts-mode . eglot-ensure)
+  (tsx-ts-mode . eglot-ensure)
+  (typescript-ts-mode . eglot-ensure)
   :init
   (setq-default eglot-workspace-configuration
                 '((pylsp
@@ -740,6 +743,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                      (enabled . t)
                      (live_mode . t)
                      (strict . nil))))))
+  :config
+  ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
 
   :general
   (leader-def-key
@@ -800,14 +805,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :ensure nil
   :mode ("\\.ts"))
 
-;; (use-package js-ts-mode
-;;   :ensure nil
-;;   :mode ("\\.js"))
 
-(use-package prettier-js
-  :hook ((js2-mode rsjx-mode) . prettier-js-mode)
-  :init
-  (setq prettier-js-args '("--trailing-comma" "all")))
+(use-package prettier
+  :general
+  (leader-def-key
+    :keymaps 'typescript-ts-mode-map
+    "F F" 'prettier-prettify))
 
 ;; C#
 
@@ -1212,6 +1215,20 @@ directory to make multiple eshell windows easier."
 (use-package treesit-auto
   :demand t
   :config
+
+ ;;  (setq my-js-tsauto-config
+ ;;        (make-treesit-auto-recipe
+ ;;      :lang 'typescript
+ ;;      :ts-mode 'typescript-ts-mode
+ ;;      :remap 'typescript-mode
+ ;;      :requires 'tsx
+ ;;      :url "https://github.com/tree-sitter/tree-sitter-typescript"
+ ;;      :revision "master"
+ ;;      :source-dir "typescript/src"
+ ;;      :ext "\\.tsx\\'"))
+
+ ;; (add-to-list 'treesit-auto-recipe-list my-js-tsauto-config)
+
   (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
 
