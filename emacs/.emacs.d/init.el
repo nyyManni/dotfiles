@@ -229,7 +229,7 @@
   (setq doom-modeline-env-python-command #'my-get-python-version))
 
 (defun my-put-file-name-on-clipboard ()
-  "Put the current file name on the clipboard"
+  "Put the current file name on the clipboard."
   (interactive)
   (let ((filename (if (equal major-mode 'dired-mode)
                       default-directory
