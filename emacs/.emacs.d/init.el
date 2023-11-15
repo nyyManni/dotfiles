@@ -600,7 +600,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package all-the-icons)
 
-
 (use-package corfu
   ;; Optional customizations
   :custom
@@ -986,6 +985,10 @@ directory to make multiple eshell windows easier."
            "* TODO %?\n  %u\n" )
           ("m" "Meeting" entry (file my-misc-org-file)
            "* MEET %? \n  %t" :clock-in t :clock-resume t)
+          ("X" "Web Capture" entry (file my-misc-org-file)
+           "* NOTE %?\n ")
+
+
           ("n" "Note" entry (file my-misc-org-file)
            "* NOTE %?\n  %t" :clock-in t :clock-resume t)
           ("D" "Daily" entry (file my-misc-org-file)
@@ -1068,6 +1071,12 @@ directory to make multiple eshell windows easier."
 (use-package org-bars
   :straight (org-bars :type git :host github :repo "tonyaldon/org-bars")
   :hook  (org-mode . org-bars-mode))
+
+(use-package org-roam)
+
+
+(use-package org-protocol
+  :straight (:type built-in))
 
 (use-package fish-mode)
 
