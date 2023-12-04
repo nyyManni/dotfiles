@@ -797,8 +797,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; (require 'rustic-ts-mode)
   (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
-  )
 
+  ;; Fix ugly default colors in the rustic compilation buffer
+  (setq rustic-ansi-faces
+        (vector
+         (car (alist-get  'base0   gotham-color-alist))
+         (car (alist-get  'red  gotham-color-alist))
+         (car (alist-get  'green  gotham-color-alist))
+         (car (alist-get 'yellow  gotham-color-alist))
+         (car (alist-get 'cyan  gotham-color-alist))
+         (car (alist-get 'violet  gotham-color-alist))
+         (car (alist-get 'base5  gotham-color-alist))
+         (car (alist-get 'base6  gotham-color-alist)))))
 
 (use-package typescript-ts-mode
   :ensure nil
