@@ -396,6 +396,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
    :keymaps '(evil-normal-state-map)
    "M-." nil)
 
+  ;; Allow insert-mode movement keys in the ex-buffer
+  (general-define-key
+   :keymaps '(evil-ex-completion-map)
+   "C-f" nil
+   "C-M-f" 'evil-command-window
+   "C-b" nil)
+
   (evil-mode 1))
 
 (use-package undo-tree
