@@ -216,6 +216,8 @@
      'flymake-note nil
      :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
 
+(use-package catppuccin-theme)
+
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -631,7 +633,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :init
   (global-corfu-mode)
 
-  :bind (:map corfu-map
+  :bind (
+         ("C-<tab>" . completion-at-point)
+         :map corfu-map
               ("C-j" . corfu-next)
               ("C-k" . corfu-previous))
 
@@ -641,8 +645,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (let ((completion-extra-properties corfu--extra)
           completion-cycle-threshold completion-cycling)
       (apply #'consult-completion-in-region completion-in-region--data)))
-  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
-  )
+  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer))
 
 (defun corfu-enable-in-minibuffer ()
   "Enable Corfu in the minibuffer if `completion-at-point' is bound."
@@ -729,10 +732,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq-default eglot-workspace-configuration
                 '((pylsp
                    (plugins
-                    (pylint (enabled . t))
+                    (pylint (enabled . nil))
                     (jedi_completion (fuzzy . t))
                     (pydocstyle
-                     (enabled . nil)
+                     (enabled . t)
                      (addIgnore . "D401"))
                     (mccabe (enabled . nil))
                     (pycodestyle (enabled . nil))
@@ -744,13 +747,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                     (rope_autoimport (enabled . nil))
                     (rope_completion (enabled . nil))
                     (black (enabled . t))
-                    (ruff (enabled . nil))
+                    (ruff (enabled . t))
                     (mypy
                      (enabled . t)
                      (live_mode . t)
                      (strict . nil))))))
   :config
   ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
+
+  ;; Disable the progress notification, as it is interfering with other minibuffer
+  ;; messages.
+  (setq eglot-report-progress nil)
 
   :general
   (leader-def-key
