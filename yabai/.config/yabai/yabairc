@@ -73,5 +73,6 @@ yabai -m rule --add app="^python$" title="Score" manage=off
 # Only manage the main window of Gimp
 yabai -m rule --add label=gimpPopups app="^Gimp.*" title!="( - Gimp$|^GNU Image Manipulation Program)" manage=off
 
+yabai -m rule --add label=problemReporter app="Problem Reporter" manage=off
 
 echo "yabai configuration loaded.."
