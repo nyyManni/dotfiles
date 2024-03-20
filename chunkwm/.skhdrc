@@ -9,10 +9,13 @@ cmd - h : :
 alt - f15 : open -a /System/Library/CoreServices/ScreenSaverEngine.app
 
 # focus window
-alt - h : yabai -m window --focus west
+# alt - h : yabai -m window --focus west || yabai -m display --focus west
 alt - j : yabai -m window --focus south
 alt - k : yabai -m window --focus north
-alt - l : yabai -m window --focus east
+# alt - l : yabai -m window --focus east || yabai -m display --focus east
+
+alt - h : /Users/hnyman/.local/bin/yabai-focus west
+alt - l : /Users/hnyman/.local/bin/yabai-focus east
 
 alt - s : yabai -m window --toggle split
 
