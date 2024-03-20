@@ -189,18 +189,39 @@
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory))
 
-(use-package gotham-theme
+;; (use-package gotham-theme
+;;   :demand
+;;   :if (or (daemonp) window-system)
+;;   :config
+;;   (load-theme 'gotham t)
+
+;;   ;; (set-face-attribute 'line-number-current-line nil
+;;   ;;                     :inherit 'line-number
+;;   ;;                     :foreground "#CAE682"
+;;   ;;                     :background "#444444"
+;;   ;;                     :weight 'bold)
+
+;;   (eval-after-load 'flymake
+;;     (progn
+;;       (require 'flymake)
+;;     (set-face-attribute
+;;      'flymake-error nil
+;;      :underline `(:style wave :color ,(face-attribute 'error :foreground)))
+
+;;     (set-face-attribute
+;;      'flymake-warning nil
+;;      :underline `(:style wave :color ,(face-attribute 'warning :foreground)))
+
+;;     (set-face-attribute
+;;      'flymake-note nil
+;;      :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
+
+(use-package catppuccin-theme
   :demand
   :if (or (daemonp) window-system)
+
   :config
-  (load-theme 'gotham t)
-
-  (set-face-attribute 'line-number-current-line nil
-                      :inherit 'line-number
-                      :foreground "#CAE682"
-                      :background "#444444"
-                      :weight 'bold)
-
+  (load-theme 'catppuccin t)
   (eval-after-load 'flymake
     (progn
       (require 'flymake)
@@ -215,8 +236,6 @@
     (set-face-attribute
      'flymake-note nil
      :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
-
-(use-package catppuccin-theme)
 
 
 (use-package doom-modeline
@@ -378,7 +397,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package direnv
   :defer nil
-  ;; :after lsp-mode
   :config
   (direnv-mode)
   (advice-add 'eglot-ensure :before #'direnv-update-environment)
@@ -527,6 +545,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         xref-show-definitions-function #'consult-xref)
   :general
   (leader-def-key
+    "B"   'consult-project-buffer
+    "f l" 'consult-focus-lines
     "G P" 'consult-ripgrep
     "y"   'consult-yank-from-kill-ring))
 
@@ -764,6 +784,49 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps 'eglot-mode-map
     "F F" 'eglot-format))
 
+
+(use-package dape
+  :preface
+  ;; By default dape shares the same keybinding prefix as `gud'
+  ;; If you do not want to use any prefix, set it to nil.
+  (setq dape-key-prefix "\C-x\C-a")
+
+  :hook
+  ;; Save breakpoints on quit
+  ((kill-emacs . dape-breakpoint-save)
+  ;; Load breakpoints on startup
+   (after-init . dape-breakpoint-load))
+
+  :init
+  ;; To use window configuration like gud (gdb-mi)
+  ;; (setq dape-buffer-window-arrangement 'gud)
+
+  :config
+  ;; Info buffers to the right
+  ;; (setq dape-buffer-window-arrangement 'right)
+
+  ;; Global bindings for setting breakpoints with mouse
+  (dape-breakpoint-global-mode)
+
+  ;; To not display info and/or buffers on startup
+  ;; (remove-hook 'dape-on-start-hooks 'dape-info)
+  ;; (remove-hook 'dape-on-start-hooks 'dape-repl)
+
+  ;; To display info and/or repl buffers on stopped
+  ;; (add-hook 'dape-on-stopped-hooks 'dape-info)
+  ;; (add-hook 'dape-on-stopped-hooks 'dape-repl)
+
+  ;; Kill compile buffer on build success
+  ;; (add-hook 'dape-compile-compile-hooks 'kill-buffer)
+
+  ;; Save buffers on startup, useful for interpreted languages
+  (add-hook 'dape-on-start-hooks (lambda () (save-some-buffers t t)))
+
+  ;; Projectile users
+  (setq dape-cwd-fn (lambda () (project-root (project-current)))))
+
+
+
 (use-package markdown-mode)
 
 ;; Python
@@ -813,16 +876,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
 
   ;; Fix ugly default colors in the rustic compilation buffer
-  (setq rustic-ansi-faces
-        (vector
-         (car (alist-get  'base0   gotham-color-alist))
-         (car (alist-get  'red  gotham-color-alist))
-         (car (alist-get  'green  gotham-color-alist))
-         (car (alist-get 'yellow  gotham-color-alist))
-         (car (alist-get 'cyan  gotham-color-alist))
-         (car (alist-get 'violet  gotham-color-alist))
-         (car (alist-get 'base5  gotham-color-alist))
-         (car (alist-get 'base6  gotham-color-alist)))))
+  ;; (setq rustic-ansi-faces
+  ;;       (vector
+  ;;        (car (alist-get  'base0   gotham-color-alist))
+  ;;        (car (alist-get  'red  gotham-color-alist))
+  ;;        (car (alist-get  'green  gotham-color-alist))
+  ;;        (car (alist-get 'yellow  gotham-color-alist))
+  ;;        (car (alist-get 'cyan  gotham-color-alist))
+  ;;        (car (alist-get 'violet  gotham-color-alist))
+  ;;        (car (alist-get 'base5  gotham-color-alist))
+  ;;        (car (alist-get 'base6  gotham-color-alist))))
+  )
 
 (use-package typescript-ts-mode
   :ensure nil
@@ -895,6 +959,11 @@ directory to make multiple eshell windows easier."
     :keymaps 'override
     "s e" 'my-eshell-here))
 
+
+(use-package ansi-color
+    :hook (compilation-filter . ansi-color-compilation-filter))
+
+
 ;; (use-package lsp-java)
 (use-package eglot-java
   :init
@@ -912,7 +981,7 @@ directory to make multiple eshell windows easier."
 
 (use-package http)
 (use-package qml-mode
-  :mode ("\\.qmlproject"))
+  :mode ("\\.qmlproject" "\\.qml"))
 
 (use-package json-mode)
 
