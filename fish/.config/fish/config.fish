@@ -10,8 +10,8 @@ end
 
 starship init fish | source
 
-status is-login; and pyenv init --path | source
-status is-interactive; and pyenv init - | source
+# status is-login; and pyenv init --path | source
+# status is-interactive; and pyenv init - | source
 
 alias yabai-start "yabai --stop-service"
 alias yabai-stop "yabai --start-service"

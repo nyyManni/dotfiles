@@ -195,11 +195,11 @@
 ;;   :config
 ;;   (load-theme 'gotham t)
 
-;;   ;; (set-face-attribute 'line-number-current-line nil
-;;   ;;                     :inherit 'line-number
-;;   ;;                     :foreground "#CAE682"
-;;   ;;                     :background "#444444"
-;;   ;;                     :weight 'bold)
+;;   (set-face-attribute 'line-number-current-line nil
+;;                       :inherit 'line-number
+;;                       :foreground "#CAE682"
+;;                       :background "#444444"
+;;                       :weight 'bold)
 
 ;;   (eval-after-load 'flymake
 ;;     (progn
@@ -222,6 +222,7 @@
 
   :config
   (load-theme 'catppuccin t)
+
   (eval-after-load 'flymake
     (progn
       (require 'flymake)
@@ -359,6 +360,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "i"   'indent-region
     "I"   (lambda () (interactive) (find-file user-init-file))
     "S"   'delete-trailing-whitespace))
+
+(defadvice find-file (after find-file-sudo activate)
+  "Find file as root if necessary."
+  (unless (and buffer-file-name
+               (file-writable-p buffer-file-name))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+
 
 (defun my-reload-file ()
   "Reopen current file, preserving location of point."
@@ -583,6 +591,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package wgrep)
+
 (use-package windmove
   :ensure nil
   :functions (my-frame-pos-x my-frame-not-current-but-visible-p
@@ -784,6 +794,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps 'eglot-mode-map
     "F F" 'eglot-format))
 
+
+(use-package eglot-booster
+  :straight (eglot-booster :type git :host github :repo "jdtsmith/eglot-booster")
+  :after eglot
+  :config (eglot-booster-mode))
 
 (use-package dape
   :preface
@@ -995,6 +1010,7 @@ directory to make multiple eshell windows easier."
 (use-package toml-mode)
 (use-package dockerfile-mode)
 (use-package csv-mode)
+(use-package yuck-mode)
 
 (use-package powershell)
 

@@ -106,6 +106,23 @@ for_window [app_id="Firefox"] inhibit_fullscreen enable
 for_window [title="Firefox — Sharing Indicator"] floating enable
 for_window [title="Firefox — Sharing Indicator"] nofocus
 for_window [title="Firefox — Sharing Indicator"] move scratchpad
+for_window [title="meet.google.com is sharing a window."] move scratchpad
+
+# Inhibit idle when zoom window is visible
+for_window [app_id="zoom"] inhibit_idle visible
+
+# Center zoom toolbar when screensharing
+for_window [app_id="zoom" title="as_toolbar"] {
+  floating enable
+  move position 50ppt 0
+  move left 402
+}
+
+# Fix Zoom s*it notifications
+# Float any zoom window by default but specific ones
+for_window [app_id="zoom"] floating enable
+for_window [app_id="zoom" title="(Account|Chat|Meeting|Participants)"] floating disable
+
 
 
 # change container layout (stacked, tabbed, toggle split)
@@ -185,17 +202,25 @@ set $laptop    "AU Optronics 0x212B Unknown"
 set $landscape "Dell Inc. DELL U2719D 9JWNY13"
 set $pivot     "Dell Inc. DELL U2719D 1JWNY13"
 
+
 set $worklandscape "Acer Technologies G247HYU T1QEE0018500"
 set $workpivot "Unknown HP E243i 6CM7280810"
 
+set $workleft "Dell Inc. DELL P2723D JZ74PW3"
+set $workright "Dell Inc. DELL P2723D CF74PW3"
+
 output $laptop scale 2.0 position 4000,0
-# output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
+#output $landscape scale 1.0 position 0,750 mode --custom 2560x1440@75Hz
 #output $pivot scale 1.0 position 2560,0 transform "90" mode --custom 2560x1440@75Hz
+
 output $landscape scale 1.0 position 0,750
 output $pivot scale 1.0 position 2560,0 transform "90"
 
 output $worklandscape scale 1.0 position 0,750
 output $workpivot scale 1.0 position 2560,0 transform "90"
+
+output $workleft scale 1.0 mode 2560x1440
+output $workright scale 1.0 mode 2560x1440 transform "90"
 
 bindswitch --locked lid:on output $laptop disable
 bindswitch --locked lid:off output $laptop enable
@@ -304,8 +329,8 @@ bar waybar-0 {
      # status_command i3status
      # status_command /home/hnyman/projects/github/i3status-rust/target/release/i3status-rs ~/.config/sway/.i3status-rs.toml
      # status_command while ~/.config/sway/status.sh; do sleep 1; done
-     # swaybar_command waybar
-     swaybar_command /usr/local/bin/waybar
+     swaybar_command waybar
+     # swaybar_command /usr/local/bin/waybar
      mode hide
      modifier $mod
      # mode hide

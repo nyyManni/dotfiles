@@ -31,7 +31,7 @@
 (when (eq system-type 'darwin)
   ;; (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
   (push '(inhibit-double-buffering . t) default-frame-alist)
-  (push '(font . "Fira Code") default-frame-alist))
+  (push '(font . "Fira Code Nerd Font Mono") default-frame-alist))
 
 (add-to-list 'default-frame-alist '(background-color . "#0c1014"))
 (add-to-list 'default-frame-alist '(foreground-color . "#99d1ce"))
