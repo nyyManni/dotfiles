@@ -1,0 +1,4 @@
+
+export HYPRCURSOR_THEME="Catppuccin Mocha Blue"
+export HYPRCURSOR_SIZE="28"
+# export AQ_DRM_DEVICES"=/dev/dri/card1:/dev/dri/card0"

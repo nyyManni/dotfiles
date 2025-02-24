@@ -13,6 +13,9 @@
 ;;
 ;;; Code:
 
+(setq package-user-dir     "~/.local/share/emacs"
+      user-emacs-directory "~/.local/share/emacs")
+
 (setq gc-cons-threshold 100000000)
 (setq package-enable-at-startup nil)
 

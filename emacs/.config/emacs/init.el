@@ -37,7 +37,6 @@
 (setq user-full-name       "Henrik Nyman"
       user-login-name      "hnyman"
       user-mail-address    "h@nyymanni.com"
-      user-emacs-directory "~/.emacs.d"
 
       vc-follow-symlinks                t
       inhibit-startup-screen            t
@@ -50,8 +49,8 @@
 
       read-extended-command-predicate #'command-completion-default-include-p
 
-      backup-directory-alist         '(("." . "~/.emacs.d/backups/"))
-      auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list" t))
+      backup-directory-alist         '(("." . "~/.local/share/emacs/backups/"))
+      auto-save-file-name-transforms '((".*" "~/.local/share/emacs/auto-save-list" t))
 
       custom-file          (concat user-emacs-directory "/customize-ignored.el")
       delete-old-versions  -1
@@ -157,8 +156,8 @@
 (add-hook 'latex-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'show-paren-mode)
 
-(when (eq system-type 'darwin)
-  (add-hook 'prog-mode-hook #'pixel-scroll-precision-mode))
+;; (when (eq system-type 'darwin)
+(add-hook 'prog-mode-hook #'pixel-scroll-precision-mode)
 
 (eval-and-compile
   (setq use-package-always-ensure t)
@@ -278,6 +277,14 @@
     :prefix my/leader
     :prefix-map 'leader-map)
 
+  (defun my-multi-occur-in-matching-buffers (regexp &optional allbufs)
+    "Show lines matching REGEXP in all file-visiting buffers.
+
+Given a prefix argument, search in ALL buffers."
+    (interactive (occur-read-primary-args))
+    (multi-occur-in-matching-buffers "." regexp allbufs))
+
+  ;; (global-set-key (kbd "M-s /") 'my-multi-occur-in-matching-buffers)
 
 
   (defun minibuffer-keyboard-quit ()
@@ -355,6 +362,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "Y"   'my-put-file-name-on-clipboard
     "f f" 'my-dired-here
     "l p" 'package-list-packages
+    "G O" 'my-multi-occur-in-matching-buffers
     "s l" 'sort-lines
     "r"   'my-reload-file
     "i"   'indent-region
@@ -496,6 +504,20 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (general-define-key
    :keymaps '(evil-normal-sate-map)
    "K" 'evil-jump-out-args))
+
+(use-package evil-textobj-tree-sitter
+  :after evil
+  :straight (evil-textobj-tree-sitter :type git
+                      :host github
+                      :repo "meain/evil-textobj-tree-sitter"
+                      :files (:defaults "queries" "treesit-queries"))
+
+  :config
+  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+
+  (define-key evil-outer-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.outer"))
+  (define-key evil-inner-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.inner")))
 
 (use-package evil-exchange
   :general
@@ -776,7 +798,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                     (yapf (enabled . nil))
                     (rope_autoimport (enabled . nil))
                     (rope_completion (enabled . nil))
-                    (black (enabled . t))
+                    (black (enabled . nil))
                     (ruff (enabled . t))
                     (mypy
                      (enabled . t)
@@ -847,7 +869,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Python
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
 (use-package py-isort
-  :custom ((py-isort-options '("--sl" "-p" "optofidelity")))
+  :custom ((py-isort-options '("--sl")))
   :general
   (leader-def-key
     :keymaps '(python-mode-map python-ts-mode-map)
@@ -982,7 +1004,7 @@ directory to make multiple eshell windows easier."
 ;; (use-package lsp-java)
 (use-package eglot-java
   :init
-  (setq eglot-java-server-install-dir (expand-file-name "~/.emacs.d/share/eclipse.jdt.ls")))
+  (setq eglot-java-server-install-dir (expand-file-name "~/.local/share/emacs/eclipse.jdt.ls")))
 
 (use-package web-mode
   :mode ("\\.jsp"))
@@ -1349,6 +1371,18 @@ directory to make multiple eshell windows easier."
 
   (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
+
+
+;; copilot
+
+(use-package copilot
+  ;; Configure copilot configuration to play nicely with auto-complete
+  ;; bind accepting completion to Ctrl+shift+tab
+  :general
+  (general-define-key
+   :keymaps '(copilot-mode-map)
+   "C-S-<iso-lefttab>" 'copilot-accept-completion))
+
 
 (provide 'init)
 ;;; init.el ends here

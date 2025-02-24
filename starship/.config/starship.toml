@@ -2,7 +2,7 @@ add_newline = false
 
 
 format = """
-[](#3B4252)\
+[](#3B4252)\
 ${custom.macos}\
 ${custom.windows}\
 ${custom.linux}\
@@ -28,7 +28,7 @@ $rust\
 $docker_context\
 [](fg:#06969A bg:#33658A)\
 $time\
-[ ](fg:#33658A)\
+[ ](fg:#33658A)\
 """
 command_timeout = 5000
 
@@ -146,7 +146,7 @@ when = true
 os = "linux"
 format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
-symbol = ""
+symbol = ""
 
 [custom.windows]
 when = true
