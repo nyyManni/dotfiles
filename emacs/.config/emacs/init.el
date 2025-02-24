@@ -174,12 +174,12 @@
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode))
 
-(when (eq system-type 'darwin)
-  (when (memq window-system '(mac ns x))
-    (use-package exec-path-from-shell
-      :demand t
-      :config
-      (exec-path-from-shell-initialize))))
+;; (when (eq system-type 'darwin)
+;;   (when (memq window-system '(mac ns x))
+;;     (use-package exec-path-from-shell
+;;       :demand t
+;;       :config
+;;       (exec-path-from-shell-initialize))))
 
 (use-package no-littering
   :demand t

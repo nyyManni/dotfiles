@@ -1,23 +1,7 @@
 # Emacs autosave files
 \#*#
 .#*
+.*~undo-tree~
 
-emacs/.emacs.d/elpa
-emacs/.emacs.d/auto-save-list
-emacs/.emacs.d/backups
-emacs/.emacs.d/customize-ignored.el
-emacs/.emacs.d/var/projectile
-emacs/.emacs.d/.cache
-emacs/.emacs.d/var/backup
-emacs/.emacs.d/mspyls
-emacs/.emacs.d/.DS_Store
-emacs/.emacs.d/tramp
-emacs/.emacs.d/recentf
-emacs/.emacs.d/.python-environments
-emacs/.emacs.d/eshell
-emacs/.emacs.d/irony
-emacs/.emacs.d/bookmarks
-emacs/.emacs.d/request
-emacs/.emacs.d/.mc-lists.el
-emacs/.emacs.d/.tern-port
+emacs/.config/emacs/elpa
 fish/.config/fish/fish_variables
