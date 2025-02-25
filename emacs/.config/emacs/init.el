@@ -1013,7 +1013,7 @@ directory to make multiple eshell windows easier."
 (use-package jinja2-mode)
 (use-package apt-sources-list)
 
-(use-package package-lint)
+;; (use-package package-lint)
 ;; (use-package flycheck-package)
 
 (use-package http)
