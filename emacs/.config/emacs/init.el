@@ -72,6 +72,7 @@
   (defvar ns-option-modifier nil)
   (defvar ns-antialias-text nil)
   (defvar ns-use-srgb-colorspace nil)
+
   (setenv "SSH_AUTH_SOCK" (concat (getenv "XDG_RUNTIME_DIR") "/ssh-agent.socket")))
 (when (eq system-type 'darwin)
 
@@ -471,6 +472,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (evil-commentary-mode))
 
+(use-package vimish-fold)
+(use-package evil-vimish-fold)
+
 (use-package evil-surround
   :functions (global-evil-surround-mode)
   :config
@@ -804,12 +808,23 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                      (enabled . t)
                      (live_mode . t)
                      (strict . nil))))))
+
   :config
   ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
 
   ;; Disable the progress notification, as it is interfering with other minibuffer
   ;; messages.
   (setq eglot-report-progress nil)
+
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode)
+                 "basedpyright-langserver" "--stdio"))
+
+
+  (add-to-list 'eglot-server-programs
+               '((rust-ts-mode rust-mode) .
+                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+
 
   :general
   (leader-def-key
@@ -875,6 +890,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps '(python-mode-map python-ts-mode-map)
     "s i"   'py-isort-buffer))
 
+(use-package flymake-ruff
+  :ensure t
+  :hook (eglot-managed-mode . flymake-ruff-load))
+
+(use-package reformatter
+  :hook
+  (python-mode . ruff-format-on-save-mode)
+  (python-ts-mode . ruff-format-on-save-mode)
+  :config
+  (reformatter-define ruff-format
+    :program "ruff"
+    :args `("format" "--stdin-filename" ,buffer-file-name "-")))
 
 ;; C/C++
 (setq-default c-basic-offset 4)
@@ -890,44 +917,65 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; RUST
 
-(use-package rust-mode)
+;; (use-package rust-mode)
+(use-package rust-mode
+  :ensure t
+  :init
+  (setq rust-mode-treesitter-derive t))
 
 (use-package rustic
+  :ensure t
+  :after (rust-mode)
   :init
   (setq rustic-lsp-client 'eglot)
-  :config
-  (define-derived-mode rustic-mode rust-ts-mode "Rustic"
-    "Major mode for Rust code.
-\\{rustic-mode-map}"
-    :group 'rustic
+  :custom
+  (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer"))
+  (lsp-rust-analyzer-proc-macro-enable t))
 
-    ;; (when (bound-and-true-p rustic-cargo-auto-add-missing-dependencies)
-    ;;   (add-hook 'lsp-after-diagnostics-hook 'rustic-cargo-add-missing-dependencies-hook nil t))
 
-    (add-hook 'before-save-hook 'rustic-before-save-hook nil t)
-    (add-hook 'after-save-hook 'rustic-after-save-hook nil t))
+;; (use-package rustic
+;;   :init
+;;   (setq rustic-lsp-client 'eglot)
+;;   :config
+;;   (define-derived-mode rustic-mode rust-ts-mode "Rustic"
+;;     "Major mode for Rust code.
+;; \\{rustic-mode-map}"
+;;     :group 'rustic
 
-  (require 'rust-ts-mode)
-  ;; (require 'rustic-ts-mode)
-  (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
-  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
+;;     ;; (when (bound-and-true-p rustic-cargo-auto-add-missing-dependencies)
+;;     ;;   (add-hook 'lsp-after-diagnostics-hook 'rustic-cargo-add-missing-dependencies-hook nil t))
 
-  ;; Fix ugly default colors in the rustic compilation buffer
-  ;; (setq rustic-ansi-faces
-  ;;       (vector
-  ;;        (car (alist-get  'base0   gotham-color-alist))
-  ;;        (car (alist-get  'red  gotham-color-alist))
-  ;;        (car (alist-get  'green  gotham-color-alist))
-  ;;        (car (alist-get 'yellow  gotham-color-alist))
-  ;;        (car (alist-get 'cyan  gotham-color-alist))
-  ;;        (car (alist-get 'violet  gotham-color-alist))
-  ;;        (car (alist-get 'base5  gotham-color-alist))
-  ;;        (car (alist-get 'base6  gotham-color-alist))))
-  )
+;;     (add-hook 'before-save-hook 'rustic-before-save-hook nil t)
+;;     (add-hook 'after-save-hook 'rustic-after-save-hook nil t))
+
+;;   (require 'rust-ts-mode)
+;;   ;; (require 'rustic-ts-mode)
+;;   (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
+;;   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
+
+;;   ;; Fix ugly default colors in the rustic compilation buffer
+;;   ;; (setq rustic-ansi-faces
+;;   ;;       (vector
+;;   ;;        (car (alist-get  'base0   gotham-color-alist))
+;;   ;;        (car (alist-get  'red  gotham-color-alist))
+;;   ;;        (car (alist-get  'green  gotham-color-alist))
+;;   ;;        (car (alist-get 'yellow  gotham-color-alist))
+;;   ;;        (car (alist-get 'cyan  gotham-color-alist))
+;;   ;;        (car (alist-get 'violet  gotham-color-alist))
+;;   ;;        (car (alist-get 'base5  gotham-color-alist))
+;;   ;;        (car (alist-get 'base6  gotham-color-alist))))
+;;   )
 
 (use-package typescript-ts-mode
   :ensure nil
-  :mode ("\\.ts"))
+  :mode
+  ("\\.ts"))
+
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+
+;; (use-package tsx-ts-mode
+;;   :ensure nil
+;;   :mode ("\\.tsx"))
 
 
 (use-package prettier
@@ -1009,7 +1057,9 @@ directory to make multiple eshell windows easier."
 (use-package web-mode
   :mode ("\\.jsp"))
 
-(use-package systemd)
+(use-package go-mode)
+
+;; (use-package systemd)
 (use-package jinja2-mode)
 (use-package apt-sources-list)
 
@@ -1383,6 +1433,9 @@ directory to make multiple eshell windows easier."
    :keymaps '(copilot-mode-map)
    "C-S-<iso-lefttab>" 'copilot-accept-completion))
 
+
+(custom-set-variables
+ '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
 
 (provide 'init)
 ;;; init.el ends here

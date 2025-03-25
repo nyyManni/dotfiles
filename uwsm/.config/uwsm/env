@@ -7,7 +7,10 @@ export XDG_SESSION_TYPE="wayland"
 export XDG_SESSION_DESKTOP="Hyprland"
 export GDK_BACKEND=wayland
 
-export XCURSOR_THEME="Catppuccin Mocha Blue"
+export XCURSOR_THEME="catppuccin-mocha-blue-cursors"
 export XCURSOR_SIZE="28"
 export GDK_SCALE="2"
-export XCURSOR_SIZE="32"
+
+export CARGO_HOME="$HOME/.local/share/cargo"
+export RUSTUP_HOME="$HOME/.local/share/rustup"
+export GOPATH-"$HOME/.local/share/go"

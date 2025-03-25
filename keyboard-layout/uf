@@ -1,0 +1,16 @@
+
+default
+xkb_symbols "basic" {
+
+        name[Group1]= "English (US) emulation with a nordic keyboard";
+
+        include "us(basic)"
+
+        // The extra key next to left shift to be extended to shift
+        key <LSGT> {	[ Shift_L			]	};
+
+        // Swap the backslash and return keys
+        key <BKSL> {	[ Return			]	};
+        key <RTRN> {	[ backslash,	bar		]	};
+
+};

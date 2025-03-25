@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+level="$(cat /sys/class/power_supply/BAT0/capacity)"
+
+if (( level > 90 )); then
+    echo -n "  $level%"
+elif (( level > 74 )); then
+    echo -n "  $level%"
+elif (( level > 49 )); then
+    echo -n "  $level%"
+elif (( level > 24 )); then
+    echo -n "  $level%"
+else
+    echo -n "  $level%"
+fi
+    
