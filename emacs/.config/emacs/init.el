@@ -34,6 +34,7 @@
 ;;; Code:
 
 
+
 (setq user-full-name       "Henrik Nyman"
       user-login-name      "hnyman"
       user-mail-address    "h@nyymanni.com"
@@ -116,6 +117,8 @@
 (setq straight-use-package-by-default t)
 
 (straight-use-package 'use-package)
+(straight-use-package '(project :type built-in))
+(straight-use-package '(xref :type built-in))
 
 (defvar my-ejira-username      "")
 (defvar my-ejira-projects      '())
@@ -359,7 +362,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "a k" 'describe-key
     "s w" 'whitespace-mode
     "e"   'eval-last-sexp
-    "D"   'kill-this-buffer
+    "D"   'kill-current-buffer
     "Y"   'my-put-file-name-on-clipboard
     "f f" 'my-dired-here
     "l p" 'package-list-packages
@@ -370,11 +373,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "I"   (lambda () (interactive) (find-file user-init-file))
     "S"   'delete-trailing-whitespace))
 
-(defadvice find-file (after find-file-sudo activate)
-  "Find file as root if necessary."
-  (unless (and buffer-file-name
-               (file-writable-p buffer-file-name))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+;; (defadvice find-file (after find-file-sudo activate)
+;;   "Find file as root if necessary."
+;;   (unless (and buffer-file-name
+;;                (file-writable-p buffer-file-name))
+;;     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 
 (defun my-reload-file ()
@@ -457,16 +460,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package key-chord
   :hook (after-init . (lambda () (key-chord-mode t)))
-  :custom
+  ;; :custom
   ;; To overcome regression from:
   ;; https://github.com/emacsorphanage/key-chord/commit/e724def60fdf6473858f2962ae276cf4413473eb
-  (key-chord-safety-interval-forward 0)
-  (key-chord-safety-interval-backward 0)
+  ;; (key-chord-safety-interval-forward 0)
+  ;; (key-chord-safety-interval-backward 0)
   :general
   (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
-    (general-define-key
-     :keymaps '(evil-insert-state-map evil-visual-state-map)
-     (general-chord chord) 'evil-normal-state)))
+
+    (key-chord-define evil-insert-state-map chord 'evil-normal-state)
+    ))
+
 
 (use-package evil-commentary
   :config
@@ -784,6 +788,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (js-ts-mode . eglot-ensure)
   (tsx-ts-mode . eglot-ensure)
   (typescript-ts-mode . eglot-ensure)
+  (csharp-ts-mode . eglot-ensure)
   :init
   (setq-default eglot-workspace-configuration
                 '((pylsp
@@ -819,6 +824,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode)
                  "basedpyright-langserver" "--stdio"))
+
+  (add-to-list 'eglot-server-programs
+               '((csharp-mode csharp-ts-mode)
+                 "/home/nyymanni/.local/share/omnisharp-linux-x64-net6.0/OmniSharp" "-lsp"))
 
 
   (add-to-list 'eglot-server-programs
@@ -880,6 +889,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 (use-package markdown-mode)
+(use-package uml-mode)
 
 ;; Python
 (add-to-list 'auto-mode-alist '("\\.py\\'" . python-ts-mode))
@@ -913,6 +923,161 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (c++-ts-mode . clang-format+-mode))
 (use-package glsl-mode)
 (use-package cmake-mode)
+
+
+;; C#
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode))
+
+
+(eval-after-load 'csharp-mode
+  (progn
+  (defun my/reapply-csharp-ts-mode-font-lock-settings ()
+    "Fixes csharp-ts-mode font lock with latest version of parser"
+    (interactive)
+    (setq csharp-ts-mode--keywords
+          '("this" "add" "alias" "as" "base" "break" "case" "catch" "checked" "class" "continue"
+            "default" "delegate" "do" "else" "enum" "event" "explicit" "extern" "finally"
+            "for" "foreach" "global" "goto" "if" "implicit" "interface" "is" "lock"
+            "namespace" "notnull" "operator" "params" "return" "remove" "sizeof"
+            "stackalloc" "static" "struct" "switch" "throw" "try" "typeof" "unchecked"
+            "using" "while" "new" "await" "in" "yield" "get" "set" "when" "out" "ref" "from"
+            "where" "select" "record" "init" "with" "let"))
+
+    (let ((ops '("--" "-" "-=" "&" "&=" "&&" "+" "++" "+=" "<" "<=" "<<" "<<=" "="
+                 "==" "!" "!=" "=>" ">" ">=" ">>" ">>=" ">>>" ">>>=" "|" "|=" "||"
+                 "?" "??" "??=" "^" "^=" "~" "*" "*=" "/" "/=" "%" "%=" ":")))
+      (setq csharp-ts-mode--font-lock-settings
+            (treesit-font-lock-rules
+             :language 'c-sharp
+             :feature 'bracket
+             '((["(" ")" "[" "]" "{" "}" (interpolation_brace)]) @font-lock-bracket-face)
+
+             :language 'c-sharp
+             :feature 'delimiter
+             `((["," ":" ";"]) @font-lock-delimiter-face
+               ([,@ops]) @font-lock-operator-face
+               )
+
+             :language 'c-sharp
+             :override t
+             :feature 'comment
+             '((comment) @font-lock-comment-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'keyword
+             `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
+               (modifier) @font-lock-keyword-face
+               (implicit_type) @font-lock-keyword-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'property
+             `((attribute name: (identifier) @font-lock-property-use-face))
+
+             :language 'c-sharp
+             :override t
+             :feature 'literal
+             `((integer_literal) @font-lock-number-face
+               (real_literal) @font-lock-number-face
+               (null_literal) @font-lock-constant-face
+               (boolean_literal) @font-lock-constant-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'string
+             `([(character_literal)
+                (string_literal)
+                (raw_string_literal)
+                (verbatim_string_literal)
+                ;; (interpolated_string_expression)
+                (string_content)
+                (interpolation_start)
+                (interpolation_quote)] @font-lock-string-face)
+
+             :language 'c-sharp
+             :override t
+             :feature 'escape-sequence
+             '((escape_sequence) @font-lock-escape-face)
+
+             :language 'c-sharp
+             :feature 'type
+             :override t
+             '((generic_name (identifier) @font-lock-type-face)
+               (type_parameter (identifier) @font-lock-type-face)
+               (parameter type: (identifier) @font-lock-type-face)
+               (type_argument_list (identifier) @font-lock-type-face)
+               (as_expression right: (identifier) @font-lock-type-face)
+               (is_expression right: (identifier) @font-lock-type-face)
+               (_ type: (identifier) @font-lock-type-face)
+               (predefined_type) @font-lock-builtin-face
+               )
+
+             :language 'c-sharp
+             :feature 'definition
+             :override t
+             '((interface_declaration name: (identifier) @font-lock-type-face)
+               (class_declaration name: (identifier) @font-lock-type-face)
+               (enum_declaration name: (identifier) @font-lock-type-face)
+               (struct_declaration (identifier) @font-lock-type-face)
+               (record_declaration (identifier) @font-lock-type-face)
+               (namespace_declaration name: (identifier) @font-lock-type-face)
+               (constructor_declaration name: (identifier) @font-lock-constructor-face)
+               (destructor_declaration name: (identifier) @font-lock-constructor-face)
+               (base_list (identifier) @font-lock-type-face)
+               (enum_member_declaration (identifier) @font-lock-variable-name-face)
+               (parameter name: (identifier) @font-lock-variable-name-face)
+               (implicit_parameter) @font-lock-variable-name-face
+               )
+
+             :language 'c-sharp
+             :feature 'function
+             '((method_declaration name: (identifier) @font-lock-function-name-face)
+               (local_function_statement name: (identifier) @font-lock-function-name-face)
+               (invocation_expression
+                function: (member_access_expression
+                           name: (identifier) @font-lock-function-call-face))
+               (invocation_expression
+                function: (identifier) @font-lock-function-call-face)
+               (invocation_expression
+                function: (member_access_expression
+                           name: (generic_name (identifier) @font-lock-function-call-face)))
+               (invocation_expression
+                function: (generic_name (identifier) @font-lock-function-call-face)))
+
+             :language 'c-sharp
+             :feature 'expression
+             '((identifier) @font-lock-variable-use-face)
+
+             :language 'c-sharp
+             :feature 'directives
+             :override t
+             '((preproc_if
+                "#if" @font-lock-preprocessor-face)
+               (preproc_if
+                "#endif" @font-lock-preprocessor-face)
+               (preproc_elif
+                "#elif" @font-lock-preprocessor-face)
+               (preproc_else
+                "#else" @font-lock-preprocessor-face)
+               ;; (preproc_endif) @font-lock-preprocessor-face
+               (preproc_define
+                "#define" @font-lock-preprocessor-face
+                (preproc_arg) @font-lock-constant-face)
+               (preproc_undef
+                "#undef" @font-lock-preprocessor-face
+                (preproc_arg) @font-lock-constant-face)
+
+               (preproc_nullable) @font-lock-preprocessor-face
+               (preproc_pragma) @font-lock-preprocessor-face
+               (preproc_region
+                "#region" @font-lock-preprocessor-face
+                (preproc_arg) @font-lock-comment-face)
+               (preproc_endregion) @font-lock-preprocessor-face)))))
+  ;; (my/reapply-csharp-ts-mode-font-lock-settings)
+  ))
+
+;; (schmo/reapply-csharp-ts-mode-font-lock-settings)
 
 
 ;; RUST
@@ -976,7 +1141,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; (use-package tsx-ts-mode
 ;;   :ensure nil
 ;;   :mode ("\\.tsx"))
-
 
 (use-package prettier
   :general
@@ -1059,7 +1223,6 @@ directory to make multiple eshell windows easier."
 
 (use-package go-mode)
 
-;; (use-package systemd)
 (use-package jinja2-mode)
 (use-package apt-sources-list)
 
@@ -1076,7 +1239,7 @@ directory to make multiple eshell windows easier."
 
 (use-package dired+)
 
-(use-package systemd)
+;; (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
 (use-package toml-mode)
