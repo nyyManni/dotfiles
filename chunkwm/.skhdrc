@@ -35,8 +35,6 @@ shift + ctrl + alt - l : yabai -m window --warp east
 ctrl + alt - h : yabai -m display --focus west
 ctrl + alt - l : yabai -m display --focus east
 
-# alt - tab : yabai -m window --focus next || yabai -m window --focus "$((yabai -m query --spaces --display next || yabai -m query --spaces --display first) | jq -re '.[] | select(.visible == 1)."first-window"')" || yabai -m display --focus next || yabai -m display --focus first
-# shift + alt - tab : yabai -m window --focus prev || yabai -m window --focus "$((yabai -m query --spaces --display prev || yabai -m query --spaces --display last) | jq -re '.[] | select(.visible == 1)."last-window"')" || yabai -m display --focus prev || yabai -m display --focus last
 
 # toggle window fullscreen
 alt - f : yabai -m window --toggle zoom-fullscreen
@@ -70,5 +68,5 @@ shift + alt - 9 : yabai -m window --space  9
 shift + alt - 0 : yabai -m window --space 10
 
 # launch terminal
-ctrl + alt - return : /Users/hnyman/.local/bin/launch_iterm.sh
+alt - return : /Users/hnyman/.local/bin/launch_iterm.sh
 

@@ -178,12 +178,12 @@
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode))
 
-;; (when (eq system-type 'darwin)
-;;   (when (memq window-system '(mac ns x))
-;;     (use-package exec-path-from-shell
-;;       :demand t
-;;       :config
-;;       (exec-path-from-shell-initialize))))
+(when (eq system-type 'darwin)
+  (when (memq window-system '(mac ns x))
+    (use-package exec-path-from-shell
+      :demand t
+      :config
+      (exec-path-from-shell-initialize))))
 
 (use-package no-littering
   :demand t
@@ -365,6 +365,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "D"   'kill-current-buffer
     "Y"   'my-put-file-name-on-clipboard
     "f f" 'my-dired-here
+    "f i" 'consult-imenu
     "l p" 'package-list-packages
     "G O" 'my-multi-occur-in-matching-buffers
     "s l" 'sort-lines
@@ -375,8 +376,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; (defadvice find-file (after find-file-sudo activate)
 ;;   "Find file as root if necessary."
+
 ;;   (unless (and buffer-file-name
-;;                (file-writable-p buffer-file-name))
+;;                (file-writable-p buffer-file-name)
+;;                (not (f-directory-p buffer-file-name)))
 ;;     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 
@@ -448,6 +451,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package undo-tree
   :init
   (global-undo-tree-mode)
+  (setq undo-tree-history-directory-alist '(("." . "~/.local/share/emacs/undo-tree")))
   :defer nil
   :general
   (leader-def-key
@@ -643,7 +647,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook
   (prog-mode . smartparens-mode)
   (org-mode . smartparens-mode)
-  (toml-mode . smartparens-mode)
+  (toml-ts-mode . smartparens-mode)
   :init
   (setq-default sp-escape-quotes-after-insert nil)
   :general
@@ -789,6 +793,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (tsx-ts-mode . eglot-ensure)
   (typescript-ts-mode . eglot-ensure)
   (csharp-ts-mode . eglot-ensure)
+  (glsl-ts-mode . eglot-ensure)
   :init
   (setq-default eglot-workspace-configuration
                 '((pylsp
@@ -824,6 +829,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode)
                  "basedpyright-langserver" "--stdio"))
+
+  (add-to-list 'eglot-server-programs
+               '((glsl-ts-mode)
+                 (expand-file-name "~/.local/bin/glsl_analyzer")))
 
   (add-to-list 'eglot-server-programs
                '((csharp-mode csharp-ts-mode)
@@ -886,7 +895,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Projectile users
   (setq dape-cwd-fn (lambda () (project-root (project-current)))))
 
-
+(use-package project :straight t)
 
 (use-package markdown-mode)
 (use-package uml-mode)
@@ -1214,9 +1223,9 @@ directory to make multiple eshell windows easier."
 
 
 ;; (use-package lsp-java)
-(use-package eglot-java
-  :init
-  (setq eglot-java-server-install-dir (expand-file-name "~/.local/share/emacs/eclipse.jdt.ls")))
+;; (use-package eglot-java
+;;   :init
+;;   (setq eglot-java-server-install-dir (expand-file-name "~/.local/share/emacs/eclipse.jdt.ls")))
 
 (use-package web-mode
   :mode ("\\.jsp"))
@@ -1250,9 +1259,9 @@ directory to make multiple eshell windows easier."
 (use-package powershell)
 
 (use-package groovy-mode)
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
+;; (use-package editorconfig
+;;   :config
+;;   (editorconfig-mode 1))
 
 (use-package ediff
   :straight (:type built-in)
@@ -1430,139 +1439,6 @@ directory to make multiple eshell windows easier."
 (use-package s)
 (use-package request)
 (use-package language-detection)
-(use-package jiralib2)
-(use-package ejira
-  :straight (ejira :type git :host github :repo "nyyManni/ejira" :branch "ejira-completion")
-  :commands (ejira-guess-epic-sprint-fields)
-  :functions (ejira-guess-epic-sprint-fields my-jiralib2-login-remember-credentials
-                                             my-add-ejira-kanban-board)
-  :init
-
-
-  (defun my-clock-fn ()
-    (cond ((org-before-first-heading-p) "???")
-          (t (let ((heading (replace-regexp-in-string
-	                     org-bracket-link-analytic-regexp "\\5"
-	                     (org-no-properties (org-get-heading t t t t)))))
-               (cond ((s-starts-with-p "ejira-" (or (org-entry-get (point-marker) "TYPE") ""))
-                      (concat
-                       (propertize (org-entry-get (point-marker) "ID") 'face 'font-lock-type-face)
-                       ": "
-                       (if (> (length heading) 30)
-                           (concat (substring heading 0 27) "...")
-                         heading)))
-                     (t heading))))))
-
-  (eval-after-load "org-clock"
-    (setq org-clock-heading-function #'my-clock-fn))
-
-  (setq ejira-org-directory my-jira-directory)
-
-  (setq request--curl-cookie-jar ""
-        jiralib2-user-login-name my-ejira-username
-        jiralib2-url             my-ejira-server
-        jiralib2-auth            'token
-
-        ejira-priorities-alist   '(("Blocker" . ?A)
-                                   ("Highest" . ?B)
-                                   ("High"    . ?C)
-                                   ("Medium"  . ?D)
-                                   ("Low"     . ?E)
-                                   ("Lowest"  . ?F)
-                                   ("Minor"   . ?G))
-        ejira-todo-states-alist  '(("To Do"                    . 2)
-                                   ("Backlog"                  . 1)
-                                   ("Selected for Development" . 2)
-                                   ("In Progress"              . 3)
-                                   ("Quality Check"            . 4)
-                                   ("Ready for QA"             . 4)
-                                   ("Verify"                   . 4)
-                                   ("Testing"                  . 4)
-                                   ("Closed"                   . 5)
-                                   ("Done"                     . 5))
-        ejira-projects           my-ejira-projects)
-  :config
-  (add-hook 'jiralib2-post-login-hook #'ejira-guess-epic-sprint-fields)
-  (ejira-guess-epic-sprint-fields)
-
-  :general
-  (leader-def-key
-    "j j"   'ejira-focus-item-under-point
-    "o j l" 'ejira-insert-link-to-current-issue
-    "o j j" 'ejira-focus-on-clocked-issue
-    "o j m" 'ejira-mention-user
-    "o j U" 'ejira-update-my-projects
-    "o b"   'ejira-agenda-board
-
-    "J"     'ejira-completion-focus-issue
-    "K"     'ejira-completion-focus-issue-active-sprint
-    "L"     'ejira-completion-focus-issue-assigned)
-
-  (leader-def-key
-    :keymaps '(org-mode-map)
-    "o j t" 'ejira-set-issuetype
-    "o j c c" 'ejira-add-comment
-    "o j c d" 'ejira-delete-comment
-    "o j a" 'ejira-assign-issue
-    "o j P" 'ejira-push-item-under-point
-    "o j u" 'ejira-pull-item-under-point
-    "o j p" 'ejira-progress-issue)
-
-  (general-define-key
-   :keymaps 'org-agenda-mode-map
-   :states '(emacs motion normal)
-   "C-j u"  'ejira-agenda-pull-item
-   "C-j s"  'ejira-agenda-progress-item)
-
-  (general-define-key
-   :keymaps 'ejira-mode-map
-   "C-S-x"  'ejira-close-buffer))
-
-;; (use-package ejira-agenda
-;;   :ensure nil
-;;   :straight (ejira-agenda :type git :host github :repo "nyyManni/ejira")
-;;   :config
-
-;;   (defun my-add-ejira-kanban-board (key board-name &optional title)
-;;     (setq title (or title board-name))
-;;     (org-add-agenda-custom-command
-;;      `(,key ,title
-;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and resolution = unresolved "
-;;                                 "and assignee = currentUser()")
-;;                         ((org-agenda-overriding-header
-;;                           ,(concat title "\n\nAssigned to me"))))
-;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and resolution = unresolved "
-;;                                 "and assignee is EMPTY")
-;;                         ((org-agenda-overriding-header "Unassigned")))
-;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and resolution = unresolved "
-;;                                 "and assignee != currentUser()")
-;;                         ((org-agenda-overriding-header "Others")))))))
-
-;;   (defun my-add-ejira-scrum-board (key board-name &optional title)
-;;     (setq title (or title board-name))
-;;     (org-add-agenda-custom-command
-;;      `(,key ,title
-;;             ((ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and sprint in openSprints() "
-;;                                 "and assignee = currentUser()")
-;;                         ((org-agenda-overriding-header
-;;                           ,(concat title "\n\nAssigned to me"))))
-;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and sprint in openSprints() "
-;;                                 "and assignee is EMPTY")
-;;                         ((org-agenda-overriding-header "Unassigned")))
-;;              (ejira-jql (concat "filter = \"Filter for " ,board-name "\" "
-;;                                 "and sprint in openSprints() "
-;;                                 "and assignee != currentUser()")
-;;                         ((org-agenda-overriding-header "Others")))))))
-
-;;   ;; my-ejira-kanban-boards is of form (("key" "name") ("key" "name") ...)
-;;   (mapc (-partial #'apply #'my-add-ejira-kanban-board) my-ejira-kanban-boards)
-;;   (mapc (-partial #'apply #'my-add-ejira-scrum-board) my-ejira-scrum-boards))
-
 
 ;; Tree-sitter
 (use-package treesit-auto
@@ -1596,6 +1472,7 @@ directory to make multiple eshell windows easier."
    :keymaps '(copilot-mode-map)
    "C-S-<iso-lefttab>" 'copilot-accept-completion))
 
+(use-package gptel)
 
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
