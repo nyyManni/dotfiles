@@ -794,6 +794,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (typescript-ts-mode . eglot-ensure)
   (csharp-ts-mode . eglot-ensure)
   (glsl-ts-mode . eglot-ensure)
+  (sql-mode . eglot-ensure)
+  (sh-mode . eglot-ensure)
+  (bash-ts-mode . eglot-ensure)
   :init
   (setq-default eglot-workspace-configuration
                 '((pylsp
@@ -833,11 +836,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
                  (expand-file-name "~/.local/bin/glsl_analyzer")))
+  (add-to-list 'eglot-server-programs
+               '((sql-mode)
+                 "sql-language-server" "up" "--method" "stdio"))
 
   (add-to-list 'eglot-server-programs
                '((csharp-mode csharp-ts-mode)
                  "/home/nyymanni/.local/share/omnisharp-linux-x64-net6.0/OmniSharp" "-lsp"))
 
+  (add-to-list 'eglot-server-programs
+               '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
 
   (add-to-list 'eglot-server-programs
                '((rust-ts-mode rust-mode) .
@@ -1106,40 +1114,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer"))
   (lsp-rust-analyzer-proc-macro-enable t))
 
-
-;; (use-package rustic
-;;   :init
-;;   (setq rustic-lsp-client 'eglot)
-;;   :config
-;;   (define-derived-mode rustic-mode rust-ts-mode "Rustic"
-;;     "Major mode for Rust code.
-;; \\{rustic-mode-map}"
-;;     :group 'rustic
-
-;;     ;; (when (bound-and-true-p rustic-cargo-auto-add-missing-dependencies)
-;;     ;;   (add-hook 'lsp-after-diagnostics-hook 'rustic-cargo-add-missing-dependencies-hook nil t))
-
-;;     (add-hook 'before-save-hook 'rustic-before-save-hook nil t)
-;;     (add-hook 'after-save-hook 'rustic-after-save-hook nil t))
-
-;;   (require 'rust-ts-mode)
-;;   ;; (require 'rustic-ts-mode)
-;;   (setq auto-mode-alist (remove '("\\.rs\\'" . rustic-mode) auto-mode-alist))
-;;   (add-to-list 'auto-mode-alist '("\\.rs\\'" . rustic-mode))
-
-;;   ;; Fix ugly default colors in the rustic compilation buffer
-;;   ;; (setq rustic-ansi-faces
-;;   ;;       (vector
-;;   ;;        (car (alist-get  'base0   gotham-color-alist))
-;;   ;;        (car (alist-get  'red  gotham-color-alist))
-;;   ;;        (car (alist-get  'green  gotham-color-alist))
-;;   ;;        (car (alist-get 'yellow  gotham-color-alist))
-;;   ;;        (car (alist-get 'cyan  gotham-color-alist))
-;;   ;;        (car (alist-get 'violet  gotham-color-alist))
-;;   ;;        (car (alist-get 'base5  gotham-color-alist))
-;;   ;;        (car (alist-get 'base6  gotham-color-alist))))
-;;   )
-
 (use-package typescript-ts-mode
   :ensure nil
   :mode
@@ -1243,6 +1217,7 @@ directory to make multiple eshell windows easier."
   :mode ("\\.qmlproject" "\\.qml"))
 
 (use-package json-mode)
+(use-package graphql-mode)
 
 (use-package wdired)
 
@@ -1461,7 +1436,16 @@ directory to make multiple eshell windows easier."
   (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
 
+;; typst
+(use-package typst-ts-mode)
 
+(with-eval-after-load 'eglot
+  (with-eval-after-load 'typst-ts-mode
+    (add-to-list 'eglot-server-programs
+                 `((typst-ts-mode) .
+                   ,(eglot-alternatives `(,typst-ts-lsp-download-path
+                                          "tinymist"
+                                          "typst-lsp"))))))
 ;; copilot
 
 (use-package copilot
@@ -1469,6 +1453,7 @@ directory to make multiple eshell windows easier."
   ;; bind accepting completion to Ctrl+shift+tab
   :general
   (general-define-key
+
    :keymaps '(copilot-mode-map)
    "C-S-<iso-lefttab>" 'copilot-accept-completion))
 
@@ -1477,5 +1462,7 @@ directory to make multiple eshell windows easier."
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
 
+
 (provide 'init)
 ;;; init.el ends here
+(put 'narrow-to-region 'disabled nil)

@@ -19,6 +19,14 @@
 (setq package-user-dir     "~/.local/share/emacs"
       user-emacs-directory "~/.local/share/emacs")
 
+(when (eq system-type 'gnu/linux)
+  (setenv "PATH" (concat (expand-file-name "~/.local/bin")
+                         ":"
+                         (getenv "PATH")
+                         ":"
+                         (expand-file-name "~/.local/share/cargo/bin")
+                         ":"
+                         (expand-file-name "~/.dotnet/tools"))))
 
 (setq gc-cons-threshold 100000000)
 (setq package-enable-at-startup nil)

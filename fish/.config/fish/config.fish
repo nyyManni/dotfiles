@@ -6,16 +6,13 @@ end
 if [ (uname) != "Darwin" ]
     # Only set SSH_AUTH_SOCK on Linux, macOS handles it via the keychain
     set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+else
+    alias yabai-start "yabai --stop-service"
+    alias yabai-stop "yabai --start-service"
 end
 
 starship init fish | source
-
-# status is-login; and pyenv init --path | source
-# status is-interactive; and pyenv init - | source
-
-alias yabai-start "yabai --stop-service"
-alias yabai-stop "yabai --start-service"
-alias wappuradio "mplayer http://stream.wappuradio.fi/wappuradio1.opus"
+direnv hook fish | source
 
 function fish_greeting
 end
