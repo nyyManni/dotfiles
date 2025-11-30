@@ -1,13 +1,13 @@
 
-default
-xkb_symbols "basic" {
+default partial
+xkb_symbols "uf" {
 
         name[Group1]= "English (US) emulation with a nordic keyboard";
 
         include "us(basic)"
 
         // The extra key next to left shift to be extended to shift
-        key <LSGT> {	[ Shift_L			]	};
+        key <LSGT> { [ Shift_L, Shift_L, Shift_L, Shift_L ] };
 
         // Swap the backslash and return keys
         key <BKSL> {	[ Return			]	};

@@ -4,4 +4,5 @@
 .*~undo-tree~
 
 emacs/.config/emacs/elpa
+emacs/.config/emacs/eln-cache
 fish/.config/fish/fish_variables

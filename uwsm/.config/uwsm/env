@@ -6,6 +6,7 @@ export XDG_CURRENT_DESKTOP="Hyprland"
 export XDG_SESSION_TYPE="wayland"
 export XDG_SESSION_DESKTOP="Hyprland"
 export GDK_BACKEND=wayland
+export ELECTRON_OZONE_PLATFORM_HINT=auto 
 
 export XCURSOR_THEME="catppuccin-mocha-blue-cursors"
 export XCURSOR_SIZE="28"
