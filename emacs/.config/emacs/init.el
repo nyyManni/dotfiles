@@ -1,5 +1,5 @@
 ;; init.el --- -*- lexical-binding: t -*-
-;; Copyright (c) 2016 - 2023 Henrik Nyman
+;; Copyright (c) 2016 - 2025 Henrik Nyman
 
 
 ;; Author     : Henrik Nyman <h@nyymanni.com>
@@ -94,6 +94,8 @@
         mouse-wheel-progressive-speed nil)
   )
 
+(put 'narrow-to-region 'disabled nil)
+
 (define-obsolete-variable-alias
   'native-comp-deferred-compilation-deny-list
   'native-comp-jit-compilation-deny-list
@@ -150,6 +152,8 @@
   (global-unset-key (kbd "C-z"))
   (blink-cursor-mode 0)
   (setq confirm-kill-emacs 'y-or-n-p))
+(when (daemonp)
+  (blink-cursor-mode 0))
 
 
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
@@ -192,39 +196,14 @@
   (add-to-list 'recentf-exclude no-littering-var-directory)
   (add-to-list 'recentf-exclude no-littering-etc-directory))
 
-;; (use-package gotham-theme
-;;   :demand
-;;   :if (or (daemonp) window-system)
-;;   :config
-;;   (load-theme 'gotham t)
-
-;;   (set-face-attribute 'line-number-current-line nil
-;;                       :inherit 'line-number
-;;                       :foreground "#CAE682"
-;;                       :background "#444444"
-;;                       :weight 'bold)
-
-;;   (eval-after-load 'flymake
-;;     (progn
-;;       (require 'flymake)
-;;     (set-face-attribute
-;;      'flymake-error nil
-;;      :underline `(:style wave :color ,(face-attribute 'error :foreground)))
-
-;;     (set-face-attribute
-;;      'flymake-warning nil
-;;      :underline `(:style wave :color ,(face-attribute 'warning :foreground)))
-
-;;     (set-face-attribute
-;;      'flymake-note nil
-;;      :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
-
 (use-package catppuccin-theme
   :demand
   :if (or (daemonp) window-system)
 
   :config
   (load-theme 'catppuccin t)
+
+  (add-hook 'server-after-make-frame-hook #'catppuccin-reload)
 
   (eval-after-load 'flymake
     (progn
@@ -735,6 +714,20 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :custom
   (eldoc-echo-area-use-multiline-p nil))
 
+(use-package indent-bars
+  :custom
+  (indent-bars-no-descend-lists 'skip) ; prevent extra bars in nested lists
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  ;; Add other languages as needed
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+	  if_statement with_statement while_statement)))
+  ;; Note: wrap may not be needed if no-descend-list is enough
+  ;;(indent-bars-treesit-wrap '((python argument_list parameters ; for python, as an example
+  ;;				      list list_comprehension
+  ;;				      dictionary dictionary_comprehension
+  ;;				      parenthesized_expression subscript)))
+  :hook ((python-base-mode) . indent-bars-mode))
 
 (use-package sideline
   :hook (flymake-mode . sideline-mode)
@@ -797,6 +790,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (sql-mode . eglot-ensure)
   (sh-mode . eglot-ensure)
   (bash-ts-mode . eglot-ensure)
+  (json-ts-mode . eglot-ensure)
   :init
   (setq-default eglot-workspace-configuration
                 '((pylsp
@@ -831,7 +825,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode)
-                 "basedpyright-langserver" "--stdio"))
+                 "rass" "--" "ty" "server" "--" "ruff" "server"))
 
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
@@ -919,16 +913,30 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package flymake-ruff
   :ensure t
-  :hook (eglot-managed-mode . flymake-ruff-load))
+  :hook (eglot-managed-mode . flymake-ruff-load)
+  :custom
+  (flymake-ruff-program-args
+  '("check" "--output-format" "concise" "--exit-zero" "--quiet" "--target-version" "313" "-")))
+         
 
 (use-package reformatter
   :hook
   (python-mode . ruff-format-on-save-mode)
   (python-ts-mode . ruff-format-on-save-mode)
+  (typescript-ts-mode . prettier-on-save-mode)
+  (json-ts-mode . prettier-on-save-mode)
+  (tsx-ts-mode . prettier-on-save-mode)
   :config
   (reformatter-define ruff-format
     :program "ruff"
-    :args `("format" "--stdin-filename" ,buffer-file-name "-")))
+    :args `("format" "--stdin-filename" ,buffer-file-name "-"))
+
+  (reformatter-define prettier
+    :program "prettier"
+    :args `("--stdin-filepath" ,buffer-file-name)))
+
+(use-package uv
+  :straight (uv :type git :host github :repo "johannes-mueller/uv.el"))
 
 ;; C/C++
 (setq-default c-basic-offset 4)
@@ -938,7 +946,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (c-mode-common . clang-format+-mode)
   (c-ts-mode . clang-format+-mode)
   (c++-ts-mode . clang-format+-mode))
-(use-package glsl-mode)
+(use-package glsl-mode
+  ;; :straight (org-bars :type git :host github :repo "TideSofDarK/glsl-mode" :branch "better-ts-mode")
+  )
 (use-package cmake-mode)
 
 
@@ -1121,15 +1131,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 
-;; (use-package tsx-ts-mode
-;;   :ensure nil
-;;   :mode ("\\.tsx"))
-
-(use-package prettier
-  :general
-  (leader-def-key
-    :keymaps 'typescript-ts-mode-map
-    "F F" 'prettier-prettify))
 
 ;; C#
 
@@ -1163,6 +1164,9 @@ directory to make multiple eshell windows easier."
     (delete-window))
 
   (defun esh-prompt-func ()
+
+    ;; (concat
+    ;;  (eshell/whoami) "@" user-hostname " " (abbreviate-file-name (eshell/pwd)) ""
     (concat
      "┌─" (eshell/whoami) "@" user-hostname " " (abbreviate-file-name (eshell/pwd)) "\n"
      "└─$ "))
@@ -1216,13 +1220,21 @@ directory to make multiple eshell windows easier."
 (use-package qml-mode
   :mode ("\\.qmlproject" "\\.qml"))
 
-(use-package json-mode)
-(use-package graphql-mode)
+(use-package json-ts-mode
+  :mode ("\\.json"))
+
+(use-package graphql-ts-mode
+  :mode ("\\.graphql\\'" "\\.gql\\'")
+  :init
+  (with-eval-after-load 'treesit
+    (add-to-list 'treesit-language-source-alist
+                 '(graphql "https://github.com/bkegley/tree-sitter-graphql"))))
 
 (use-package wdired)
 
-(use-package dired+)
-
+(use-package dired+
+  :init
+  (setq-default diredp-hide-details-initially-flag nil))
 ;; (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
@@ -1415,6 +1427,8 @@ directory to make multiple eshell windows easier."
 (use-package request)
 (use-package language-detection)
 
+(use-package protobuf-mode)
+
 ;; Tree-sitter
 (use-package treesit-auto
   :demand t
@@ -1459,10 +1473,48 @@ directory to make multiple eshell windows easier."
 
 (use-package gptel)
 
+(defun my-get-password-from-authinfo (host)
+  "Receive a password for HOST in .authinfo."
+  (let* ((found (car (auth-source-search :host host :require '(:secret)))))
+    (when found
+      (let ((secret (plist-get found :secret)))
+        (if (functionp secret)
+            (funcall secret)
+          secret)))))
+
+(use-package mcp
+  :after gptel
+  :custom (mcp-hub-servers
+           `(
+             ("githits" . (:url "https://mcp.githits.com/"
+                                :token ,(my-get-password-from-authinfo "githits.com")))))
+  :config
+  (require 'mcp-hub)
+  (require 'gptel-integrations)
+
+  (setq jrpc-default-request-timeout 300)
+  (setq jsonrpc-default-request-timeout 300)
+
+  :hook (after-init . mcp-hub-start-all-server))
+
+(use-package eca
+  :custom
+
+  ;; Disable annoying emojies
+  (eca-chat-prompt-prefix-loading (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
+  (eca-chat-mcp-tool-call-loading-symbol (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
+  (eca-chat-mcp-tool-call-error-symbol (propertize "FAIL" 'font-lock-face `(:foreground ,(face-attribute 'error :foreground) :weight bold)))
+  (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))))
+
+(use-package xkb-mode
+  :straight
+  (xkb-mode :type git :host github :repo "captainflasmr/xkb-mode"))
+
+(use-package dart-mode)
+
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
 
 
 (provide 'init)
 ;;; init.el ends here
-(put 'narrow-to-region 'disabled nil)

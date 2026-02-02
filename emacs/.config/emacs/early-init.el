@@ -51,6 +51,10 @@
 (add-to-list 'default-frame-alist '(background-color . "#0c1014"))
 (add-to-list 'default-frame-alist '(foreground-color . "#99d1ce"))
 
+;; disable this for now, the performance is absolutely horrible
+;; (when (eq system-type 'gnu/linux)
+;;   (add-to-list 'default-frame-alist '(alpha . (97 97))))
+
 ;; Resizing the Emacs frame can be a terribly expensive part of changing the
 ;; font. By inhibiting this, we easily halve startup times with fonts that are
 ;; larger than the system default.
