@@ -154,3 +154,9 @@ os = "windows"
 format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
 symbol = ""
+
+[aws]
+format	= '[$symbol($profile )(\($region\))]($style)'
+style = 'bg:#3B4252 bold yellow'
+region_aliases = {none = ''}
+

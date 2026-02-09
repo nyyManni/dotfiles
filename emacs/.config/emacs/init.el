@@ -899,7 +899,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package project :straight t)
 
-(use-package markdown-mode)
+(use-package markdown-mode
+  :custom
+  ((markdown-header-scaling t)
+   (markdown-fontify-code-blocks-natively t)))
 (use-package uml-mode)
 
 ;; Python
@@ -1356,7 +1359,6 @@ directory to make multiple eshell windows easier."
 
   (leader-def-key
     :keymaps '(org-mode-map)
-    "E"     'my-org-pdf-async
     "s a"   'outline-show-all
 
     "o t c" 'org-table-create
@@ -1460,18 +1462,53 @@ directory to make multiple eshell windows easier."
                    ,(eglot-alternatives `(,typst-ts-lsp-download-path
                                           "tinymist"
                                           "typst-lsp"))))))
-;; copilot
+
+(use-package xkb-mode
+  :straight
+  (xkb-mode :type git :host github :repo "captainflasmr/xkb-mode"))
+
+(use-package dart-mode)
+
+;; AI Tool Configuration
 
 (use-package copilot
   ;; Configure copilot configuration to play nicely with auto-complete
   ;; bind accepting completion to Ctrl+shift+tab
+  :hook
+  (prog-mode . copilot-mode)
   :general
   (general-define-key
 
    :keymaps '(copilot-mode-map)
    "C-S-<iso-lefttab>" 'copilot-accept-completion))
 
-(use-package gptel)
+
+(use-package gptel
+  :config
+  (add-to-list 'gptel-prompt-prefix-alist
+               `(markdown-mode . ,  (concat (propertize  "[>]" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))
+                                            (propertize  ": " 'font-lock-face `(:foreground ,(face-attribute 'default :foreground))))))
+
+  (defun my-gptel-shell-here ()
+    (interactive)
+    (gptel "*gptel-shell*")
+    (switch-to-buffer-other-window "*gptel-shell*")
+    (evil-insert-state))
+
+  (defun my-quit-gptel-shell ()
+    (interactive)
+    (gptel-abort (current-buffer))
+    (delete-window))
+
+
+  :general
+  (leader-def-key
+    :keymaps 'override
+    "s g" 'my-gptel-shell-here)
+
+  (general-define-key
+   :keymaps 'gptel-mode-map
+   "C-S-x" 'my-quit-gptel-shell))
 
 (defun my-get-password-from-authinfo (host)
   "Receive a password for HOST in .authinfo."
@@ -1498,6 +1535,9 @@ directory to make multiple eshell windows easier."
   :hook (after-init . mcp-hub-start-all-server))
 
 (use-package eca
+  :general
+  (leader-def-key
+    "E" 'eca-transient-menu)
   :custom
 
   ;; Disable annoying emojies
@@ -1506,15 +1546,8 @@ directory to make multiple eshell windows easier."
   (eca-chat-mcp-tool-call-error-symbol (propertize "FAIL" 'font-lock-face `(:foreground ,(face-attribute 'error :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))))
 
-(use-package xkb-mode
-  :straight
-  (xkb-mode :type git :host github :repo "captainflasmr/xkb-mode"))
-
-(use-package dart-mode)
-
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
-
 
 (provide 'init)
 ;;; init.el ends here

@@ -8,9 +8,9 @@ xkb_symbols "uf" {
 
         // The extra key next to left shift to be extended to shift
         key <LSGT> { [ Shift_L, Shift_L, Shift_L, Shift_L ] };
+        modifier_map Shift { <LSGT> };
 
         // Swap the backslash and return keys
         key <BKSL> {	[ Return			]	};
         key <RTRN> {	[ backslash,	bar		]	};
-
 };

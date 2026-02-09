@@ -1,0 +1,7 @@
+[tasks]
+image_bound      = [ 65535, 65535 ]
+
+[plugin]
+prepend_previewers = [
+	{ mime = "image/tiff", run = "magick" },
+]

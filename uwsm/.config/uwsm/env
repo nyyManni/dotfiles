@@ -14,4 +14,5 @@ export GDK_SCALE="2"
 
 export CARGO_HOME="$HOME/.local/share/cargo"
 export RUSTUP_HOME="$HOME/.local/share/rustup"
-export GOPATH-"$HOME/.local/share/go"
+export GOPATH="$HOME/.local/share/go"
+
