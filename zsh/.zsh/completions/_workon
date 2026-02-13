@@ -1,3 +1,0 @@
-#compdef workon
-
-_arguments "1: :($(ls $WORKON_HOME))"

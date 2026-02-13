@@ -920,7 +920,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :custom
   (flymake-ruff-program-args
   '("check" "--output-format" "concise" "--exit-zero" "--quiet" "--target-version" "313" "-")))
-         
 
 (use-package reformatter
   :hook
@@ -1538,13 +1537,20 @@ directory to make multiple eshell windows easier."
   :general
   (leader-def-key
     "E" 'eca-transient-menu)
-  :custom
 
+  :custom
   ;; Disable annoying emojies
   (eca-chat-prompt-prefix-loading (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-loading-symbol (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-error-symbol (propertize "FAIL" 'font-lock-face `(:foreground ,(face-attribute 'error :foreground) :weight bold)))
-  (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))))
+  (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold)))
+
+  :config
+  (defun my-eca-fix-tab ()
+    (local-set-key (kbd "TAB") #'eca-chat--key-pressed-tab)
+    (local-set-key (kbd "<tab>") #'eca-chat--key-pressed-tab))
+
+  (add-hook 'eca-chat-mode-hook #'my-eca-fix-tab))
 
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))

@@ -1,0 +1,255 @@
+#!/bin/bash
+
+set -uo pipefail
+
+# Configuration
+MONITOR_CONFIG_DIR="$HOME/.config/hypr/monitors"
+ACTIVE_CONFIG_LINK="$MONITOR_CONFIG_DIR/active.conf"
+DEFAULT_CONFIG="$MONITOR_CONFIG_DIR/default.conf"
+
+# Grace period in seconds — wait for multiple monitors to settle (e.g. docking)
+GRACE_PERIOD="${GRACE_PERIOD:-3}"
+
+# Validate that Hyprland environment is available.  When running under uwsm,
+# HYPRLAND_INSTANCE_SIGNATURE is pushed into the systemd user environment
+# automatically.  If it is missing the socket path cannot be constructed.
+if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+    echo "Error: HYPRLAND_INSTANCE_SIGNATURE is not set — is Hyprland running?" >&2
+    exit 1
+fi
+
+SOCKET="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+
+if [[ ! -S "$SOCKET" ]]; then
+    echo "Error: Hyprland IPC socket not found: $SOCKET" >&2
+    exit 1
+fi
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+# Extract unique monitor descriptions/names from a config file.
+get_monitors_from_config() {
+    local config_file="$1"
+    declare -A monitors
+
+    while IFS= read -r line; do
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+        if [[ "$line" =~ monitor:desc:([^,]+) ]]; then
+            monitors["${BASH_REMATCH[1]}"]=1
+        elif [[ "$line" =~ monitor:([^,[:space:]]+) ]]; then
+            monitors["${BASH_REMATCH[1]}"]=1
+        fi
+    done < "$config_file"
+
+    for monitor in "${!monitors[@]}"; do
+        echo "$monitor"
+    done
+}
+
+# ─── Main rearrangement logic ────────────────────────────────────────────────
+
+rearrange() {
+    echo "=========================================="
+    echo "Run started at: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "=========================================="
+    echo ""
+
+    # Step 1: Select and symlink the best matching monitor configuration
+
+    declare -A monitor_desc_to_name
+    declare -a connected_monitor_descs
+
+    echo "=== Step 1: Selecting monitor configuration ==="
+    echo ""
+    echo "Detecting connected monitors..."
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^Monitor[[:space:]]+([^[:space:]]+)[[:space:]]+\(ID[[:space:]]+[0-9]+\): ]]; then
+            current_monitor_name="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^[[:space:]]*description:[[:space:]]*(.+)$ ]]; then
+            monitor_desc="${BASH_REMATCH[1]}"
+            monitor_desc_to_name["$monitor_desc"]="$current_monitor_name"
+            connected_monitor_descs+=("$monitor_desc")
+            echo "  Found: $current_monitor_name - $monitor_desc"
+        fi
+    done < <(hyprctl monitors)
+
+    if [[ ${#monitor_desc_to_name[@]} -eq 0 ]]; then
+        echo "Error: No monitors detected" >&2
+        return 1
+    fi
+
+    # Find the best matching configuration
+    echo ""
+    echo "Searching for matching monitor configuration..."
+    best_match_config=""
+
+    for config_file in "$MONITOR_CONFIG_DIR"/*.conf; do
+        [[ "$(basename "$config_file")" == "active.conf" ]] && continue
+        [[ ! -f "$config_file" ]] && continue
+
+        config_name="$(basename "$config_file")"
+        echo "  Checking $config_name..."
+
+        mapfile -t config_monitors < <(get_monitors_from_config "$config_file")
+
+        if [[ ${#config_monitors[@]} -eq 0 ]]; then
+            echo "    No monitors defined in config, skipping"
+            continue
+        fi
+
+        all_monitors_found=true
+        for required_monitor in "${config_monitors[@]}"; do
+            found=false
+            for connected_monitor in "${connected_monitor_descs[@]}"; do
+                if [[ "$required_monitor" == "$connected_monitor" ]]; then
+                    found=true
+                    break
+                fi
+            done
+
+            if [[ -n "${monitor_desc_to_name[$required_monitor]:-}" ]]; then
+                found=true
+            fi
+
+            if [[ "$found" == false ]]; then
+                all_monitors_found=false
+                echo "    Missing monitor: $required_monitor"
+                break
+            fi
+        done
+
+        if [[ "$all_monitors_found" == true ]]; then
+            echo "    All monitors match!"
+            best_match_config="$config_file"
+            break
+        fi
+    done
+
+    if [[ -z "$best_match_config" ]]; then
+        echo ""
+        echo "No matching configuration found, using default.conf"
+        best_match_config="$DEFAULT_CONFIG"
+    fi
+
+    selected_config_name="$(basename "$best_match_config")"
+    echo ""
+    echo "Symlinking active.conf -> $selected_config_name"
+    ln -sf "$selected_config_name" "$ACTIVE_CONFIG_LINK"
+
+    echo "Reloading Hyprland configuration..."
+    hyprctl reload
+
+    # Step 2: Rearrange existing workspaces
+
+    echo ""
+    echo "=== Step 2: Rearranging workspaces ==="
+    echo ""
+
+    declare -A workspace_monitor_map
+
+    if [[ ! -f "$ACTIVE_CONFIG_LINK" ]]; then
+        echo "Error: Active configuration not found: $ACTIVE_CONFIG_LINK" >&2
+        return 1
+    fi
+
+    echo "Parsing workspace assignments from $ACTIVE_CONFIG_LINK..."
+    workspace_count=0
+    while IFS= read -r line; do
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+        if [[ "$line" =~ ^[[:space:]]*workspace[[:space:]]*=[[:space:]]*([0-9]+)[[:space:]]*,[[:space:]]*monitor:desc:([^,]+) ]]; then
+            workspace_num="${BASH_REMATCH[1]}"
+            monitor_desc="${BASH_REMATCH[2]}"
+            workspace_monitor_map[$workspace_num]="$monitor_desc"
+            echo "  Workspace $workspace_num -> $monitor_desc"
+            workspace_count=$((workspace_count + 1))
+        fi
+    done < "$ACTIVE_CONFIG_LINK"
+
+    if [[ $workspace_count -eq 0 ]]; then
+        echo "Warning: No workspace assignments found in config file"
+        echo "Nothing to rearrange."
+        return 0
+    fi
+
+    declare -A monitor_desc_to_name_after_reload
+
+    echo ""
+    echo "Re-detecting monitors after reload..."
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^Monitor[[:space:]]+([^[:space:]]+)[[:space:]]+\(ID[[:space:]]+[0-9]+\): ]]; then
+            current_monitor_name="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^[[:space:]]*description:[[:space:]]*(.+)$ ]]; then
+            monitor_desc="${BASH_REMATCH[1]}"
+            monitor_desc_to_name_after_reload["$monitor_desc"]="$current_monitor_name"
+            echo "  Found: $current_monitor_name - $monitor_desc"
+        fi
+    done < <(hyprctl monitors)
+
+    echo ""
+    echo "Moving workspaces to assigned monitors..."
+    existing_workspaces=$(hyprctl workspaces -j | jq -r '.[].id' | sort -n)
+
+    for workspace_id in $existing_workspaces; do
+        if [[ -n "${workspace_monitor_map[$workspace_id]:-}" ]]; then
+            target_monitor_desc="${workspace_monitor_map[$workspace_id]}"
+
+            if [[ -n "${monitor_desc_to_name_after_reload[$target_monitor_desc]:-}" ]]; then
+                target_monitor_name="${monitor_desc_to_name_after_reload[$target_monitor_desc]}"
+                echo "  Moving workspace $workspace_id to monitor $target_monitor_name ($target_monitor_desc)"
+                hyprctl dispatch moveworkspacetomonitor "$workspace_id" "$target_monitor_name"
+            else
+                echo "  Warning: Monitor not connected for workspace $workspace_id: $target_monitor_desc"
+            fi
+        else
+            echo "  Skipping workspace $workspace_id (no assignment in config)"
+        fi
+    done
+
+    echo ""
+    echo "Done! Workspaces have been rearranged."
+}
+
+# ─── Event loop ──────────────────────────────────────────────────────────────
+
+# Run once on startup so that the current state is applied immediately.
+rearrange
+
+echo ""
+echo "Listening for monitor hotplug events on $SOCKET ..."
+echo "Grace period: ${GRACE_PERIOD}s"
+echo ""
+
+# Debounce logic: on the first monitor event we record the timestamp, then
+# keep draining events.  Once GRACE_PERIOD seconds pass without a new monitor
+# event we trigger rearrange().  Using process substitution so the read loop
+# runs in the main shell and variable mutations are visible.
+
+pending=false
+last_event_ts=0
+
+while IFS= read -r -t 1 line || true; do
+    # Process any incoming event
+    if [[ -n "${line:-}" ]]; then
+        case "$line" in
+            monitoradded*|monitorremoved*)
+                echo "[$(date '+%H:%M:%S')] Event: $line"
+                last_event_ts=$(date +%s)
+                pending=true
+                ;;
+        esac
+    fi
+
+    # Check if we should fire
+    if [[ "$pending" == true ]]; then
+        now=$(date +%s)
+        elapsed=$(( now - last_event_ts ))
+        if (( elapsed >= GRACE_PERIOD )); then
+            echo ""
+            echo "Grace period elapsed — triggering rearrangement."
+            pending=false
+            rearrange || echo "Rearrangement failed (exit code $?), continuing..."
+        fi
+    fi
+done < <(socat -U - UNIX-CONNECT:"$SOCKET")
