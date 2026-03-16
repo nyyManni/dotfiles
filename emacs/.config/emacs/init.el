@@ -324,6 +324,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (defun my-dired-here ()
     (interactive)
     (dired (f-dirname (buffer-file-name))))
+  (defun my-dired-home ()
+    (interactive)
+    (dired (expand-file-name "~")))
 
   (leader-def-key
     :keymaps 'override
@@ -344,6 +347,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "D"   'kill-current-buffer
     "Y"   'my-put-file-name-on-clipboard
     "f f" 'my-dired-here
+    "f F" 'my-dired-home
     "f i" 'consult-imenu
     "l p" 'package-list-packages
     "G O" 'my-multi-occur-in-matching-buffers
@@ -622,6 +626,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
          ("C-S-h" . 'windmove-left)
          ("C-S-l" . 'windmove-right)))
 
+(use-package winpulse
+
+  :straight (winpulse :type git :host github :repo "xenodium/winpulse")
+  :config
+  (winpulse-mode +1))
+
 (use-package smartparens
   :hook
   (prog-mode . smartparens-mode)
@@ -829,7 +839,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
-                 (expand-file-name "~/.local/bin/glsl_analyzer")))
+                 (expand-file-name "/usr/bin/glsl_analyzer")))
   (add-to-list 'eglot-server-programs
                '((sql-mode)
                  "sql-language-server" "up" "--method" "stdio"))
@@ -949,7 +959,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (c-ts-mode . clang-format+-mode)
   (c++-ts-mode . clang-format+-mode))
 (use-package glsl-mode
-  ;; :straight (org-bars :type git :host github :repo "TideSofDarK/glsl-mode" :branch "better-ts-mode")
+  :straight (glsl-mode :type git :host github :repo "TideSofDarK/glsl-mode" :branch "better-ts-mode")
   )
 (use-package cmake-mode)
 
@@ -1236,7 +1246,10 @@ directory to make multiple eshell windows easier."
 
 (use-package dired+
   :init
-  (setq-default diredp-hide-details-initially-flag nil))
+  (setq-default diredp-hide-details-initially-flag nil)
+  :config
+  (set-face-attribute 'diredp-file-name nil :foreground "white"))
+
 ;; (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
@@ -1544,6 +1557,8 @@ directory to make multiple eshell windows easier."
   (eca-chat-mcp-tool-call-loading-symbol (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-error-symbol (propertize "FAIL" 'font-lock-face `(:foreground ,(face-attribute 'error :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold)))
+  (eca-chat-mcp-tool-call-pending-approval-symbol (propertize "PENDING" 'font-lock-face `(:foreground ,(face-attribute 'warning :foreground) :weight bold)))
+
 
   :config
   (defun my-eca-fix-tab ()

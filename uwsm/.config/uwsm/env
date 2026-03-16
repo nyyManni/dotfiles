@@ -16,3 +16,4 @@ export CARGO_HOME="$HOME/.local/share/cargo"
 export RUSTUP_HOME="$HOME/.local/share/rustup"
 export GOPATH="$HOME/.local/share/go"
 
+export PYTHON_HISTORY="$HOME/.local/share/python/history"
