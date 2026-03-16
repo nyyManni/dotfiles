@@ -28,7 +28,9 @@ $rust\
 $docker_context\
 [](fg:#06969A bg:#33658A)\
 $time\
-[ ](fg:#33658A)\
+[ ](fg:#33658A bg:#3B4252)\
+$aws\
+[ ](fg:#3B4252)\
 """
 command_timeout = 5000
 
@@ -159,4 +161,3 @@ symbol = ""
 format	= '[$symbol($profile )(\($region\))]($style)'
 style = 'bg:#3B4252 bold yellow'
 region_aliases = {none = ''}
-
