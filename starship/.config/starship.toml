@@ -148,7 +148,7 @@ when = true
 os = "linux"
 format = "[ $symbol  ]($style)"
 style = "bg:#3B4252"
-symbol = ""
+symbol = ""
 
 [custom.windows]
 when = true
