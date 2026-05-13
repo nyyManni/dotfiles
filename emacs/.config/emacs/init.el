@@ -835,7 +835,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode)
-                 "rass" "--" "ty" "server" "--" "ruff" "server"))
+                 ;; Use the user-installed version of ty and ruff instead of whatever
+                 ;; the project defines
+                 "rass" "--" "/home/nyymanni/.local/bin/ty" "server" "--" "/home/nyymanni/.local/bin/ruff" "server"))
 
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
@@ -910,6 +912,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package project :straight t)
 
 (use-package markdown-mode
+  :config
+  (add-to-list 'markdown-code-lang-modes '("python" . python-mode))
+  (add-to-list 'markdown-code-lang-modes '("rust" . rust-ts-mode))
+  (add-to-list 'markdown-code-lang-modes '("typescript" . typescript-ts-mode))
+  (add-to-list 'markdown-code-lang-modes '("javascript" . java-ts-mode))
   :custom
   ((markdown-header-scaling t)
    (markdown-fontify-code-blocks-natively t)))
@@ -1253,7 +1260,10 @@ directory to make multiple eshell windows easier."
 ;; (use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
-(use-package toml-mode)
+(use-package toml-mode
+  ;; Use toml-mode for uv.lock files.
+  :mode ("\\.toml" "uv.lock")
+  )
 (use-package dockerfile-mode)
 (use-package csv-mode)
 (use-package yuck-mode)
@@ -1561,11 +1571,20 @@ directory to make multiple eshell windows easier."
 
 
   :config
-  (defun my-eca-fix-tab ()
-    (local-set-key (kbd "TAB") #'eca-chat--key-pressed-tab)
-    (local-set-key (kbd "<tab>") #'eca-chat--key-pressed-tab))
+  ;; Compatibility shim: flymake-diagnostic-code doesn't exist until Emacs 31,
+  ;; but eca-editor.el calls it unconditionally.
+  (unless (fboundp 'flymake-diagnostic-code)
+    (defun flymake-diagnostic-code (_diagnostic)
+      "Compatibility shim for Emacs < 31."
+      nil))
 
-  (add-hook 'eca-chat-mode-hook #'my-eca-fix-tab))
+  ;; (defun my-eca-fix-tab ()
+  ;;   (local-set-key (kbd "TAB") #'eca-chat--key-pressed-tab)
+  ;;   (local-set-key (kbd "<tab>") #'eca-chat--key-pressed-tab)
+  ;;   )
+
+  ;; (add-hook 'eca-chat-mode-hook #'my-eca-fix-tab)
+  )
 
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
