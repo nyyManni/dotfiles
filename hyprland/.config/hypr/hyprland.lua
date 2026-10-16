@@ -35,8 +35,56 @@ hl.monitor({ output = "desc:Samsung Electric Company SAMSUNG 0x01000600", mode =
 hl.monitor({ output = "desc:Dell Inc. DELL P2723D JZ74PW3", mode = "2560x1440", position = "-5120x0", scale = 1 })
 hl.monitor({ output = "desc:Dell Inc. DELL P2723D CF74PW3", mode = "2560x1440", position = "-2560x0", scale = 1 })
 
--- bindl=,switch:off:Lid Switch,exec,hyprctl keyword monitor "eDP-1, 3840x1260, 4000x0, 1"
--- bindl=,switch:on:Lid Switch,exec,hyprctl keyword monitor "eDP-1, "
+-- Lid switch: disable internal monitor when closed, re-enable when opened.
+-- This triggers monitor.removed/added events which in turn fire the profile
+-- rearrange logic (e.g. switching between "home" and "home_docked").
+--
+-- IMPORTANT: the disable is gated on dock state. Disabling eDP-1 must ONLY
+-- happen when external monitors are present (docked). In laptop-only mode,
+-- closing the lid triggers a logind suspend (HandleLidSwitch=suspend); if we
+-- disabled the sole panel here, the matching `switch:off` re-enable would be
+-- lost across suspend (libinput does not re-emit switch transitions that
+-- occur while asleep), leaving the panel stuck disabled on resume ("backlight
+-- on, screen black"). Leaving eDP-1 enabled when laptop-only lets Hyprland's
+-- native resume path bring the panel back. (Independent of the i915 s2idle
+-- kernel bug worked around by booting 6.19.x.)
+--
+-- Known limitation (accepted): if you undock while the lid is already closed,
+-- logind does NOT re-evaluate the lid (it only acts on lid *events*), so the
+-- machine stays awake and headless until you open the lid -- at which point
+-- `switch:off` re-enables eDP-1 and it recovers.
+
+local function edp_is_active()
+    for _, m in ipairs(hl.get_monitors() or {}) do
+        if m.name == "eDP-1" then return true end
+    end
+    return false
+end
+
+local function external_monitor_count()
+    local n = 0
+    for _, m in ipairs(hl.get_monitors() or {}) do
+        if m.name ~= "eDP-1" then n = n + 1 end
+    end
+    return n
+end
+
+hl.bind("switch:on:Lid Switch", function()
+    -- Only disable the internal panel while docked. A laptop-only lid close
+    -- falls through to a logind suspend with eDP-1 left enabled.
+    if external_monitor_count() > 0 then
+        hl.monitor({ output = "eDP-1", disabled = true })
+    end
+end, { locked = true })
+
+hl.bind("switch:off:Lid Switch", function()
+    -- Idempotent re-enable: only act if eDP-1 is currently disabled (i.e. we
+    -- disabled it on a docked lid close). In laptop-only mode eDP-1 is already
+    -- active here, so this is a no-op and adds no redundant modeset on wake.
+    if not edp_is_active() then
+        hl.monitor({ output = "eDP-1", disabled = false, mode = "preferred", position = "auto", scale = 1.33333333 })
+    end
+end, { locked = true })
 
 
 ---------------------
@@ -44,9 +92,11 @@ hl.monitor({ output = "desc:Dell Inc. DELL P2723D CF74PW3", mode = "2560x1440", 
 ---------------------
 
 local terminal    = "footclient"
+local editor      = "emacsclient --create-frame"
 local fileManager = "thunar"
 -- local menu     = "uwsm -- app walker"
-local menu        = "qs -c noctalia-shell ipc call launcher toggle"
+local menu        = "noctalia msg panel-toggle launcher"
+-- local menu        = "qs -c noctalia-shell ipc call launcher toggle"
 
 
 ---------------
@@ -149,7 +199,7 @@ hl.config({
 
     dwindle = {
         -- pseudotile was removed in 0.55 (it didn't do anything anymore).
-        preserve_split = true,
+        preserve_split = false,
     },
 
     master = {
@@ -199,6 +249,7 @@ hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 local mainMod = "SUPER"
 
 hl.bind(mainMod .. " + return",       hl.dsp.exec_cmd("uwsm app -- " .. terminal))
+hl.bind(mainMod .. " + SHIFT + return",       hl.dsp.exec_cmd("uwsm app -- " .. editor))
 hl.bind(mainMod .. " + SHIFT + C",    hl.dsp.window.close())
 hl.bind(mainMod .. " + SHIFT + M",    hl.dsp.exec_cmd("uwsm stop"))
 hl.bind(mainMod .. " + E",            hl.dsp.exec_cmd(fileManager))
@@ -208,15 +259,18 @@ hl.bind(mainMod .. " + E",            hl.dsp.exec_cmd(fileManager))
 
 -- hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + space",        hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + SHIFT + U",    hl.dsp.exec_cmd("noctalia msg panel-toggle nyymanni/noctalia-lunch:menus"))
 hl.bind(mainMod .. " + P",            hl.dsp.exec_cmd("hyprshot -m window --clipboard-only"))
 hl.bind(mainMod .. " + SHIFT + P",    hl.dsp.exec_cmd("hyprshot -m region --clipboard-only"))
 hl.bind(mainMod .. " + S",            hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + F",            hl.dsp.window.fullscreen({ mode = "maximized" }))   -- old: fullscreen, 1
 hl.bind(mainMod .. " + SHIFT + F",    hl.dsp.window.fullscreen({ mode = "fullscreen" }))  -- old: fullscreen
 -- hl.bind("ALT + space", hl.dsp.exec_cmd("hyprctl switchxkblayout zsa-technology-labs-ergodox-ez-keyboard next"))
-hl.bind(mainMod .. " + SHIFT + delete", hl.dsp.exec_cmd("loginctl lock-session"))
+-- hl.bind(mainMod .. " + SHIFT + delete", hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mainMod .. " + SHIFT + delete", hl.dsp.exec_cmd("noctalia msg session lock"))
 
-hl.bind(mainMod .. " + XF86Launch6",  hl.dsp.exec_cmd("loginctl lock-session"))
+-- hl.bind(mainMod .. " + XF86Launch6",  hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mainMod .. " + XF86Launch6",  hl.dsp.exec_cmd("noctalia msg session lock"))
 
 -- =========================================================================
 -- Suspend/resume recovery experiments (Hyprland 0.55 s2idle wedge,
@@ -326,6 +380,11 @@ hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tru
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 
+-- Push-to-talk: keydown starts the script, keyup signals it to exit.
+-- local ptt_script = os.getenv("HOME") .. "/.config/hypr/scripts/push-to-talk.sh"
+-- hl.bind("mouse:274", hl.dsp.exec_cmd(ptt_script))
+-- hl.bind("mouse:274", hl.dsp.exec_cmd("kill -USR1 $(cat /tmp/push-to-talk.pid)"), { release = true })
+
 
 ------------------------
 ---- WORKSPACE RULES ----
@@ -341,8 +400,6 @@ hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"),       { locked = tru
 
 local home = os.getenv("HOME")
 local monitors_dir = home .. "/.config/hypr/monitors"
-
-local GRACE_MS = 3000
 
 local function load_profile(name)
     -- Use dofile (not require) because Hyprland's lua sandbox typically
@@ -374,17 +431,33 @@ local function pick_profile()
     local profile_names = dofile(monitors_dir .. "/profiles.lua")
     local connected = connected_descriptions()
 
+    -- Count distinct connected descriptions so we can require an EXACT match
+    -- below (same set, not just a subset).
+    local connected_count = 0
+    for _ in pairs(connected) do
+        connected_count = connected_count + 1
+    end
+
     for _, name in ipairs(profile_names) do
         local profile = load_profile(name)
         if profile then
+            -- Exact-set match: every required description must be connected
+            -- AND the connected set must contain nothing extra. This makes
+            -- transient half-docked states (e.g. {laptop, primary} mid-dock)
+            -- and unknown monitor combinations match no profile at all, so
+            -- the caller leaves the current placement untouched instead of
+            -- churning. The grace period is no longer needed because the
+            -- partial state is simply a no-op; the final monitor event lands
+            -- on the fully-connected set and matches.
+            local required = profile.requires or {}
             local all_present = true
-            for _, required in ipairs(profile.requires or {}) do
-                if not connected[required] then
+            for _, desc in ipairs(required) do
+                if not connected[desc] then
                     all_present = false
                     break
                 end
             end
-            if all_present then
+            if all_present and #required == connected_count then
                 return name, profile, connected
             end
         end
@@ -414,59 +487,87 @@ local function move_existing_workspaces(profile, connected)
         end
     end
 
+    -- Returns the number of workspaces actually moved so the caller can tell
+    -- whether anything changed (and therefore whether to notify / re-fire).
+    --
+    -- NOTE: ws.monitor is a MONITOR OBJECT (CLuaMonitor), not a string, so we
+    -- must compare its `.name` field against the target name. The previous
+    -- `ws.monitor ~= target` compared an object to a string and was therefore
+    -- *always* true, dispatching a move for every workspace on every pass.
+    -- Combined with the monitor.layout_changed trigger that those very moves
+    -- re-fire, that produced an endless rearrange/notify loop.
+    local moved = 0
     for _, ws in ipairs(hl.get_workspaces() or {}) do
         local key = tostring(ws.id) -- workspace rules above use numeric ids as strings
         local target = target_for_ws[key] or target_for_ws[ws.name]
-        if target and ws.monitor ~= target then
+        local current = ws.monitor and ws.monitor.name or nil
+        if target and current ~= target then
             hl.dispatch(hl.dsp.workspace.move({ workspace = ws.id, monitor = target }))
+            moved = moved + 1
         end
     end
+    return moved
 end
 
-local function rearrange_workspaces()
+local last_applied_profile = nil
+local function rearrange_workspaces(manual)
     local name, profile, connected = pick_profile()
     if not profile then
-        hl.notification.create({
-            text = "rearrange: no monitor profile matched",
-            timeout = 4000,
-            icon = "warning",
-        })
+        -- No profile exactly matches the connected monitors. For automatic
+        -- monitor events this is expected (a transient half-docked state, or
+        -- an unrecognized setup) and we silently leave placement untouched.
+        -- Only the manual keybind surfaces a notification, so invoking it by
+        -- hand still tells you nothing matched.
+        if manual then
+            hl.notification.create({
+                text = "rearrange: no monitor profile matched",
+                timeout = 4000,
+                icon = "warning",
+            })
+        end
+        last_applied_profile = nil
         return
     end
 
     apply_workspace_rules(profile)
-    move_existing_workspaces(profile, connected)
+    local moved = move_existing_workspaces(profile, connected)
 
-    hl.notification.create({
-        text = "Monitor profile applied: " .. name,
-        timeout = 2500,
-        icon = "ok",
-    })
+    -- Only notify when something actually changed: either we switched to a
+    -- different profile than last time, or at least one workspace was moved.
+    if name ~= last_applied_profile or moved > 0 then
+        hl.notification.create({
+            text = "Monitor profile applied: " .. name,
+            timeout = 2500,
+            icon = "ok",
+        })
+    end
+    last_applied_profile = name
 end
 
--- Expose to the keybind defined earlier.
-_G.rearrange_workspaces = rearrange_workspaces
+-- Expose to the keybind defined earlier. The keybind invokes it manually, so
+-- pass `manual = true` to enable the "no profile matched" feedback.
+_G.rearrange_workspaces = function() rearrange_workspaces(true) end
 
--- Debounced trigger. We arm a single-shot timer on each event and disable +
--- re-enable it to push the deadline forward, mirroring the old script's
--- 3 s grace period that lets docking settle before reacting.
-local rearrange_timer
-rearrange_timer = hl.timer(function()
-    rearrange_workspaces()
-end, { timeout = GRACE_MS, type = "oneshot" })
-rearrange_timer:set_enabled(false)
-
-local function schedule_rearrange()
-    rearrange_timer:set_enabled(false)
-    rearrange_timer:set_enabled(true)
+-- No debounce / grace period is needed. Profile matching is exact (see
+-- pick_profile), so any transient half-docked state simply matches no profile
+-- and rearrange does nothing. Each monitor event re-evaluates immediately;
+-- the event that completes the recognized set is the one that applies it.
+-- This reacts faster than the old grace timer and uses no background ticks.
+--
+-- We deliberately do NOT subscribe to monitor.layout_changed: that event is
+-- re-fired by our own workspace moves (moveworkspacetomonitor changes the
+-- layout), which would create a self-perpetuating loop. Docking and hotplug
+-- always emit monitor.added / monitor.removed, which is sufficient.
+local function on_monitor_event()
+    rearrange_workspaces(false)
 end
 
-hl.on("monitor.added",          schedule_rearrange)
-hl.on("monitor.removed",        schedule_rearrange)
-hl.on("monitor.layout_changed", schedule_rearrange)
+hl.on("monitor.added",   on_monitor_event)
+hl.on("monitor.removed", on_monitor_event)
 
--- Initial application after Hyprland is fully up.
-hl.on("hyprland.start", rearrange_workspaces)
+-- Initial application after Hyprland is fully up. Not "manual": if no profile
+-- matches at startup we stay silent rather than warning.
+hl.on("hyprland.start", function() rearrange_workspaces(false) end)
 
 
 -------------------
@@ -474,10 +575,11 @@ hl.on("hyprland.start", rearrange_workspaces)
 -------------------
 
 hl.on("hyprland.start", function()
-    -- hl.exec_cmd("waybar")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-theme 'catppuccin-mocha-blue-cursors'")
-    hl.exec_cmd("/usr/bin/qs -c noctalia-shell")
 end)
+
+-- Noctalia is started by its UWSM-managed user service, which runs after
+-- graphical-session.target has exported the compositor environment.
 
 
 ----------------------
@@ -519,16 +621,66 @@ hl.window_rule({
     suppress_event    = "activate activatefocus",
 })
 
+-- Keep host SUPER bindings available while the VM viewer has focus.
+hl.window_rule({
+    name                 = "virt-viewer-host-shortcuts",
+    match                = { class = "^virt-viewer$" },
+    no_shortcuts_inhibit = true,
+})
+
 
 ---------------------
 ---- LAYER RULES ----
 ---------------------
 
-hl.layer_rule({
-    name         = "noctalia",
-    match        = { namespace = "noctalia-background-.*$" },
+-- hl.layer_rule({
+--     name         = "noctalia",
+--     match        = { namespace = "noctalia-background-.*$" },
 
-    ignore_alpha = 0.5,
-    blur         = true,
-    blur_popups  = true,
+--     ignore_alpha = 0.5,
+--     blur         = true,
+--     blur_popups  = true,
+-- })
+
+------------------------
+---- NOCTALIA SHELL ----
+------------------------
+hl.config({
+  general = {
+    gaps_in = 5,
+    gaps_out = 7,
+  },
+
+  decoration = {
+    rounding = 10,
+    rounding_power = 2,
+
+    shadow = {
+      enabled = true,
+      range = 4,
+      render_power = 3,
+      color = 0xee1a1a1a,
+    },
+
+    blur = {
+      enabled = true,
+      size = 3,
+      passes = 2,
+      vibrancy = 0.1696,
+    },
+  },
 })
+
+hl.layer_rule({
+  name = "noctalia",
+  match = {
+    namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd)$",
+  },
+  no_anim = true,
+  ignore_alpha = 0.5,
+  blur = true,
+  blur_popups = true,
+})
+
+-- For Noctalia Color templates
+require("noctalia").apply_theme()

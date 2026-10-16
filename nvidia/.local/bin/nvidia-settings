@@ -1,0 +1,5 @@
+#!/bin/sh
+# Always select an XDG config file, including when launched from the menu.
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/nvidia"
+mkdir -p -- "$config_dir" || exit 1
+exec /usr/bin/nvidia-settings --config "$config_dir/settings-rc" "$@"

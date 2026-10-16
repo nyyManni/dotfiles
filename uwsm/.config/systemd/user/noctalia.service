@@ -1,0 +1,14 @@
+[Unit]
+Description=Noctalia shell
+After=graphical-session.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/noctalia
+Restart=on-failure
+RestartSec=2s
+Slice=app-graphical.slice
+EnvironmentFile=%h/.local/share/noctalia/openai.env
+
+[Install]
+WantedBy=graphical-session.target

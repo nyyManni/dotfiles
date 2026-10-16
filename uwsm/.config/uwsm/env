@@ -1,5 +1,4 @@
 
-export QT_QPA_PLATFORMTHEME="qt6ct"
 export QT_QPA_PLATFORM="wayland"
 export SDL_VIDEODRIVER="wayland"
 export XDG_CURRENT_DESKTOP="Hyprland"
@@ -12,8 +11,13 @@ export XCURSOR_THEME="catppuccin-mocha-blue-cursors"
 export XCURSOR_SIZE="28"
 export GDK_SCALE="2"
 
-export CARGO_HOME="$HOME/.local/share/cargo"
-export RUSTUP_HOME="$HOME/.local/share/rustup"
+. "${XDG_CONFIG_HOME:-$HOME/.config}/shell/tool-paths.sh"
 export GOPATH="$HOME/.local/share/go"
 
-export PYTHON_HISTORY="$HOME/.local/share/python/history"
+# AWS — kept here (not just in fish/conf.d/aws.fish) so emacs.service and
+# every other graphical-session unit inherits them. uwsm sources this file
+# at session start and pushes the delta into the systemd user activation
+# environment, from which foot-server (and the fish shells it spawns)
+# inherits too.
+export AWS_CONFIG_FILE="$HOME/.config/aws/config"
+export AWS_SHARED_CREDENTIALS_FILE="$HOME/.config/aws/credentials"

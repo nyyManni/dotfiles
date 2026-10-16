@@ -1,0 +1,11 @@
+" Keep standard Vim defaults.  legacy.vim contains the old, previously
+" uninstalled personal configuration; it is deliberately not sourced here.
+source $VIMRUNTIME/defaults.vim
+
+let s:state_home = empty($XDG_STATE_HOME)
+      \ ? expand('~/.local/state') : $XDG_STATE_HOME
+let s:state_dir = s:state_home . '/vim'
+call mkdir(s:state_dir, 'p', 0700)
+call mkdir(s:state_dir . '/netrw', 'p', 0700)
+let &viminfofile = s:state_dir . '/viminfo'
+let g:netrw_home = s:state_dir . '/netrw'

@@ -1,0 +1,1 @@
+- Do not use subagents to read files verbatim. Reading a file with `read_file`-tool is always better than creating a subagent to call `read_file` for you, and then output the contents token-by-token.

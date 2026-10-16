@@ -1,0 +1,3 @@
+- We use python. Prefer python CDK to the TypeScript one
+- There is an AWS MCP configured, but not always enabled. Before running aws CLI commands, tell the user to enable it.
+- The AWS MCP server uses a read-only-role. Do not attempt anything that writes or mutates data. It will not work.

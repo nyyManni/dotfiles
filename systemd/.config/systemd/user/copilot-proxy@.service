@@ -1,0 +1,37 @@
+[Unit]
+Description=Copilot API proxy (%i)
+Documentation=https://github.com/caozhiyuan/copilot-api
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/copilot-proxy/%i.env
+StateDirectory=copilot-proxy/%i
+WorkingDirectory=%S/copilot-proxy/%i
+Environment=COPILOT_API_HOME=%S/copilot-proxy/%i
+Environment=XDG_CACHE_HOME=%S/copilot-proxy/%i/cache
+ExecStart=%h/.local/share/copilot-api/node_modules/.bin/copilot-api start --port ${COPILOT_PROXY_PORT} --github-token "${COPILOT_PROXY_TOKEN}"
+Restart=on-failure
+RestartSec=5s
+
+# Keep system paths immutable. The instance state directory remains writable.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+# Hide the home directory, except for the installed, pinned proxy code.
+ProtectHome=tmpfs
+BindReadOnlyPaths=%h/.local/share/copilot-api
+ProtectControlGroups=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+# Node uses netlink to query network interface identifiers for Copilot authentication.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictNamespaces=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,2 @@
+- Be direct. No need to apologize for mistakes, just proceed to correct them.
+- Avoid emojis where they are not necessary (such as headings etc.)

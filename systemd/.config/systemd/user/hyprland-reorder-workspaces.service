@@ -1,0 +1,17 @@
+[Unit]
+Description=Hyprland monitor hotplug workspace rearrangement
+Documentation=https://github.com/nyymanni/hyprland-monitor-juggle
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/rearrange-workspaces
+Restart=on-failure
+RestartSec=5
+
+# Grace period before triggering rearrangement after monitor events (seconds)
+Environment=GRACE_PERIOD=3
+
+[Install]
+WantedBy=graphical-session.target

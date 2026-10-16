@@ -5,5 +5,22 @@
 
 emacs/.config/emacs/elpa
 emacs/.config/emacs/eln-cache
+emacs/.config/emacs/straight/
+emacs/.config/emacs/etc/
+emacs/.config/emacs/var/
+emacs/.config/emacs/**/*.elc
+emacs/.config/emacs/user-lisp/.user-lisp-autoloads.el
 fish/.config/fish/fish_variables
 /hyprland/.config/hypr/monitors/active.conf
+
+# Keep machine-local registration, credentials, and generated state out of Git.
+/uv/
+/opencode/.config/opencode/service.json
+/eca/.config/eca/config.json
+/eca/.config/eca/skills/*
+!/eca/.config/eca/skills/create-ai-knowledge-base/
+!/eca/.config/eca/skills/windows-vm-dev/
+/gtk/.config/gtk-*/noctalia.css
+/gtk/.config/gtk-3.0/bookmarks
+/systemd/.config/systemd/user/*.wants/
+/systemd/.config/systemd/user/*.requires/

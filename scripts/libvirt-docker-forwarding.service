@@ -1,0 +1,17 @@
+[Unit]
+Description=Allow the libvirt default network through Docker forwarding
+Documentation=https://docs.docker.com/engine/network/firewall-iptables/
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Libvirt supplies NAT and firewalld handles forwarding; Docker's FORWARD policy
+# also needs to accept this subnet before its default DROP. Leave other traffic alone.
+ExecStart=/usr/bin/bash -c '/usr/bin/iptables -C DOCKER-USER -i virbr0 -s 192.168.124.0/24 -j ACCEPT || /usr/bin/iptables -I DOCKER-USER 1 -i virbr0 -s 192.168.124.0/24 -j ACCEPT'
+ExecStart=/usr/bin/bash -c '/usr/bin/iptables -C DOCKER-USER -o virbr0 -d 192.168.124.0/24 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || /usr/bin/iptables -I DOCKER-USER 2 -o virbr0 -d 192.168.124.0/24 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
+
+[Install]
+WantedBy=docker.service

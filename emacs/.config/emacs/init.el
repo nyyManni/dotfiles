@@ -51,7 +51,6 @@
       read-extended-command-predicate #'command-completion-default-include-p
 
       backup-directory-alist         '(("." . "~/.local/share/emacs/backups/"))
-      auto-save-file-name-transforms '((".*" "~/.local/share/emacs/auto-save-list" t))
 
       custom-file          (concat user-emacs-directory "/customize-ignored.el")
       delete-old-versions  -1
@@ -182,6 +181,11 @@
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode))
 
+(use-package exec-path-from-shell
+  :demand t
+  :config
+  (exec-path-from-shell-initialize))
+
 (when (eq system-type 'darwin)
   (when (memq window-system '(mac ns x))
     (use-package exec-path-from-shell
@@ -220,6 +224,7 @@
      'flymake-note nil
      :underline `(:style wave :color ,(face-attribute 'success :foreground))))))
 
+(use-package restart-emacs)
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -349,6 +354,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "f f" 'my-dired-here
     "f F" 'my-dired-home
     "f i" 'consult-imenu
+    "O"   'consult-line
     "l p" 'package-list-packages
     "G O" 'my-multi-occur-in-matching-buffers
     "s l" 'sort-lines
@@ -357,13 +363,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "I"   (lambda () (interactive) (find-file user-init-file))
     "S"   'delete-trailing-whitespace))
 
-;; (defadvice find-file (after find-file-sudo activate)
-;;   "Find file as root if necessary."
-
-;;   (unless (and buffer-file-name
-;;                (file-writable-p buffer-file-name)
-;;                (not (f-directory-p buffer-file-name)))
-;;     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+(use-package sudo-edit)
 
 
 (defun my-reload-file ()
@@ -775,6 +775,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "g b"   'magit-blame
     "g f h" 'magit-log-buffer-file))
 
+
+;; (use-package borg)
+
 ;; LSP
 
 (use-package xref
@@ -797,6 +800,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (typescript-ts-mode . eglot-ensure)
   (csharp-ts-mode . eglot-ensure)
   (glsl-ts-mode . eglot-ensure)
+  (qml-mode . eglot-ensure)
   (sql-mode . eglot-ensure)
   (sh-mode . eglot-ensure)
   (bash-ts-mode . eglot-ensure)
@@ -834,10 +838,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq eglot-report-progress nil)
 
   (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode)
+               `((python-mode python-ts-mode)
                  ;; Use the user-installed version of ty and ruff instead of whatever
                  ;; the project defines
-                 "rass" "--" "/home/nyymanni/.local/bin/ty" "server" "--" "/home/nyymanni/.local/bin/ruff" "server"))
+                 "rass" "--" ,(expand-file-name "~/.local/bin/ty") "server" "--"
+                 ,(expand-file-name "~/.local/bin/ruff") "server"))
 
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
@@ -847,8 +852,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                  "sql-language-server" "up" "--method" "stdio"))
 
   (add-to-list 'eglot-server-programs
-               '((csharp-mode csharp-ts-mode)
-                 "/home/nyymanni/.local/share/omnisharp-linux-x64-net6.0/OmniSharp" "-lsp"))
+               '((qml-mode)
+                 "qmlls"))
+
+  (add-to-list 'eglot-server-programs
+               `((lua-mode)
+                 ,(expand-file-name "~/.local/share/go/bin/hyprls") "up" "--method" "stdio"))
+
+  (add-to-list 'eglot-server-programs
+               `((csharp-mode csharp-ts-mode)
+                 ,(expand-file-name "~/.local/share/omnisharp-linux-x64-net6.0/OmniSharp") "-lsp"))
 
   (add-to-list 'eglot-server-programs
                '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
@@ -863,11 +876,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps 'eglot-mode-map
     "F F" 'eglot-format))
 
-
-(use-package eglot-booster
-  :straight (eglot-booster :type git :host github :repo "jdtsmith/eglot-booster")
-  :after eglot
-  :config (eglot-booster-mode))
 
 (use-package dape
   :preface
@@ -952,7 +960,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (reformatter-define prettier
     :program "prettier"
-    :args `("--stdin-filepath" ,buffer-file-name)))
+    :args `("--tab-width" "4" "--stdin-filepath" ,buffer-file-name)))
 
 (use-package uv
   :straight (uv :type git :host github :repo "johannes-mueller/uv.el"))
@@ -1240,7 +1248,10 @@ directory to make multiple eshell windows easier."
   :mode ("\\.qmlproject" "\\.qml"))
 
 (use-package json-ts-mode
-  :mode ("\\.json"))
+  :mode ("\\.json")
+  ;; Set default indent to 4 spaces
+  :init
+  (setq-default json-ts-mode-indent-offset 4))
 
 (use-package graphql-ts-mode
   :mode ("\\.graphql\\'" "\\.gql\\'")
@@ -1257,7 +1268,7 @@ directory to make multiple eshell windows easier."
   :config
   (set-face-attribute 'diredp-file-name nil :foreground "white"))
 
-;; (use-package systemd)
+(use-package systemd)
 (use-package meson-mode)
 (use-package yaml-mode)
 (use-package toml-mode
@@ -1502,10 +1513,18 @@ directory to make multiple eshell windows easier."
   (general-define-key
 
    :keymaps '(copilot-mode-map)
-   "C-S-<iso-lefttab>" 'copilot-accept-completion))
+   "C-S-<iso-lefttab>" 'copilot-accept-completion)
+  (general-define-key
+   :keymaps '(copilot-completion-map)
+   "TAB" nil
+   "<tab>" nil
+   )
+  )
 
 
 (use-package gptel
+  :custom
+  (default-model "gpt-5.6-luna")
   :config
   (add-to-list 'gptel-prompt-prefix-alist
                `(markdown-mode . ,  (concat (propertize  "[>]" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))
@@ -1532,6 +1551,11 @@ directory to make multiple eshell windows easier."
    :keymaps 'gptel-mode-map
    "C-S-x" 'my-quit-gptel-shell))
 
+(use-package gptel-magit
+  :ensure t
+  :hook (magit-mode . gptel-magit-install))
+
+
 (defun my-get-password-from-authinfo (host)
   "Receive a password for HOST in .authinfo."
   (let* ((found (car (auth-source-search :host host :require '(:secret)))))
@@ -1544,9 +1568,13 @@ directory to make multiple eshell windows easier."
 (use-package mcp
   :after gptel
   :custom (mcp-hub-servers
-           `(
-             ("githits" . (:url "https://mcp.githits.com/"
-                                :token ,(my-get-password-from-authinfo "githits.com")))))
+           `(("brave-search" . (:command "npx"
+                                :args ("-y" "@brave/brave-search-mcp-server"
+                                       "--transport" "stdio"
+                                       "--brave-api-key-file"
+                                       ,(expand-file-name "~/.local/share/emacs/brave-api-key"))))
+             ("githits" . (:command "npx"
+                           :args ("-y" "githits@latest" "mcp" "start")))))
   :config
   (require 'mcp-hub)
   (require 'gptel-integrations)
@@ -1576,15 +1604,31 @@ directory to make multiple eshell windows easier."
   (unless (fboundp 'flymake-diagnostic-code)
     (defun flymake-diagnostic-code (_diagnostic)
       "Compatibility shim for Emacs < 31."
-      nil))
+      nil)))
 
-  ;; (defun my-eca-fix-tab ()
-  ;;   (local-set-key (kbd "TAB") #'eca-chat--key-pressed-tab)
-  ;;   (local-set-key (kbd "<tab>") #'eca-chat--key-pressed-tab)
-  ;;   )
 
-  ;; (add-hook 'eca-chat-mode-hook #'my-eca-fix-tab)
-  )
+(use-package agent-shell
+  :custom
+  (agent-shell-session-restore-verbosity 'full)
+  :config
+  (require 'nyy-agent-shell-config)
+  (nyy/agent-shell-configure))
+
+
+(use-package agent-shell-manager
+  :straight (:type git :host github :repo "jethrokuan/agent-shell-manager"
+             :files ("*.el"))
+  :config
+  (require 'consult-agent-shell-sessions))
+
+
+
+(use-package mcp-server
+  :straight (:type git :host github :repo "rhblind/emacs-mcp-server"
+             :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
+  :config
+  (add-hook 'emacs-startup-hook #'mcp-server-start-unix))
+
 
 (custom-set-variables
  '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))

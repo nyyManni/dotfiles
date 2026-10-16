@@ -13,11 +13,43 @@
 ;;
 ;;; Code:
 
-(setq-default package-user-dir     "~/.local/share/emacs")
-(setq-default user-emacs-directory     "~/.local/share/emacs")
+;; Capture the config location before redirecting generated files elsewhere.
+;; This works with both a Stow directory symlink and individual init symlinks.
+(defconst nyy/emacs-config-directory
+  (file-name-directory (file-truename (or load-file-name buffer-file-name)))
+  "Directory containing the version-controlled Emacs configuration.")
 
-(setq package-user-dir     "~/.local/share/emacs"
-      user-emacs-directory "~/.local/share/emacs")
+(setq user-emacs-directory (expand-file-name "~/.local/share/emacs/")
+      package-user-dir user-emacs-directory)
+
+;; Set this explicitly before loading packages; changing user-emacs-directory
+;; alone does not redirect the native cache until later in startup.
+(when (fboundp 'startup-redirect-eln-cache)
+  (let ((cache-home (getenv "XDG_CACHE_HOME")))
+    (startup-redirect-eln-cache
+     (expand-file-name "emacs/eln-cache/"
+                       (if (and cache-home (file-name-absolute-p cache-home))
+                           cache-home
+                         "~/.cache/")))))
+
+;; Emacs 31 activates this directory between early-init.el and init.el.
+;; Our libraries require Straight packages, unavailable at that point, so
+;; leave compilation/autoload scraping off and require them explicitly later.
+(defvar user-lisp-directory)
+(defvar user-lisp-auto-scrape)
+(setq user-lisp-directory
+      (expand-file-name "user-lisp/" nyy/emacs-config-directory)
+      user-lisp-auto-scrape nil)
+
+;; Emacs 30 compatibility: the current libraries are all in the top level.
+(unless (fboundp 'prepare-user-lisp)
+  (add-to-list 'load-path (directory-file-name user-lisp-directory)))
+
+;; A directory replacement MUST end in a slash; otherwise Emacs puts the
+;; flattened auto-save names in its parent directory.  Keep recovery data.
+(let ((directory (expand-file-name "var/auto-save/" user-emacs-directory)))
+  (make-directory directory t)
+  (setq auto-save-file-name-transforms `((".*" ,directory t))))
 
 (when (eq system-type 'gnu/linux)
   (setenv "PATH" (concat (expand-file-name "~/.local/bin")
