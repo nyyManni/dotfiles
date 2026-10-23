@@ -29,6 +29,95 @@ Agent Shell transcripts and screenshots for new sessions go into
 their cached transcript paths: leave their old directories intact until
 those sessions finish. Historical transcripts are not moved automatically.
 
+## Agent Shell prompt submission
+
+In insert state, `C-return` accepts the selected Corfu completion before
+submitting the prompt. For example, `/ren` with `rename` selected submits
+`/rename`, not the partial prefix. With no active completion or no selected
+candidate, it submits the text as typed. This uses Agent Shell's normal submit
+command, preserving its busy-session queue and prefix-argument behavior.
+`RET` still inserts a newline, and `TAB` accepts completion without submitting.
+Other modes' Corfu bindings are unchanged.
+
+## OMP session navigation
+
+`SPC c c` (`consult-agent-shell-sessions`) switches between open conversations.
+Its labels prefer OMP's native session title, then a descriptive buffer name,
+then the agent's cached prompt. Long labels are collapsed to one line and
+limited to 64 display columns. Status, mode, model, permission count, and
+directory remain visible. Identical rows are distinguished by buffer name.
+
+`SPC c n` (`agent-shell-omp-start`) offers saved sessions and new-shell choices.
+Selecting an OMP session already open in this Emacs instance focuses its most
+recently visited buffer instead of loading it again. Only the newly created
+bootstrap buffer/client is discarded. Unopened sessions still load normally;
+other agents and new-shell choices are unchanged. Existing duplicate sessions
+are not merged or closed.
+
+New OMP conversations are named automatically after their first successfully
+completed ordinary prompt. Emacs waits for turn callbacks and queued user work,
+then sends native `/rename` without arguments. OMP's title-generation models
+generate and persist the name; ACP title notifications update both the manager
+and Consult. Buffer names and unsent drafts are left untouched. No global
+agent instruction or Emacs rename-tool call is needed.
+
+Automatic naming runs once per newly created conversation. Restored/forked
+sessions are not renamed, and a native title or an explicit `/rename` cancels
+pending automatic naming. Cancelled/failed turns and slash-command replies do
+not trigger it. If native generation fails or cannot identify a task, OMP's
+normal failure output is shown; there is no repeated background retry.
+Existing unnamed conversations are not renamed retroactively.
+
+Use `/rename <title>` to choose a different saved title, or `/rename` to
+generate a fresh one later. The session-context decorator leaves slash commands
+untouched so OMP can dispatch them natively; ordinary prompts still carry the
+exact ACP session ID for Emacs tools.
+
+After editing the navigation libraries, reload both without restarting Emacs:
+
+```elisp
+(load "nyy-agent-shell-session" nil t)
+(load "consult-agent-shell-sessions" nil t)
+```
+
+## OMP local artifacts
+
+OMP `local://name` links refer to artifacts under
+`~/.omp/agent/sessions/<project>/<timestamp>_<session-id>/local/name`, not
+Agent Shell's transcript directory. `nyy-agent-shell-session.el` resolves them
+using the originating shell's exact ACP session ID, including when followed
+from its viewport. RET and mouse clicks use the normal Emacs file opener;
+ordinary file and web links keep their existing behavior. Follow these links
+in the session that produced them, since the same name can exist in multiple
+sessions. Missing artifacts report an error instead of opening a browser.
+
+If OMP uses a nonstandard session root, set
+`nyy/agent-shell-omp-sessions-directory` to that root. To activate changes
+without restarting Emacs, evaluate `M-: (load "nyy-agent-shell-session" nil t)`.
+Existing rendered links use the updated handler without re-rendering.
+
+## Agent AWS environment
+
+`nyy/agent-shell-configure` sets `agent-shell-command-prefix` to
+`nyy/agent-shell-without-aws`. Agents and commands launched through Agent Shell
+lose inherited AWS profiles, access keys, session tokens, web-identity settings,
+and container credential endpoints/tokens. Their AWS config and credentials files
+are redirected to `/dev/null`, and EC2 metadata credential discovery is disabled.
+Emacs and its normal direnv environment are unchanged; project MCP selection
+through `AGENT_SHELL_MCP_EXTRAS` is preserved.
+
+AWS MCP definitions must explicitly set their own `AWS_PROFILE`,
+`AWS_CONFIG_FILE`, and `AWS_SHARED_CREDENTIALS_FILE` in their server environment.
+Resolve those file paths in Emacs before starting the agent, using the Emacs
+environment overrides or the absolute defaults `~/.aws/config` and
+`~/.aws/credentials`. Otherwise the MCP child inherits the agent's `/dev/null`
+paths. Keep customer-specific profiles in the private customer files.
+
+Restart Emacs and start fresh agent sessions after changing this setup. Existing
+agent processes retain their original environment. This prevents accidental
+ambient credential discovery, not deliberate access to AWS files or privileged
+Emacs/MCP tools; a separate OS user or sandbox is needed for that boundary.
+
 ## Agent Shell and private customer configuration
 
 `init.el` delegates Agent Shell setup to `user-lisp/nyy-agent-shell-config.el`.

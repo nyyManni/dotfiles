@@ -1,0 +1,47 @@
+# Default/main/laptop/TV bar preferences.
+[bar.default]
+background_opacity = 0.80999998189508915
+center = [ "clock", "bar", "lunch" ]
+contact_shadow = true
+end = [
+    "bar_2",
+    "status",
+    "media",
+    "tray",
+    "notifications",
+    "clipboard",
+    "network",
+    "bluetooth",
+    "volume",
+    "brightness",
+    "battery",
+    "session"
+]
+margin_edge = 5
+margin_ends = 5
+start = [ "control-center", "launcher", "wallpaper", "workspaces" ]
+widget_spacing = 15
+
+# Each secondary display uses the existing compact Lenovo layout:
+# workspaces at the start, inherited center widgets, and no end widgets.
+# Stable descriptions include serials, so connector renumbering does not matter.
+
+# Home: portrait Dell.
+[bar.default.monitor."Dell Inc. DELL U2719D 1JWNY13"]
+start = [ "workspaces" ]
+end = []
+
+# Customer A: portrait Lenovo (the original GUI-configured override).
+[bar.default.monitor."Lenovo Group Limited L27qe UTP02HZR"]
+start = [ "workspaces" ]
+end = []
+
+# Customer B: portrait HP.
+[bar.default.monitor."HP Inc. HP E27q G4 CNK1191FZX"]
+start = [ "workspaces" ]
+end = []
+
+# Softlandia: secondary Dell, even though this display is landscape.
+[bar.default.monitor."Dell Inc. DELL P2723D CF74PW3"]
+start = [ "workspaces" ]
+end = []

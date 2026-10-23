@@ -15,3 +15,9 @@ Shells need `~/.local/bin` before `/usr/bin` in PATH, as configured here already
 An explicit `/usr/bin/nvidia-settings` invocation bypasses the wrapper; supply
 `--config` yourself when using that path. Existing shell command caches may
 also need refreshing (`hash -r` in Bash, or start a new shell).
+
+The `.config/autostart/nvidia-settings-user.desktop` entry also overrides the
+packaged autostart entry. It runs the wrapper with `--load-config-only`, so login
+uses the same XDG profile instead of the missing `~/.nvidia-settings-rc`.
+Link that file individually into the existing `~/.config/autostart/` directory;
+do not replace the whole mixed directory.

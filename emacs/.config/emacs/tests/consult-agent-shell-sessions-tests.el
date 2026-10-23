@@ -85,5 +85,20 @@
           (should (eq focused-window window)))
       (kill-buffer buffer))))
 
+(ert-deftest consult-agent-shell-sessions-identical-titles-select-distinct-buffers ()
+  (let ((first (generate-new-buffer "test same title"))
+        (second (generate-new-buffer "test same title")))
+    (unwind-protect
+        (let* ((rows (consult-agent-shell-sessions--candidates
+                      (list (list first ["ETL iteration" "Ready" "-" "-" "-" "~/etl/"])
+                            (list second ["ETL iteration" "Ready" "-" "-" "-" "~/etl/"]))))
+               (first-label (caar rows))
+               (second-label (caadr rows)))
+          (should-not (equal first-label second-label))
+          (should (eq (consult--lookup-cdr first-label rows) first))
+          (should (eq (consult--lookup-cdr second-label rows) second)))
+      (kill-buffer first)
+      (kill-buffer second))))
+
 (provide 'consult-agent-shell-sessions-tests)
 ;;; consult-agent-shell-sessions-tests.el ends here

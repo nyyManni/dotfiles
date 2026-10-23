@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/sh -c "cd && exec ./.local/bin/nvidia-settings --load-config-only"
+Icon=nvidia-settings
+Hidden=false
+NoDisplay=false
+Name[en_GB]=nvidia-settings
+Name=nvidia-settings
+Comment[en_GB]=Load user settings
+Comment=Load user settings
+X-GNOME-Autostart-Delay=30
+X-GNOME-Autostart-enabled=true

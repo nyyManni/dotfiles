@@ -1,0 +1,75 @@
+# System greeter configuration: install as /var/lib/noctalia-greeter/greeter.toml.
+# Requires Noctalia Greeter with stable output identifiers (tested with 1.7.0).
+# Sync/UI state stays in sync.toml; appearance sync remains enabled.
+
+[session]
+default = "Hyprland (uwsm-managed)"
+
+# For the internal keyboard, replace the Ergodox settings below with:
+# [keyboard]
+# layout = "uf,fi"
+# options = "grp:alt_space_toggle,ctrl:swap_lalt_lctl,ctrl:swap_ralt_rctl,caps:escape"
+
+# For Ergodox (preserved from the installed configuration).
+[keyboard]
+layout = "us,fi"
+options = "grp:ctrls_toggle"
+
+[output]
+# Do not use connector-keyed display settings captured by shell appearance sync.
+use_synced_settings = false
+
+# Stable descriptions/serials from Hyprland's monitor rules, without desc:.
+# Absent monitors are ignored. Only the known external pairs have fixed positions.
+# The laptop, TVs, and unfamiliar outputs are automatically placed to their right.
+# No output.name pin: show the login UI on every available output.
+layout = """
+Dell Inc. DELL U2719D 9JWNY13:0,0;
+Dell Inc. DELL U2719D 1JWNY13:2560,-750;
+Lenovo Group Limited L27qe UTP02HZK:0,0;
+Lenovo Group Limited L27qe UTP02HZR:2560,-750;
+Philips Consumer Electronics Company PHL 275E2F UHB2050003236:0,0;
+HP Inc. HP E27q G4 CNK1191FZX:2560,-750;
+Dell Inc. DELL P2723D JZ74PW3:-5120,0;
+Dell Inc. DELL P2723D CF74PW3:-2560,0
+"""
+
+scales = """
+BOE 0x0AE0:1.33333333;
+Dell Inc. DELL U2719D 9JWNY13:1;
+Dell Inc. DELL U2719D 1JWNY13:1;
+Lenovo Group Limited L27qe UTP02HZK:1;
+Lenovo Group Limited L27qe UTP02HZR:1;
+Philips Consumer Electronics Company PHL 275E2F UHB2050003236:1;
+HP Inc. HP E27q G4 CNK1191FZX:1;
+LG Electronics LG TV SSCR2 0x01010101:2;
+IWB PC Monitor:2;
+Samsung Electric Company SAMSUNG 0x01000600:2;
+Dell Inc. DELL P2723D JZ74PW3:1;
+Dell Inc. DELL P2723D CF74PW3:1
+"""
+
+transforms = """
+BOE 0x0AE0:normal;
+Dell Inc. DELL U2719D 9JWNY13:normal;
+Dell Inc. DELL U2719D 1JWNY13:270;
+Lenovo Group Limited L27qe UTP02HZK:normal;
+Lenovo Group Limited L27qe UTP02HZR:270;
+Philips Consumer Electronics Company PHL 275E2F UHB2050003236:normal;
+HP Inc. HP E27q G4 CNK1191FZX:270;
+LG Electronics LG TV SSCR2 0x01010101:normal;
+IWB PC Monitor:normal;
+Samsung Electric Company SAMSUNG 0x01000600:normal;
+Dell Inc. DELL P2723D JZ74PW3:normal;
+Dell Inc. DELL P2723D CF74PW3:normal
+"""
+
+# Match the explicit rates in Hyprland; other outputs use preferred modes.
+# Unsupported requested rates fall back to an available mode.
+refresh_rate = """
+Dell Inc. DELL U2719D 9JWNY13:75;
+Dell Inc. DELL U2719D 1JWNY13:75;
+Lenovo Group Limited L27qe UTP02HZK:99.95;
+Lenovo Group Limited L27qe UTP02HZR:99.95;
+Philips Consumer Electronics Company PHL 275E2F UHB2050003236:75
+"""

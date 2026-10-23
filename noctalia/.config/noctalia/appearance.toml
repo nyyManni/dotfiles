@@ -1,0 +1,57 @@
+# Accounts, monitor assignments, and machine-specific paths remain local.
+[battery]
+warning_threshold = 15
+
+[calendar]
+enabled = true
+refresh_minutes = 5
+
+[control_center.calendar]
+show_week_numbers = true
+
+[lockscreen]
+transition = [ "zoom" ]
+transition_duration = 300
+
+[notification]
+background_opacity = 0.59999998658895493
+
+[shell]
+external_ip_enabled = true
+launch_apps_as_systemd_services = false
+password_style = "random"
+polkit_agent = true
+screen_time_enabled = true
+settings_show_advanced = true
+telemetry_enabled = true
+
+    [shell.animation]
+    speed = 4.0
+
+    [shell.greeter_sync]
+    auto_sync = true
+
+    [shell.panel]
+    control_center_placement = "floating"
+    launcher_placement = "attached"
+    transparency_mode = "glass"
+    wallpaper_placement = "floating"
+
+    [shell.screen_corners]
+    enabled = true
+    size = 28
+
+[theme]
+builtin = "Catppuccin"
+community_palette = "Oxocarbon"
+mode = "dark"
+source = "builtin"
+wallpaper_scheme = "m3-content"
+
+    [theme.templates]
+    builtin_ids = [ "gtk3", "gtk4", "hyprland" ]
+    community_ids = [ "spotifast", "telegram", "zapfast", "blender", "darktable", "gimp", "vscode", "zathura" ]
+
+[wallpaper]
+transition = [ "stripes" ]
+transition_on_startup = true

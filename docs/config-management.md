@@ -6,12 +6,26 @@ outside the repository. Do not replace these mixed directories wholesale.
 
 ## Tracked selections
 
+Project checkout locations and migration follow-up are documented in
+[`project-layout.md`](project-layout.md).
+
 - `git`, `nvidia`, `omnisharp`, `shell`, and `vim`: XDG/path configuration.
 - `emacs` and `fish`: personal libraries, tests, and shell setup.
   Emacs customer server definitions stay outside Git under
   `~/.local/share/emacs/etc/customers/`; see `emacs/README.md`.
 - `systemd`: custom Emacs, SSH agent, Copilot proxy, and Hyprland helper units.
 - `uwsm`: desktop environment and the Noctalia service.
+- `noctalia`: native preference fragments for bars, appearance/panels, widget
+  layouts, and reviewed plugin settings in `~/.config/noctalia/`. Accounts,
+  private widget fields, and machine-local paths stay in local state; see
+  [`noctalia/README.md`](../noctalia/README.md).
+- `noctalia-greeter`: manually installed system configuration, not a Stow package.
+  Stable monitor identities cover all desktop layouts while appearance sync
+  remains independent; see [`noctalia-greeter/README.md`](../noctalia-greeter/README.md).
+- `keyboard-layout`: the `uf` symbols source and a data-only system RPM; see
+  [`keyboard-layout/README.md`](../keyboard-layout/README.md). The RPM uses the
+  additive XKB extension directory; installing it and retiring the existing
+  user-level override are separate, explicit operations.
 - `cava`: existing shader files; there is currently no custom main config.
 - `htop`: display and process-list preferences.
 - `sqlite3`: interactive shell preferences.
@@ -54,6 +68,29 @@ uninstalled-application leftovers.
 
 The obsolete `QT_QPA_PLATFORMTHEME=qt6ct` override was removed. Existing
 applications retain their original environment until restarted or a new login.
+
+### Noctalia preference fragments
+
+The `noctalia` Stow package supplies a compact bar for each known secondary
+display using its description and serial. Main displays, the laptop, TVs, and
+unfamiliar monitors keep the full default bar. Secondary bars retain workspaces
+and the inherited center widgets, but omit the end/status lane.
+
+The original Lenovo GUI bar override was moved into `bars.toml`, alongside
+the other secondary displays and the default bar preferences. `appearance.toml`
+contains theme/panel/shell preferences, `widgets.toml` contains widget layouts
+and aliases, and `plugins.toml` contains enabled IDs and reviewed settings.
+Credentials are referenced only by environment-variable names, never values.
+
+Accounts, location, private lock-screen images/labels, wallpaper paths, plugin
+source arrays/development paths, and machine-specific commands remain in
+`~/.local/state/noctalia/settings.toml`. Noctalia loads config-directory TOML
+first and state settings last. GUI edits remain local until deliberately
+promoted into the appropriate tracked fragment and removed from local overrides.
+
+The split preserved the complete native effective configuration exactly.
+Validation, hot reload, and live UI checks passed without restarting the shell.
+
 
 ## Separate service warning
 

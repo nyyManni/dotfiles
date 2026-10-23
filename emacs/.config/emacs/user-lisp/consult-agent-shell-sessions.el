@@ -7,22 +7,32 @@
 
 (defun consult-agent-shell-sessions--candidates (entries)
   "Format manager ENTRIES as aligned completion rows paired with buffers."
-  (let ((widths (make-vector 6 0)))
+  (let ((widths (make-vector 6 0))
+        (counts (make-hash-table :test 'equal)))
     (dolist (entry entries)
       (dotimes (column 6)
         (aset widths column
               (max (aref widths column) (string-width (aref (cadr entry) column))))))
-    (mapcar
-     (lambda (entry)
-       (cons
-        (mapconcat
-         (lambda (column)
-           (let ((text (aref (cadr entry) column)))
-             (if (= column 5) text
-               (concat text (make-string (- (aref widths column) (string-width text)) ?\s)))))
-         (number-sequence 0 5) "  ")
-        (car entry)))
-     entries)))
+    (let ((rows
+           (mapcar
+            (lambda (entry)
+              (let ((label
+                     (mapconcat
+                      (lambda (column)
+                        (let ((text (aref (cadr entry) column)))
+                          (if (= column 5) text
+                            (concat text (make-string (- (aref widths column) (string-width text)) ?\s)))))
+                      (number-sequence 0 5) "  ")))
+                (puthash label (1+ (gethash label counts 0)) counts)
+                (cons label (car entry))))
+            entries)))
+      ;; Distinct buffers can have identical titles, even for the same ACP ID.
+      (mapcar (lambda (row)
+                (if (= (gethash (car row) counts) 1)
+                    row
+                  (cons (format "%s  [%s]" (car row) (buffer-name (cdr row)))
+                        (cdr row))))
+              rows))))
 
 ;;;###autoload
 (defun consult-agent-shell-sessions ()

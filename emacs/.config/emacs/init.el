@@ -953,6 +953,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (typescript-ts-mode . prettier-on-save-mode)
   (json-ts-mode . prettier-on-save-mode)
   (tsx-ts-mode . prettier-on-save-mode)
+  (c-mode-common . clang-format-on-save-mode)
+  (c-ts-mode . clang-format-on-save-mode)
+  (c++-ts-mode . clang-format-on-save-mode)
   :config
   (reformatter-define ruff-format
     :program "ruff"
@@ -960,19 +963,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (reformatter-define prettier
     :program "prettier"
-    :args `("--tab-width" "4" "--stdin-filepath" ,buffer-file-name)))
+    :args `("--tab-width" "4" "--stdin-filepath" ,buffer-file-name))
+
+  ;; Format whole C-family buffers on save, not only changed definitions.
+  ;; With no project style file, leave the buffer unchanged.
+  (reformatter-define clang-format
+    :program "clang-format"
+    :args (list "--style=file" "--fallback-style=none"
+                "--assume-filename"
+                (or buffer-file-name
+                    (expand-file-name "stdin.cpp" default-directory)))))
 
 (use-package uv
   :straight (uv :type git :host github :repo "johannes-mueller/uv.el"))
 
 ;; C/C++
 (setq-default c-basic-offset 4)
-(use-package clang-format)
-(use-package clang-format+
-  :hook
-  (c-mode-common . clang-format+-mode)
-  (c-ts-mode . clang-format+-mode)
-  (c++-ts-mode . clang-format+-mode))
 (use-package glsl-mode
   :straight (glsl-mode :type git :host github :repo "TideSofDarK/glsl-mode" :branch "better-ts-mode")
   )

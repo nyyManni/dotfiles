@@ -19,4 +19,5 @@ Deprecated configs included for history reference (no longer in active use or un
 - xorg
 - chunkwm
 
-Additionally, an XKB layout for touch-typing on a nordic keyboard as-if it were a US keyboard
+Additionally, an XKB layout for touch-typing on a nordic keyboard as-if it were a US keyboard.
+See [`keyboard-layout/README.md`](keyboard-layout/README.md) for its data-only RPM.

@@ -1,0 +1,5 @@
+(^|/)build(/|$)
+(^|/)build-rpm\.sh$
+(^|/)personal-keyboard-layouts\.spec$
+(^|/)evdev\.xml$
+(^|/)README\.md$

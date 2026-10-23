@@ -1,0 +1,758 @@
+# Native Noctalia configuration for desktop, lockscreen, and bar widgets.
+# GUI edits override these defaults through local state settings.toml.
+
+[desktop_widgets]
+schema_version = 2
+widget_order = [
+    "desktop-widget-0000000000000001",
+    "desktop-widget-0000000000000002",
+    "desktop-widget-0000000000000004",
+    "desktop-widget-0000000000000005",
+    "desktop-widget-0000000000000006"
+]
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget.desktop-widget-0000000000000001]
+    box_height = 128.0
+    box_width = 208.0
+    cx = 1792.0001220703125
+    cy = 712.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "sysmon"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000001.settings]
+        stat = "cpu_usage"
+        stat2 = "cpu_temp"
+
+    [desktop_widgets.widget.desktop-widget-0000000000000002]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 1596.0
+    cy = 261.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "calendar"
+
+    [desktop_widgets.widget.desktop-widget-0000000000000004]
+    box_height = 144.0
+    box_width = 320.0
+    cx = 1744.0001220703125
+    cy = 554.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "media_player"
+
+    [desktop_widgets.widget.desktop-widget-0000000000000005]
+    box_height = 128.0
+    box_width = 192.0
+    cx = 1376.0
+    cy = 712.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "sysmon"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000005.settings]
+        display = "graph"
+        stat = "gpu_usage"
+        stat2 = "gpu_temp"
+
+    [desktop_widgets.widget.desktop-widget-0000000000000006]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 1584.0003662109375
+    cy = 712.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "sysmon"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000006.settings]
+        stat = "ram_pct"
+        stat2 = "swap_pct"
+
+
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-login-box@DP-10",
+    "lockscreen-login-box@FALLBACK",
+    "lockscreen-login-box@DP-1",
+    "lockscreen-login-box@DP-3",
+    "lockscreen-login-box@DP-2",
+    "lockscreen-login-box@DP-9",
+    "lockscreen-login-box@DP-7",
+    "lockscreen-login-box@DP-8",
+    "lockscreen-login-box@DP-6",
+    "lockscreen-login-box@eDP-1",
+    "lockscreen-widget-0000000000000005",
+    "lockscreen-widget-0000000000000006",
+    "lockscreen-widget-000000000000000c",
+    "lockscreen-widget-000000000000000d",
+    "lockscreen-widget-0000000000000010",
+    "lockscreen-widget-0000000000000011",
+    "lockscreen-widget-0000000000000014",
+    "lockscreen-widget-0000000000000015",
+    "lockscreen-widget-0000000000000016",
+    "lockscreen-widget-0000000000000017",
+    "lockscreen-widget-0000000000000019",
+    "lockscreen-widget-000000000000001a",
+    "lockscreen-widget-000000000000001b",
+    "lockscreen-widget-000000000000001d",
+    "lockscreen-widget-000000000000001e",
+    "lockscreen-widget-000000000000001f",
+    "lockscreen-widget-0000000000000020",
+    "lockscreen-widget-0000000000000021"
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 960.0
+    cy = 898.0
+    output = "DP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-10"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 720.0
+    cy = 2236.444580078125
+    output = "DP-10"
+    placement_height = 2560.0
+    placement_width = 1440.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-10".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-2"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 405.0
+    cy = 2560.0
+    output = "DP-2"
+    placement_height = 2560.0
+    placement_width = 1440.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-2".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 0.75
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-3"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 1280.0
+    cy = 754.5
+    output = "DP-3"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-3".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 0.75
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-6"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 1280.0
+    cy = 754.5
+    output = "DP-6"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-6".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-7"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 405.0
+    cy = 2560.0
+    output = "DP-7"
+    placement_height = 2560.0
+    placement_width = 1440.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-7".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-8"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 405.0
+    cy = 2560.0
+    output = "DP-8"
+    placement_height = 2560.0
+    placement_width = 1440.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-8".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-9"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 1264.0
+    cy = 779.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-9".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@FALLBACK"]
+    box_height = 196.0
+    box_width = 810.0
+    cx = 960.0
+    cy = 898.0
+    output = "FALLBACK"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@FALLBACK".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.88
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 1.0
+        input_radius = 6.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 196.0
+    box_width = 720.0
+    cx = 960.0
+    cy = 635.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+        background_color = "on_surface"
+        background_opacity = 0.0
+        background_radius = 12.0
+        center_password_text = false
+        input_opacity = 0.75
+        input_radius = 10.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = true
+        show_media = true
+        show_password_reveal = true
+        show_session_buttons = true
+        show_unlock_hint = true
+        show_weather = true
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000005]
+    box_height = 48.0
+    box_width = 304.0
+    cx = 1176.0
+    cy = 648.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000005.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        format = "{:%a, %B %e. %Y}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000006]
+    box_height = 240.0
+    box_width = 400.0
+    cx = 1136.0
+    cy = 504.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000006.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        background_radius = 0
+        clock_style = "digital"
+        font_family = ""
+        format = "{:%H:%M}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000000c]
+    box_height = 48.0
+    box_width = 304.0
+    cx = 864.0
+    cy = 464.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000000c.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        format = "{:%a, %B %e. %Y}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000000d]
+    box_height = 240.0
+    box_width = 400.0
+    cx = 816.0
+    cy = 344.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000000d.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        background_radius = 0
+        clock_style = "digital"
+        font_family = ""
+        format = "{:%H:%M}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000010]
+    box_height = 48.0
+    box_width = 304.0
+    cx = 1184.0
+    cy = 560.0
+    output = "DP-3"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000010.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        format = "{:%a, %B%e. %Y}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000011]
+    box_height = 240.0
+    box_width = 400.0
+    cx = 1136.0
+    cy = 464.0
+    output = "DP-3"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000011.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        background_radius = 0
+        clock_style = "digital"
+        font_family = ""
+        format = "{:%H:%M}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000014]
+    box_height = 144.0
+    box_width = 176.0
+    cx = 1152.0
+    cy = 352.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "sticker"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000014.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 11
+        opacity = 1.0
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000015]
+    box_height = 32.0
+    box_width = 160.0
+    cx = 1152.0
+    cy = 464.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "label"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000015.settings]
+        background = false
+        background_opacity = 0.0
+        description = ""
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000016]
+    box_height = 48.0
+    box_width = 304.0
+    cx = 1192.0
+    cy = 568.0
+    output = "DP-6"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000016.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        format = "{:%a, %B%e. %Y}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000017]
+    box_height = 240.0
+    box_width = 400.0
+    cx = 1144.0
+    cy = 472.0
+    output = "DP-6"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000017.settings]
+        background = false
+        background_opacity = 0.0
+        background_padding = 0
+        background_radius = 0
+        clock_style = "digital"
+        font_family = ""
+        format = "{:%H:%M}"
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000019]
+    box_height = 32.0
+    box_width = 160.0
+    cx = 1480.0
+    cy = 568.0
+    output = "DP-6"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "label"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000019.settings]
+        background = false
+        background_opacity = 0.0
+        description = ""
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000001a]
+    box_height = 144.0
+    box_width = 176.0
+    cx = 1480.0
+    cy = 512.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sticker"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000001a.settings]
+        background_opacity = 0.0
+        background_padding = 11
+        opacity = 1.0
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000001b]
+    box_height = 32.0
+    box_width = 160.0
+    cx = 1480.0
+    cy = 600.0
+    output = "DP-9"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "label"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000001b.settings]
+        background = false
+        background_opacity = 0.0
+        description = ""
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000001d]
+    box_height = 32.0
+    box_width = 160.0
+    cx = 1472.0
+    cy = 552.0
+    output = "DP-3"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "label"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000001d.settings]
+        background = false
+        background_opacity = 0.0
+        description = ""
+        shadow = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000001e]
+    box_height = 176.0
+    box_width = 208.0
+    cx = 1472.0
+    cy = 448.0
+    output = "DP-3"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sticker"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000001e.settings]
+        background_opacity = 0.0
+        background_padding = 11
+        opacity = 1.0
+
+    [lockscreen_widgets.widget.lockscreen-widget-000000000000001f]
+    box_height = 176.0
+    box_width = 208.0
+    cx = 1480.0
+    cy = 464.0
+    output = "DP-6"
+    placement_height = 1440.0
+    placement_width = 2560.0
+    rotation = 0.0
+    type = "sticker"
+
+        [lockscreen_widgets.widget.lockscreen-widget-000000000000001f.settings]
+        background_opacity = 0.0
+        background_padding = 11
+        opacity = 1.0
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000020]
+    box_height = 32.0
+    box_width = 80.0
+    cx = 1864.0001220703125
+    cy = 1128.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "yocraft/battery-widget:widget"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000020.settings]
+        background = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000021]
+    box_height = 32.0
+    box_width = 48.0
+    cx = 1872.0
+    cy = 1160.0
+    output = "eDP-1"
+    placement_height = 1200.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "yocraft/battery-widget:widget"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000021.settings]
+        background = false
+        label_content = "time"
+        show_glyph = false
+
+
+
+[widget.bar]
+type = "noctalia/world_clock:bar"
+
+[widget.bar_2]
+type = "salemsayed/codexbar-meter:bar"
+
+[widget.battery]
+capsule = true
+capsule_opacity = 0.80000000000000004
+
+[widget.lunch]
+show_label = false
+type = "nyymanni/noctalia-lunch:lunch"
+
+[widget.network]
+capsule = true
+capsule_opacity = 0.80000000000000004
+icon_color = "primary"
+show_label = false
+
+[widget.notifications]
+capsule = true
+hide_when_no_unread = true
+
+[widget.status]
+type = "tiobaka/vm-manager:status"
+
+[widget.tray]
+detached_panel = true
+drawer = true

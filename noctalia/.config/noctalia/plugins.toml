@@ -1,0 +1,27 @@
+# Plugin selection and reviewed non-secret settings.
+# Source registries/development paths and executable locations stay in local
+# settings.toml. *_env fields name environment variables, not credential values.
+
+[plugins]
+enabled = [
+    "noctalia/wallhaven",
+    "noctalia/world_clock",
+    "yocraft/battery-widget",
+    "tmelik/system-monitor",
+    "nyymanni/noctalia-lunch",
+    "salemsayed/codexbar-meter",
+    "nyymanni/wallpaper-expander",
+    "tiobaka/vm-manager"
+]
+
+[plugin_settings."nyymanni/noctalia-lunch"]
+llm_api_key_env = "OPENAI_API_KEY"
+llm_enabled = true
+llm_endpoint = "https://api.openai.com/v1/chat/completions"
+llm_model = "gpt-4.1-mini"
+
+[plugin_settings."nyymanni/wallpaper-expander"]
+api_key_env = "OPENAI_IMAGE_API_KEY"
+
+[plugin_settings."tiobaka/vm-manager"]
+poll_interval = 10

@@ -8,6 +8,8 @@
 (require 'nyy-agent-shell-session)
 (require 'nyy-agent-shell-mcp)
 
+(declare-function corfu-insert "corfu")
+
 (defvar nyy/agent-shell-customer-directory
   (expand-file-name "emacs/etc/customers/"
                     (or (getenv "XDG_DATA_HOME") "~/.local/share/"))
@@ -76,16 +78,47 @@ No credential lambdas are evaluated during configuration."
   (setq-local key-translation-map (copy-keymap key-translation-map))
   (define-key key-translation-map (kbd "<return>") (kbd "RET")))
 
+(defun nyy/agent-shell-submit (&optional arg)
+  "Accept the active Corfu selection, then submit Agent Shell input with ARG."
+  (interactive "P")
+  (when (and (bound-and-true-p corfu-mode)
+             (bound-and-true-p completion-in-region-mode))
+    (corfu-insert))
+  (agent-shell-submit arg))
+
 (defun nyy/agent-shell-diff-emacs-state ()
   "Use Emacs state for Agent Shell diff buffers."
   (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
     (evil-emacs-state)))
 
+(defun nyy/agent-shell-without-aws (_buffer)
+  "Strip inherited AWS access from agent processes and shell commands.
+MCP servers must explicitly supply their own profile and credential-file
+paths.  This prevents ambient credential discovery, not filesystem access."
+  '("env"
+    "-u" "AWS_PROFILE"
+    "-u" "AWS_DEFAULT_PROFILE"
+    "-u" "AWS_ACCESS_KEY_ID"
+    "-u" "AWS_SECRET_ACCESS_KEY"
+    "-u" "AWS_SESSION_TOKEN"
+    "-u" "AWS_SECURITY_TOKEN"
+    "-u" "AWS_ROLE_ARN"
+    "-u" "AWS_ROLE_SESSION_NAME"
+    "-u" "AWS_WEB_IDENTITY_TOKEN_FILE"
+    "-u" "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"
+    "-u" "AWS_CONTAINER_CREDENTIALS_FULL_URI"
+    "-u" "AWS_CONTAINER_AUTHORIZATION_TOKEN"
+    "-u" "AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE"
+    "AWS_CONFIG_FILE=/dev/null"
+    "AWS_SHARED_CREDENTIALS_FILE=/dev/null"
+    "AWS_EC2_METADATA_DISABLED=true"))
+
 (defun nyy/agent-shell-configure ()
-  "Configure Agent Shell servers and editing behavior."
+  "Configure Agent Shell servers, AWS environment filtering, and editing."
   (nyy/agent-shell-configure-mcp)
   (add-hook 'agent-shell-mode-hook #'nyy-agent-shell-normalize-return)
-  (setq agent-shell-elicitation--experimental-feature-enabled t)
+  (setq agent-shell-command-prefix #'nyy/agent-shell-without-aws
+        agent-shell-elicitation--experimental-feature-enabled t)
   (with-eval-after-load 'agent-shell-elicitation
     (define-key agent-shell-elicitation-map
                 (kbd "C-j") #'agent-shell-elicitation-next-field)
@@ -94,9 +127,9 @@ No credential lambdas are evaluated during configuration."
   (leader-def-key
     :keymaps 'override :states 'normal
     "c c" 'consult-agent-shell-sessions
-    "c n" 'agent-shell-opencode-start-agent)
+    "c n" 'agent-shell-omp-start)
   (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
-  (evil-define-key 'insert agent-shell-mode-map (kbd "C-<return>") #'comint-send-input)
+  (evil-define-key 'insert agent-shell-mode-map (kbd "C-<return>") #'nyy/agent-shell-submit)
   (add-hook 'diff-mode-hook #'nyy/agent-shell-diff-emacs-state))
 
 (provide 'nyy-agent-shell-config)

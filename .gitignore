@@ -12,6 +12,7 @@ emacs/.config/emacs/**/*.elc
 emacs/.config/emacs/user-lisp/.user-lisp-autoloads.el
 fish/.config/fish/fish_variables
 /hyprland/.config/hypr/monitors/active.conf
+/keyboard-layout/build/
 
 # Keep machine-local registration, credentials, and generated state out of Git.
 /uv/
