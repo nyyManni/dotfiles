@@ -350,7 +350,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "r"   'my-reload-file
     "i"   'indent-region
     "I"   (lambda () (interactive) (find-file user-init-file))
-    "S"   'delete-trailing-whitespace))
+    "S"   'delete-trailing-whitespace
+    "P s" 'profiler-start
+    "P e" 'profiler-stop
+    "P r" 'profiler-report))
 
 (use-package sudo-edit)
 
