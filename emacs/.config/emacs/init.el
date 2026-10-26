@@ -64,8 +64,6 @@
 
       frame-title-format   '("" "Emacs v" emacs-version))
 
-(eval-after-load 'warnings
-  (setq warning-minimum-level :error))
 
 (when (eq system-type 'gnu/linux)
   (defvar ns-command-modifier nil)
@@ -95,17 +93,15 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-(define-obsolete-variable-alias
-  'native-comp-deferred-compilation-deny-list
-  'native-comp-jit-compilation-deny-list
-  "Renamed in emacs#95692f6")
 
-(setq straight-repository-branch "develop")
+(setq straight-repository-branch "develop"
+      straight-profiles
+      `((nil . ,(expand-file-name "versions/default.el" nyy/emacs-config-directory))))
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
+      (bootstrap-version 7))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
@@ -117,7 +113,7 @@
 
 (setq straight-use-package-by-default t)
 
-(straight-use-package 'use-package)
+(straight-use-package '(use-package :type built-in))
 (straight-use-package '(project :type built-in))
 (straight-use-package '(xref :type built-in))
 
@@ -142,7 +138,6 @@
               fill-column           80
               comint-process-echoes t)
 
-(fset 'yes-or-no-p 'y-or-n-p)
 (setopt use-short-answers t)
 
 (global-unset-key (kbd "C-/"))  ;; evil sets undo to 'u'
@@ -186,12 +181,6 @@
   :config
   (exec-path-from-shell-initialize))
 
-(when (eq system-type 'darwin)
-  (when (memq window-system '(mac ns x))
-    (use-package exec-path-from-shell
-      :demand t
-      :config
-      (exec-path-from-shell-initialize))))
 
 (use-package no-littering
   :demand t
@@ -447,13 +436,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (use-package key-chord
   :hook (after-init . (lambda () (key-chord-mode t)))
-  ;; :custom
-  ;; To overcome regression from:
-  ;; https://github.com/emacsorphanage/key-chord/commit/e724def60fdf6473858f2962ae276cf4413473eb
-  ;; (key-chord-safety-interval-forward 0)
-  ;; (key-chord-safety-interval-backward 0)
   :general
-  (dolist (chord '("jk" "kj" "JK" "KJ" "jK" "kJ" "Jk" "Kj"))
+  (dolist (chord '("jk" "JK" "jK" "Jk"))
 
     (key-chord-define evil-insert-state-map chord 'evil-normal-state)
     ))
@@ -463,8 +447,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (evil-commentary-mode))
 
-(use-package vimish-fold)
-(use-package evil-vimish-fold)
 
 (use-package evil-surround
   :functions (global-evil-surround-mode)
@@ -493,11 +475,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
    :keymaps '(evil-outer-text-objects-map)
    "a" 'evil-outer-arg)
   (general-define-key
-   :keymaps '(evil-normal-sate-map evil-motion-state-map)
+   :keymaps '(evil-normal-state-map evil-motion-state-map)
    "L" 'evil-forward-arg
    "H" 'evil-backward-arg)
   (general-define-key
-   :keymaps '(evil-normal-sate-map)
+   :keymaps '(evil-normal-state-map)
    "K" 'evil-jump-out-args))
 
 (use-package evil-textobj-tree-sitter
@@ -536,6 +518,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-evil-visualstar-mode 1))
 
 (use-package which-key
+  :straight (:type built-in)
   :hook (after-init . which-key-mode))
 
 (use-package vertico
@@ -649,18 +632,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               c-ts-mode-map c++-ts-mode-map)
    "C->" 'sp-forward-slurp-sexp)
   :config
-  (require 'smartparens-config)
+  (require 'smartparens-config))
 
-  ;; Fix for tree-sit mode
-  (sp-with-modes 'python-ts-mode
-    (sp-local-pair "'" "'" :unless '(sp-in-comment-p sp-in-string-quotes-p) :post-handlers '(:add sp-python-fix-tripple-quotes))
-    (sp-local-pair "\"" "\"" :post-handlers '(:add sp-python-fix-tripple-quotes))
-    (sp-local-pair "'''" "'''")
-    (sp-local-pair "\\'" "\\'")
-    (sp-local-pair "\"\"\"" "\"\"\"")
-    (sp-local-pair "(" ")" :post-handlers '(:add sp-python-maybe-add-colon-python))))
 
-(use-package all-the-icons)
 
 (use-package corfu
   ;; Optional customizations
@@ -695,19 +669,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (defun corfu-move-to-minibuffer ()
     (interactive)
-    (let ((completion-extra-properties corfu--extra)
-          completion-cycle-threshold completion-cycling)
-      (apply #'consult-completion-in-region completion-in-region--data)))
-  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer))
+    (pcase completion-in-region--data
+      (`(,beg ,end ,table ,pred ,extras)
+       (let ((completion-extra-properties extras)
+             completion-cycle-threshold completion-cycling)
+         (consult-completion-in-region beg end table pred)))))
+  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
+  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
 
-(defun corfu-enable-in-minibuffer ()
-  "Enable Corfu in the minibuffer if `completion-at-point' is bound."
-  (when (where-is-internal #'completion-at-point (list (current-local-map)))
-    ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
-    (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
-                corfu-popupinfo-delay nil)
-    (corfu-mode 1)))
-(add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
 
 ;; Optionally use the `orderless' completion style.
 (use-package orderless
@@ -754,9 +723,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (emacs-lisp-mode . flymake-mode))
 
 (use-package magit
-  :defines (magit-branch-arguments magit-git-executable)
+  :defines (magit-git-executable)
   :init
-  (setq magit-branch-arguments nil)
   (when (eq system-type 'darwin)
     (setq magit-git-executable "/usr/bin/git"))
   :config
@@ -792,8 +760,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook
   (python-ts-mode . eglot-ensure)
   (java-mode . eglot-ensure)
-  (rustic-mode . eglot-ensure)
+  (rust-ts-mode . eglot-ensure)
   (c-ts-mode . eglot-ensure)
+  (lua-ts-mode . eglot-ensure)
   (c++-ts-mode . eglot-ensure)
   (js-ts-mode . eglot-ensure)
   (tsx-ts-mode . eglot-ensure)
@@ -805,30 +774,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (sh-mode . eglot-ensure)
   (bash-ts-mode . eglot-ensure)
   (json-ts-mode . eglot-ensure)
-  :init
-  (setq-default eglot-workspace-configuration
-                '((pylsp
-                   (plugins
-                    (pylint (enabled . nil))
-                    (jedi_completion (fuzzy . t))
-                    (pydocstyle
-                     (enabled . t)
-                     (addIgnore . "D401"))
-                    (mccabe (enabled . nil))
-                    (pycodestyle (enabled . nil))
-                    (pyls_isort (enabled . t))
-                    (autopep8 (enabled . nil))
-                    (flake8 (enabled . nil))
-                    (pyflakes (enabled . nil))
-                    (yapf (enabled . nil))
-                    (rope_autoimport (enabled . nil))
-                    (rope_completion (enabled . nil))
-                    (black (enabled . nil))
-                    (ruff (enabled . t))
-                    (mypy
-                     (enabled . t)
-                     (live_mode . t)
-                     (strict . nil))))))
 
   :config
   ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
@@ -846,7 +791,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-to-list 'eglot-server-programs
                '((glsl-ts-mode)
-                 (expand-file-name "/usr/bin/glsl_analyzer")))
+                 "/usr/bin/glsl_analyzer"))
   (add-to-list 'eglot-server-programs
                '((sql-mode)
                  "sql-language-server" "up" "--method" "stdio"))
@@ -855,20 +800,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                '((qml-mode)
                  "qmlls"))
 
-  (add-to-list 'eglot-server-programs
-               `((lua-mode)
-                 ,(expand-file-name "~/.local/share/go/bin/hyprls") "up" "--method" "stdio"))
 
   (add-to-list 'eglot-server-programs
-               `((csharp-mode csharp-ts-mode)
-                 ,(expand-file-name "~/.local/share/omnisharp-linux-x64-net6.0/OmniSharp") "-lsp"))
+               '((csharp-mode csharp-ts-mode) . ("csharp-ls")))
 
   (add-to-list 'eglot-server-programs
                '((sh-mode bash-ts-mode) . ("bash-language-server" "start")))
 
   (add-to-list 'eglot-server-programs
-               '((rust-ts-mode rust-mode) .
-                 ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+               '((rust-ts-mode) .
+                 ("rustup" "run" "stable" "rust-analyzer"
+                  :initializationOptions (:check (:command "clippy")))))
 
 
   :general
@@ -901,21 +843,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (dape-breakpoint-global-mode)
 
   ;; To not display info and/or buffers on startup
-  ;; (remove-hook 'dape-on-start-hooks 'dape-info)
-  ;; (remove-hook 'dape-on-start-hooks 'dape-repl)
+  ;; (remove-hook 'dape-start-hook 'dape-info)
+  ;; (remove-hook 'dape-start-hook 'dape-repl)
 
   ;; To display info and/or repl buffers on stopped
-  ;; (add-hook 'dape-on-stopped-hooks 'dape-info)
-  ;; (add-hook 'dape-on-stopped-hooks 'dape-repl)
+  ;; (add-hook 'dape-stopped-hook 'dape-info)
+  ;; (add-hook 'dape-stopped-hook 'dape-repl)
 
   ;; Kill compile buffer on build success
-  ;; (add-hook 'dape-compile-compile-hooks 'kill-buffer)
+  ;; (add-hook 'dape-compile-hook 'kill-buffer)
 
   ;; Save buffers on startup, useful for interpreted languages
-  (add-hook 'dape-on-start-hooks (lambda () (save-some-buffers t t)))
+  (add-hook 'dape-start-hook (lambda () (save-some-buffers t t))))
 
-  ;; Projectile users
-  (setq dape-cwd-fn (lambda () (project-root (project-current)))))
 
 (use-package project :straight t)
 
@@ -924,7 +864,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-to-list 'markdown-code-lang-modes '("python" . python-mode))
   (add-to-list 'markdown-code-lang-modes '("rust" . rust-ts-mode))
   (add-to-list 'markdown-code-lang-modes '("typescript" . typescript-ts-mode))
-  (add-to-list 'markdown-code-lang-modes '("javascript" . java-ts-mode))
+  (add-to-list 'markdown-code-lang-modes '("javascript" . js-ts-mode))
   :custom
   ((markdown-header-scaling t)
    (markdown-fontify-code-blocks-natively t)))
@@ -939,12 +879,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     :keymaps '(python-mode-map python-ts-mode-map)
     "s i"   'py-isort-buffer))
 
-(use-package flymake-ruff
-  :ensure t
-  :hook (eglot-managed-mode . flymake-ruff-load)
-  :custom
-  (flymake-ruff-program-args
-  '("check" "--output-format" "concise" "--exit-zero" "--quiet" "--target-version" "313" "-")))
 
 (use-package reformatter
   :hook
@@ -982,192 +916,37 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package glsl-mode
   :straight (glsl-mode :type git :host github :repo "TideSofDarK/glsl-mode" :branch "better-ts-mode")
   )
-(use-package cmake-mode)
+(use-package cmake-ts-mode
+  :straight (:type built-in)
+  :mode ("\\(?:\\`\\|/\\)CMakeLists\\.txt\\'" "\\.cmake\\'"))
 
 
 ;; C#
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode))
 
 
-(eval-after-load 'csharp-mode
-  (progn
-  (defun my/reapply-csharp-ts-mode-font-lock-settings ()
-    "Fixes csharp-ts-mode font lock with latest version of parser"
-    (interactive)
-    (setq csharp-ts-mode--keywords
-          '("this" "add" "alias" "as" "base" "break" "case" "catch" "checked" "class" "continue"
-            "default" "delegate" "do" "else" "enum" "event" "explicit" "extern" "finally"
-            "for" "foreach" "global" "goto" "if" "implicit" "interface" "is" "lock"
-            "namespace" "notnull" "operator" "params" "return" "remove" "sizeof"
-            "stackalloc" "static" "struct" "switch" "throw" "try" "typeof" "unchecked"
-            "using" "while" "new" "await" "in" "yield" "get" "set" "when" "out" "ref" "from"
-            "where" "select" "record" "init" "with" "let"))
-
-    (let ((ops '("--" "-" "-=" "&" "&=" "&&" "+" "++" "+=" "<" "<=" "<<" "<<=" "="
-                 "==" "!" "!=" "=>" ">" ">=" ">>" ">>=" ">>>" ">>>=" "|" "|=" "||"
-                 "?" "??" "??=" "^" "^=" "~" "*" "*=" "/" "/=" "%" "%=" ":")))
-      (setq csharp-ts-mode--font-lock-settings
-            (treesit-font-lock-rules
-             :language 'c-sharp
-             :feature 'bracket
-             '((["(" ")" "[" "]" "{" "}" (interpolation_brace)]) @font-lock-bracket-face)
-
-             :language 'c-sharp
-             :feature 'delimiter
-             `((["," ":" ";"]) @font-lock-delimiter-face
-               ([,@ops]) @font-lock-operator-face
-               )
-
-             :language 'c-sharp
-             :override t
-             :feature 'comment
-             '((comment) @font-lock-comment-face)
-
-             :language 'c-sharp
-             :override t
-             :feature 'keyword
-             `([,@csharp-ts-mode--keywords] @font-lock-keyword-face
-               (modifier) @font-lock-keyword-face
-               (implicit_type) @font-lock-keyword-face)
-
-             :language 'c-sharp
-             :override t
-             :feature 'property
-             `((attribute name: (identifier) @font-lock-property-use-face))
-
-             :language 'c-sharp
-             :override t
-             :feature 'literal
-             `((integer_literal) @font-lock-number-face
-               (real_literal) @font-lock-number-face
-               (null_literal) @font-lock-constant-face
-               (boolean_literal) @font-lock-constant-face)
-
-             :language 'c-sharp
-             :override t
-             :feature 'string
-             `([(character_literal)
-                (string_literal)
-                (raw_string_literal)
-                (verbatim_string_literal)
-                ;; (interpolated_string_expression)
-                (string_content)
-                (interpolation_start)
-                (interpolation_quote)] @font-lock-string-face)
-
-             :language 'c-sharp
-             :override t
-             :feature 'escape-sequence
-             '((escape_sequence) @font-lock-escape-face)
-
-             :language 'c-sharp
-             :feature 'type
-             :override t
-             '((generic_name (identifier) @font-lock-type-face)
-               (type_parameter (identifier) @font-lock-type-face)
-               (parameter type: (identifier) @font-lock-type-face)
-               (type_argument_list (identifier) @font-lock-type-face)
-               (as_expression right: (identifier) @font-lock-type-face)
-               (is_expression right: (identifier) @font-lock-type-face)
-               (_ type: (identifier) @font-lock-type-face)
-               (predefined_type) @font-lock-builtin-face
-               )
-
-             :language 'c-sharp
-             :feature 'definition
-             :override t
-             '((interface_declaration name: (identifier) @font-lock-type-face)
-               (class_declaration name: (identifier) @font-lock-type-face)
-               (enum_declaration name: (identifier) @font-lock-type-face)
-               (struct_declaration (identifier) @font-lock-type-face)
-               (record_declaration (identifier) @font-lock-type-face)
-               (namespace_declaration name: (identifier) @font-lock-type-face)
-               (constructor_declaration name: (identifier) @font-lock-constructor-face)
-               (destructor_declaration name: (identifier) @font-lock-constructor-face)
-               (base_list (identifier) @font-lock-type-face)
-               (enum_member_declaration (identifier) @font-lock-variable-name-face)
-               (parameter name: (identifier) @font-lock-variable-name-face)
-               (implicit_parameter) @font-lock-variable-name-face
-               )
-
-             :language 'c-sharp
-             :feature 'function
-             '((method_declaration name: (identifier) @font-lock-function-name-face)
-               (local_function_statement name: (identifier) @font-lock-function-name-face)
-               (invocation_expression
-                function: (member_access_expression
-                           name: (identifier) @font-lock-function-call-face))
-               (invocation_expression
-                function: (identifier) @font-lock-function-call-face)
-               (invocation_expression
-                function: (member_access_expression
-                           name: (generic_name (identifier) @font-lock-function-call-face)))
-               (invocation_expression
-                function: (generic_name (identifier) @font-lock-function-call-face)))
-
-             :language 'c-sharp
-             :feature 'expression
-             '((identifier) @font-lock-variable-use-face)
-
-             :language 'c-sharp
-             :feature 'directives
-             :override t
-             '((preproc_if
-                "#if" @font-lock-preprocessor-face)
-               (preproc_if
-                "#endif" @font-lock-preprocessor-face)
-               (preproc_elif
-                "#elif" @font-lock-preprocessor-face)
-               (preproc_else
-                "#else" @font-lock-preprocessor-face)
-               ;; (preproc_endif) @font-lock-preprocessor-face
-               (preproc_define
-                "#define" @font-lock-preprocessor-face
-                (preproc_arg) @font-lock-constant-face)
-               (preproc_undef
-                "#undef" @font-lock-preprocessor-face
-                (preproc_arg) @font-lock-constant-face)
-
-               (preproc_nullable) @font-lock-preprocessor-face
-               (preproc_pragma) @font-lock-preprocessor-face
-               (preproc_region
-                "#region" @font-lock-preprocessor-face
-                (preproc_arg) @font-lock-comment-face)
-               (preproc_endregion) @font-lock-preprocessor-face)))))
-  ;; (my/reapply-csharp-ts-mode-font-lock-settings)
-  ))
-
-;; (schmo/reapply-csharp-ts-mode-font-lock-settings)
 
 
 ;; RUST
 
-;; (use-package rust-mode)
-(use-package rust-mode
-  :ensure t
-  :init
-  (setq rust-mode-treesitter-derive t))
-
-(use-package rustic
-  :ensure t
-  :after (rust-mode)
-  :init
-  (setq rustic-lsp-client 'eglot)
-  :custom
-  (rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer"))
-  (lsp-rust-analyzer-proc-macro-enable t))
+(use-package rust-ts-mode
+  :straight (:type built-in)
+  :mode "\\.rs\\'")
 
 (use-package typescript-ts-mode
   :ensure nil
   :mode
-  ("\\.ts"))
+  ("\\.ts\\'"))
 
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 
 
 ;; C#
 
-(use-package lua-mode)
+(use-package lua-ts-mode
+  :straight (:type built-in)
+  :mode "\\.lua\\'"
+  :interpreter "lua")
 
 ;; EShell
 (use-package eshell
@@ -1175,8 +954,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :defines (eshell-banner-message eshell-cmpl-cycle-completions
                                   eshell-modify-global-environment eshell-prompt-regexp
                                   eshell-prompt-function)
-  :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func
-                                      my-eshell-hook)
+  :functions (eshell-life-is-too-much eshell/whoami eshell/pwd esh-prompt-func)
   :commands (my-eshell-here)
   :init
   (setq eshell-banner-message            ""
@@ -1206,10 +984,6 @@ directory to make multiple eshell windows easier."
   (setq eshell-prompt-regexp "└─\\$ ")   ; or "└─> "
   (setq eshell-prompt-function #'esh-prompt-func)
 
-  ;; Only trigger company manually inside eshell
-  (defun my-eshell-hook ()
-    (setq-local company-idle-delay nil))
-  (add-hook 'eshell-mode-hook #'my-eshell-hook)
 
   (defun my-eshell-up ()
     "Go one directory up in the directory tree and print a new prompt."
@@ -1239,9 +1013,12 @@ directory to make multiple eshell windows easier."
 ;;   (setq eglot-java-server-install-dir (expand-file-name "~/.local/share/emacs/eclipse.jdt.ls")))
 
 (use-package web-mode
-  :mode ("\\.jsp"))
+  :mode ("\\.jsp\\'"))
 
-(use-package go-mode)
+(use-package go-ts-mode
+  :straight (:type built-in)
+  :mode (("\\.go\\'" . go-ts-mode)
+         ("\\(?:\\`\\|/\\)go\\.mod\\'" . go-mod-ts-mode)))
 
 (use-package jinja2-mode)
 (use-package apt-sources-list)
@@ -1249,12 +1026,12 @@ directory to make multiple eshell windows easier."
 ;; (use-package package-lint)
 ;; (use-package flycheck-package)
 
-(use-package http)
+(use-package verb)
 (use-package qml-mode
-  :mode ("\\.qmlproject" "\\.qml"))
+  :mode ("\\.qmlproject\\'" "\\.qml\\'"))
 
 (use-package json-ts-mode
-  :mode ("\\.json")
+  :mode ("\\.json\\'")
   ;; Set default indent to 4 spaces
   :init
   (setq-default json-ts-mode-indent-offset 4))
@@ -1276,12 +1053,16 @@ directory to make multiple eshell windows easier."
 
 (use-package systemd)
 (use-package meson-mode)
-(use-package yaml-mode)
-(use-package toml-mode
-  ;; Use toml-mode for uv.lock files.
-  :mode ("\\.toml" "uv.lock")
-  )
-(use-package dockerfile-mode)
+(use-package yaml-ts-mode
+  :straight (:type built-in)
+  :mode "\\.ya?ml\\'")
+(use-package toml-ts-mode
+  :straight (:type built-in)
+  :mode ("\\.toml\\'" "\\(?:\\`\\|/\\)uv\\.lock\\'"))
+(use-package dockerfile-ts-mode
+  :straight (:type built-in)
+  :mode ("\\(?:\\`\\|/\\)\\(?:Containerfile\\|Dockerfile\\)\\(?:\\.[^/]*\\)?\\'"
+         "\\.[Dd]ockerfile\\'"))
 (use-package csv-mode)
 (use-package yuck-mode)
 
@@ -1318,9 +1099,7 @@ directory to make multiple eshell windows easier."
     (unless (derived-mode-p 'org-mode)
       (org-mode)))
 
-  (setq org-export-async-init-file             (concat user-emacs-directory
-                                                       "/org-async-init.el")
-        org-confirm-babel-evaluate             nil
+  (setq org-confirm-babel-evaluate             nil
         org-tags-column                        -100
         org-clock-history-length               23
         org-agenda-restore-windows-after-quit  t
@@ -1383,18 +1162,8 @@ directory to make multiple eshell windows easier."
            :clock-in t :clock-resume t)
           ("g" "General" entry (file my-misc-org-file)
            "* %? %t\n" :clock-in t :clock-resume t)))
-  :config
-  (defun my-org-pdf-async ()
-    "Perform an async pdf export."
-    (interactive)
-    (save-buffer)
-    (message "Exporting PDF...")
-    (org-latex-export-to-pdf t))
 
   :general
-  ;; (leader-def-key
-  ;;   :keymaps '(bibtex-mode-map)
-  ;;   "i" 'org-ref-clean-bibtex-entry)
 
   (leader-def-key
     :keymaps '(org-mode-map)
@@ -1442,16 +1211,9 @@ directory to make multiple eshell windows easier."
   :straight (:type built-in)
   :commands (org-add-agenda-custom-command))
 
-(use-package org-ref)
 
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
-  :init
-  (setq org-bullets-bullet-list '("◉" "○" "◆" "✸" "◇")))
-
-(use-package org-bars
-  :straight (org-bars :type git :host github :repo "tonyaldon/org-bars")
-  :hook  (org-mode . org-bars-mode))
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
 
 (use-package org-roam)
 
@@ -1466,7 +1228,6 @@ directory to make multiple eshell windows easier."
 (use-package f)
 (use-package s)
 (use-package request)
-(use-package language-detection)
 
 (use-package protobuf-mode)
 
@@ -1497,10 +1258,7 @@ directory to make multiple eshell windows easier."
 (with-eval-after-load 'eglot
   (with-eval-after-load 'typst-ts-mode
     (add-to-list 'eglot-server-programs
-                 `((typst-ts-mode) .
-                   ,(eglot-alternatives `(,typst-ts-lsp-download-path
-                                          "tinymist"
-                                          "typst-lsp"))))))
+                 '((typst-ts-mode) . ("tinymist")))))
 
 (use-package xkb-mode
   :straight
@@ -1529,8 +1287,6 @@ directory to make multiple eshell windows easier."
 
 
 (use-package gptel
-  :custom
-  (default-model "gpt-5.6-luna")
   :config
   (add-to-list 'gptel-prompt-prefix-alist
                `(markdown-mode . ,  (concat (propertize  "[>]" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold))
@@ -1585,7 +1341,6 @@ directory to make multiple eshell windows easier."
   (require 'mcp-hub)
   (require 'gptel-integrations)
 
-  (setq jrpc-default-request-timeout 300)
   (setq jsonrpc-default-request-timeout 300)
 
   :hook (after-init . mcp-hub-start-all-server))
@@ -1601,16 +1356,9 @@ directory to make multiple eshell windows easier."
   (eca-chat-mcp-tool-call-loading-symbol (propertize "... " 'font-lock-face `(:foreground ,(face-attribute 'info-node :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-error-symbol (propertize "FAIL" 'font-lock-face `(:foreground ,(face-attribute 'error :foreground) :weight bold)))
   (eca-chat-mcp-tool-call-success-symbol (propertize "OK" 'font-lock-face `(:foreground ,(face-attribute 'success :foreground) :weight bold)))
-  (eca-chat-mcp-tool-call-pending-approval-symbol (propertize "PENDING" 'font-lock-face `(:foreground ,(face-attribute 'warning :foreground) :weight bold)))
+  (eca-chat-mcp-tool-call-pending-approval-symbol (propertize "PENDING" 'font-lock-face `(:foreground ,(face-attribute 'warning :foreground) :weight bold))))
 
 
-  :config
-  ;; Compatibility shim: flymake-diagnostic-code doesn't exist until Emacs 31,
-  ;; but eca-editor.el calls it unconditionally.
-  (unless (fboundp 'flymake-diagnostic-code)
-    (defun flymake-diagnostic-code (_diagnostic)
-      "Compatibility shim for Emacs < 31."
-      nil)))
 
 
 (use-package agent-shell
@@ -1636,8 +1384,6 @@ directory to make multiple eshell windows easier."
   (add-hook 'emacs-startup-hook #'mcp-server-start-unix))
 
 
-(custom-set-variables
- '(safe-local-variable-values '((lsp-rust-analyzer-proc-macro-enable . t))))
 
 (provide 'init)
 ;;; init.el ends here

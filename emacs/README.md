@@ -7,6 +7,7 @@ in Git:
 - `user-lisp/*.el`: personal libraries, loaded with `require` after their
   package dependencies are available.
 - `tests/*.el`: ERT tests; use `-L .config/emacs/user-lisp` when running them.
+- `versions/default.el`: committed Straight package revisions.
 
 For package tests in batch Emacs, also load `early-init.el` before loading
 the packages/tests (`emacs -Q --batch -l .config/emacs/early-init.el ...`).
@@ -28,6 +29,152 @@ Agent Shell transcripts and screenshots for new sessions go into
 `.agent-shell/` in the project or home directory. Existing sessions retain
 their cached transcript paths: leave their old directories intact until
 those sessions finish. Historical transcripts are not moved automatically.
+
+## Package revisions
+
+The version-7 Straight bootstrap and package manager use
+`versions/default.el` from the version-controlled configuration directory.
+Package checkouts and builds remain under `~/.local/share/emacs/straight/`;
+only the lockfile lives in this repository.
+
+New checkouts honor these revision pins. Existing repositories are not
+forcibly reset during startup. To restore their recorded revisions, preserve
+local changes first and explicitly run `M-x straight-thaw-versions`.
+
+After intentional package updates, `C-u M-x straight-freeze-versions` records
+the current revisions without Straight's push/check phase. Review local
+changes separately: the lockfile records commits, not uncommitted patches.
+
+## Native language modes
+
+TOML files and `uv.lock` use Emacs's built-in `toml-ts-mode`, not the external
+`toml-mode` package. The TOML tree-sitter grammar must be installed; on a new
+machine, use `M-x treesit-install-language-grammar` and select `toml`.
+
+YAML files (`.yaml` and `.yml`) use built-in `yaml-ts-mode` instead of the
+external `yaml-mode` package and require the `yaml` tree-sitter grammar.
+
+`CMakeLists.txt` and `.cmake` files use built-in `cmake-ts-mode` with the
+`cmake` grammar.
+
+Dockerfile, Containerfile, their dot-suffixed variants, and `.dockerfile`
+files use built-in `dockerfile-ts-mode` with the `dockerfile` grammar.
+The external mode's image-building helper commands are no longer configured.
+
+Go source files use built-in `go-ts-mode` with the `go` grammar; `go.mod`
+uses `go-mod-ts-mode` with the `gomod` grammar. The external `go-mode`
+package is no longer configured, so `go.work` has no specialized mode.
+Go language-server autostart policy is unchanged.
+
+Rust files use built-in `rust-ts-mode` with the `rust` grammar and start
+Eglot automatically. The server remains `rustup run stable rust-analyzer`,
+with Clippy diagnostics. Eglot provides type inlay hints when rust-analyzer
+supports them; Rustic is not required. Rustic-specific Cargo popup and
+current-test commands are no longer configured.
+
+C# keeps built-in `csharp-ts-mode` and uses `csharp-ls` instead of OmniSharp.
+On this workstation, csharp-ls 0.28.0 is installed under
+`~/.local/share/csharp-ls/`; `~/.local/bin/csharp-ls` launches it with the
+private .NET 10.0.402 SDK under `~/.local/share/dotnet/10.0.402/`. The launcher
+sets the SDK environment only for the server process; the system .NET 8 SDK
+and ordinary `dotnet` commands are unchanged. Other machines need a compatible
+[csharp-ls installation](https://www.nuget.org/packages/csharp-ls).
+
+Lua files and Lua shebangs use built-in `lua-ts-mode` with the `lua` grammar.
+Eglot's default Lua server is LuaLS; use `M-x eglot` to connect manually.
+The dotfiles root's `.luarc.json` adds `/usr/share/hypr/stubs` to LuaLS's
+workspace library for Hyprland API completion and navigation. This does not
+change other projects or the handling of legacy Hyprlang `.conf` files.
+
+On this workstation, the official LuaLS 3.19.2 Linux x64 release is installed
+under `~/.local/share/lua-language-server/3.19.2/`, with a wrapper at
+`~/.local/bin/lua-language-server`. The wrapper preserves access to the
+server's bundled resources. Other machines need a working LuaLS installation;
+see the [official installation guide](https://luals.github.io/#other-install).
+
+## Python language tooling
+
+Eglot uses `rass` to combine `ty server` and `ruff server`, taking both server
+executables from `~/.local/bin/`. Type-checking and lint diagnostics reach
+Flymake through Eglot; there is no separate `flymake-ruff` checker or obsolete
+`pylsp` workspace configuration. Python target versions and rules come from
+the project's ty/Ruff configuration, not a forced editor-side Python 3.13 flag.
+Ruff format-on-save and the manual `SPC s i` isort command remain configured.
+
+## Eshell completion
+
+Eshell retains its completion-at-point provider. The obsolete Company idle
+delay hook is removed; Eshell's Corfu configuration is unchanged.
+
+## Org and editing packages
+
+Org-modern styles Org buffers in place of Org-bars and Org-bullets. Built-in
+Org indentation, visual line wrapping, agenda, capture, and clocking remain
+configured. Org-roam is retained for knowledge-base and agent workflows.
+Org-ref is no longer configured; existing documents are not converted, and
+its citation-link syntax requires the package if needed later. Built-in
+Org-cite remains available.
+
+The unused custom async PDF export helper and missing async-init file
+reference are removed. No export-only init file is added; synchronous Org
+export remains unchanged.
+
+The unused language-detection and Vimish Fold package declarations are
+removed. Org/native folding is unaffected. Undo-tree, saved branching
+history, and its visualizer binding are unchanged.
+
+## HTTP requests
+
+Verb replaces the old `http.el` client. Write a request under an Org heading
+tagged `:verb:` and run `M-x verb-send-request-on-point-display` to send it.
+Verb enables its minor mode when needed; no requests run at startup, no
+global Org key prefix is changed, and existing request files are not converted.
+
+## Editing and debugging integrations
+
+Evil's normal-state `H`/`L` move between arguments and `K` leaves the current
+argument list. Smartparens uses its upstream Python tree-sitter pair rules
+instead of copied local definitions. Markdown JavaScript code blocks use
+`js-ts-mode` for native highlighting.
+
+Dape saves buffers through `dape-start-hook` and uses its default working
+directory selection, including the fallback outside projects. GLSL's Eglot
+contact launches `/usr/bin/glsl_analyzer` directly.
+
+TypeScript, JSON, JSP, QML, and QML-project filename patterns match their
+intended suffixes only. Typst's Eglot contact uses `tinymist` from `PATH`.
+Key-chord retains all eight order/case variants of `jk` through four
+registrations, since each registration already covers both key orders.
+
+## Core packages and compatibility
+
+Straight remains the package manager, but `use-package` and Which-key come
+from Emacs itself. Native-compilation compatibility is left to Emacs and
+Straight rather than a local alias for the old deny-list variable.
+
+ECA uses its upstream Flymake compatibility guard; no fake global diagnostic
+accessor is defined. C# highlighting uses the built-in mode's rules without
+the inactive local replacement. gptel uses the selected backend's default
+model rather than an ineffective `default-model` customization.
+
+Short y/n prompts use `use-short-answers`, without replacing `yes-or-no-p`.
+The shell environment is imported once on each platform. Doom Modeline uses
+its Nerd Icons dependency, with no standalone All the Icons declaration.
+Magit's branch arguments come from its Transient rather than a stale variable.
+
+Normal package warnings are visible rather than globally suppressed.
+The effective `jsonrpc-default-request-timeout` remains 300 seconds; the
+unused `jrpc-default-request-timeout` assignment is removed.
+
+## Completion transfer
+
+With Corfu completion active, `M-m` transfers completion to Consult in the
+minibuffer. Choosing a candidate replaces the original completion region and
+preserves the completion provider's metadata and exit callback.
+
+Minibuffers use Corfu's built-in activation policy: local
+`completion-at-point-functions` enable Corfu, while command-selection
+minibuffers remain with Vertico. The broader custom activation hook is removed.
 
 ## Agent Shell prompt submission
 
