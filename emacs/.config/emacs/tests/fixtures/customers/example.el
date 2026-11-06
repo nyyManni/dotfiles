@@ -7,3 +7,5 @@
    (env . (((name . "EXAMPLE_TOKEN")
             (value . (lambda () (error "Credential evaluated during setup")))))))
  '("/tmp/customer/"))
+
+(nyy/agent-shell-register-uv-credentials "~/.config/uv/uv_example.toml" "example")

@@ -309,6 +309,18 @@ Seeded first-prompt titles are deliberately not authoritative."
   (or (map-elt (buffer-local-value 'agent-shell--state buffer) :agent-config)
       (funcall original buffer)))
 
+(defun nyy/agent-shell-manager-status (original buffer)
+  "Use BUFFER's turn activity without changing ORIGINAL's lifecycle states."
+  (let ((status (funcall original buffer)))
+    ;; Tool-call records can remain after a turn ends; they are not activity.
+    (if (member status '("ready" "working" "waiting"))
+        (pcase (agent-shell-status :shell-buffer buffer)
+          ('ready "ready")
+          ('busy "working")
+          ('blocked "waiting")
+          (_ status))
+      status)))
+
 (defun nyy/agent-shell-manager-session-titles (entries)
   "Show concise names in manager ENTRIES, retaining buffer identities.
 Prefer OMP's native title, then an explicit buffer name, then a cached prompt.
@@ -341,6 +353,8 @@ Consult uses these same entries, so both session lists show the name."
    entries))
 
 (with-eval-after-load 'agent-shell-manager
+  (advice-add 'agent-shell-manager--get-status :around
+              #'nyy/agent-shell-manager-status)
   (advice-add 'agent-shell-manager--entries :filter-return
               #'nyy/agent-shell-manager-session-titles)
   (advice-add 'agent-shell-manager--get-agent-kind :around
@@ -399,9 +413,24 @@ session in the same project.  Signal a user error for unavailable artifacts."
       "open file"
     (funcall original url verb)))
 
+(defun nyy/agent-shell-local-link-fragment (original url)
+  "Parse URL through ORIGINAL, allowing named fragments on local files.
+Preserve existing line references and literal # filenames.  For a named
+fragment, open the underlying file, matching Markdown mode's local-link
+behavior; do not reinterpret web or other non-file URL schemes."
+  (or (funcall original url)
+      (when-let* (((string-match "\\`\\([^#]+\\)#.*\\'" url))
+                  (file-url (match-string 1 url))
+                  ((or (string-prefix-p "file:" file-url)
+                       (not (string-match-p
+                             "\\`[[:alpha:]][[:alnum:]+.-]*:" file-url)))))
+        (funcall original file-url))))
+
 (with-eval-after-load 'agent-shell-markdown
   (advice-add 'agent-shell-markdown--open-link :around
               #'nyy/agent-shell-open-omp-local-link)
+  (advice-add 'agent-shell-markdown--parse-local-link :around
+              #'nyy/agent-shell-local-link-fragment)
   (advice-add 'agent-shell-markdown--link-verb :around
               #'nyy/agent-shell-omp-local-link-verb))
 

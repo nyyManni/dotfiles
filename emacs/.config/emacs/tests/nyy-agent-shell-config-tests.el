@@ -14,29 +14,34 @@
   (let ((nyy/agent-shell-customer-directory
          (expand-file-name "not-present/" nyy/config-test-fixtures))
         agent-shell-mcp-servers nyy/agent-shell-mcp-optional-servers
-        nyy/agent-shell-mcp-server-roots)
+        nyy/agent-shell-mcp-server-roots nyy/agent-shell-uv-credential-stores)
     (nyy/agent-shell-configure-mcp)
     (should (equal (mapcar (lambda (s) (map-elt s 'name)) agent-shell-mcp-servers)
                    '("emacs" "agent-lsp" "githits" "brave-search")))
     (should-not nyy/agent-shell-mcp-optional-servers)
-    (should-not nyy/agent-shell-mcp-server-roots)))
+    (should-not nyy/agent-shell-mcp-server-roots)
+    (should-not nyy/agent-shell-uv-credential-stores)))
 
 (ert-deftest nyy/config-private-load-is-lazy-and-repeatable ()
   (let ((nyy/agent-shell-customer-directory nyy/config-test-fixtures)
         agent-shell-mcp-servers nyy/agent-shell-mcp-optional-servers
-        nyy/agent-shell-mcp-server-roots)
+        nyy/agent-shell-mcp-server-roots nyy/agent-shell-uv-credential-stores)
     (dotimes (_ 2)
       (nyy/agent-shell-configure-mcp)
       (should (= (length agent-shell-mcp-servers) 5))
       (should (equal nyy/agent-shell-mcp-optional-servers '("customer-mcp")))
       (should (equal nyy/agent-shell-mcp-server-roots
-                     '(("customer-mcp" . ("/tmp/customer/"))))))
+                     '(("customer-mcp" . ("/tmp/customer/")))))
+      (should (equal nyy/agent-shell-uv-credential-stores
+                     (list (cons (expand-file-name "~/.config/uv/uv_example.toml")
+                                 "example")))))
     (let ((nyy/agent-shell-customer-directory
            (expand-file-name "not-present/" nyy/config-test-fixtures)))
       (nyy/agent-shell-configure-mcp)
       (should (= (length agent-shell-mcp-servers) 4))
       (should-not nyy/agent-shell-mcp-optional-servers)
-      (should-not nyy/agent-shell-mcp-server-roots))))
+      (should-not nyy/agent-shell-mcp-server-roots)
+      (should-not nyy/agent-shell-uv-credential-stores))))
 
 (ert-deftest nyy/config-register-replaces-server-and-policy ()
   (let (agent-shell-mcp-servers nyy/agent-shell-mcp-optional-servers
@@ -95,6 +100,85 @@ test \"$NYY_SMOKE\" = preserved && printf isolated"
       (should (zerop (apply #'call-process (car command) nil t nil (cdr command))))
       (should (equal (buffer-string) "isolated")))
     (should (equal (getenv "AWS_PROFILE") "synthetic-admin"))))
+
+(ert-deftest nyy/config-agent-uv-follows-session-not-last-customer ()
+  (let* ((process-environment (copy-sequence process-environment))
+         (direnv-mode t)
+         (nyy/agent-shell-uv-credential-stores nil)
+         (agent-shell-command-prefix #'nyy/agent-shell-without-aws))
+    (nyy/agent-shell-register-uv-credentials "/tmp/uv-alpha.toml" "alpha")
+    (nyy/agent-shell-register-uv-credentials "/tmp/uv-beta.toml" "beta")
+    (setenv "XDG_DATA_HOME" "/tmp/agent-uv-test-data")
+    (setenv "UV_KEYRING_PROVIDER" "subprocess")
+    (setenv "UV_PREVIEW" "true")
+    (setenv "UV_PREVIEW_FEATURES" "native-auth,index-by-name")
+    (dolist (name '("UV_INDEX_PRIVATE_REGISTRY_USERNAME"
+                    "UV_INDEX_PRIVATE_REGISTRY_PASSWORD"
+                    "UV_INDEX_OTHER_PASSWORD" "UV_PUBLISH_PASSWORD"
+                    "UV_INDEX_URL"))
+      (setenv name "synthetic-other-customer"))
+    (cl-letf (((symbol-function 'agent-shell-cwd) (lambda () default-directory))
+              ((symbol-function 'direnv-update-directory-environment)
+               (lambda (directory &optional _summary)
+                 (setenv "UV_CONFIG_FILE"
+                         (if (equal directory "/tmp/alpha/")
+                             "/tmp/uv-alpha.toml"
+                           "/tmp/uv-beta.toml")))))
+      ;; Both transitions matter: the last visited buffer can be either customer.
+      (dolist (customer '("alpha" "beta" "alpha"))
+        (setenv "UV_CONFIG_FILE" "/tmp/stale-other-customer.toml")
+        (with-temp-buffer
+          (let* ((default-directory (concat "/tmp/" customer "/"))
+                 (command
+                  (agent-shell--build-command-for-execution
+                   '("sh" "-c"
+                     "test \"$UV_KEYRING_PROVIDER\" = disabled &&
+test \"$NETRC\" = /dev/null &&
+test \"$UV_PREVIEW_FEATURES\" = index-by-name &&
+test -z \"${UV_PREVIEW+x}${UV_INDEX_PRIVATE_REGISTRY_USERNAME+x}${UV_INDEX_PRIVATE_REGISTRY_PASSWORD+x}${UV_INDEX_OTHER_PASSWORD+x}${UV_PUBLISH_PASSWORD+x}${UV_INDEX_URL+x}\" &&
+printf '%s\\n%s' \"$UV_CONFIG_FILE\" \"$UV_CREDENTIALS_DIR\""))))
+            (let ((default-directory temporary-file-directory))
+              (should (zerop (apply #'call-process (car command) nil t nil
+                                    (cdr command)))))
+            (should (equal (buffer-string)
+                           (format "/tmp/uv-%s.toml\n/tmp/agent-uv-test-data/uv/agent-credentials/%s"
+                                   customer customer)))))))
+    (should (equal (getenv "UV_KEYRING_PROVIDER") "subprocess"))
+    (should (equal (getenv "UV_INDEX_OTHER_PASSWORD") "synthetic-other-customer"))))
+
+(ert-deftest nyy/config-agent-uv-unregistered-and-remote-have-no-customer-store ()
+  (let ((process-environment (copy-sequence process-environment))
+        (direnv-mode t)
+        (nyy/agent-shell-uv-credential-stores nil))
+    (nyy/agent-shell-register-uv-credentials "/tmp/uv-alpha.toml" "alpha")
+    (setenv "XDG_DATA_HOME" "/tmp/agent-uv-test-data")
+    (cl-letf (((symbol-function 'agent-shell-cwd) (lambda () default-directory))
+              ((symbol-function 'direnv-update-directory-environment)
+               (lambda (&rest _) (setenv "UV_CONFIG_FILE" "/tmp/unregistered.toml"))))
+      (let ((command (append (nyy/agent-shell-without-aws (current-buffer))
+                             '("printenv" "UV_CREDENTIALS_DIR"))))
+        (with-temp-buffer
+          (should (zerop (apply #'call-process (car command) nil t nil (cdr command))))
+          (should (equal (buffer-string)
+                         "/tmp/agent-uv-test-data/uv/agent-credentials/_unconfigured\n")))))
+    (setenv "UV_CONFIG_FILE" "/tmp/uv-alpha.toml")
+    (cl-letf (((symbol-function 'agent-shell-cwd)
+               (lambda () "/ssh:example.invalid:/tmp/alpha/"))
+              ((symbol-function 'direnv-update-directory-environment)
+               (lambda (&rest _) (ert-fail "Remote session imported local direnv"))))
+      (let ((command (append (nyy/agent-shell-without-aws (current-buffer))
+                             '("printenv" "UV_CREDENTIALS_DIR"))))
+        (with-temp-buffer
+          (should (zerop (apply #'call-process (car command) nil t nil (cdr command))))
+          (should (equal (buffer-string)
+                         "/tmp/agent-uv-test-data/uv/agent-credentials/_unconfigured\n")))))))
+
+(ert-deftest nyy/config-agent-uv-rejects-store-paths ()
+  (let (nyy/agent-shell-uv-credential-stores)
+    (dolist (customer '("../other" "/tmp/other" "_unconfigured" "" "Other"))
+      (should-error
+       (nyy/agent-shell-register-uv-credentials "/tmp/uv.toml" customer)))
+    (should-not nyy/agent-shell-uv-credential-stores)))
 
 (ert-deftest nyy/config-submit-accepts-the-selected-corfu-candidate ()
   (dolist (candidate '("rename" "render"))

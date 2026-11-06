@@ -3,6 +3,7 @@
 (require 'ert)
 (require 'nyy-agent-shell-session)
 (require 'mcp-server-tools)
+(require 'agent-shell-manager)
 
 (defmacro nyy/session-tool-test (&rest body)
   "Run BODY with one isolated Agent-shell buffer and MCP registry."
@@ -82,6 +83,57 @@
       (should-error (mcp-server-tools-call
                      "rename-session"
                      '((session_id . "test-session-id") (topic . "Disabled")))))))
+
+(ert-deftest nyy/session-manager-status-tracks-turn-not-tool-history ()
+  (with-temp-buffer
+    (let* ((shell (current-buffer))
+           (comint-process (make-pipe-process :name "test manager shell"
+                                              :buffer shell :noquery t))
+           (acp-process (make-pipe-process :name "test manager ACP" :noquery t)))
+      (unwind-protect
+          (progn
+            (setq major-mode 'agent-shell-mode)
+            (setq-local shell-maker--config (make-shell-maker-config :name "Agent"))
+            (setq-local shell-maker--busy nil)
+            (setq-local agent-shell--state
+                        (list (cons :initialized t)
+                              (cons :client (list (cons :process acp-process)))
+                              (cons :session '((:id . "status-test")))
+                              (cons :tool-calls
+                                    '(("done" . ((:status . "completed")))
+                                      ("error" . ((:status . "failed")))))))
+            (should (equal (agent-shell-manager--get-combined-status shell) "Ready"))
+            (setq shell-maker--busy t)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Working"))
+            (setf (alist-get :tool-calls agent-shell--state)
+                  '(("permission" . ((:status . "pending")
+                                    (:permission-request-id . 1)))))
+            (should (equal (agent-shell-manager--get-combined-status shell) "Waiting"))
+            ;; Turn completion wins over leftover permission records too.
+            (setq shell-maker--busy nil)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Ready"))
+            (setf (alist-get :tool-calls agent-shell--state) nil)
+            (setq shell-maker--busy t)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Working"))
+            (setf (alist-get :elicitations agent-shell--state)
+                  '((1 . ((:status . pending)))))
+            (should (equal (agent-shell-manager--get-combined-status shell) "Waiting"))
+            (setq shell-maker--busy nil)
+            (setf (alist-get :elicitations agent-shell--state) nil
+                  (alist-get :session agent-shell--state) nil
+                  (alist-get :initialized agent-shell--state) nil)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Starting..."))
+            (setf (alist-get :initialized agent-shell--state) t)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Unknown"))
+            (setf (alist-get :session agent-shell--state) '((:id . "status-test")))
+            (setq shell-maker--busy t)
+            (delete-process acp-process)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Killed"))
+            (setf (alist-get :client agent-shell--state) nil)
+            (delete-process comint-process)
+            (should (equal (agent-shell-manager--get-combined-status shell) "Killed")))
+        (when (process-live-p acp-process) (delete-process acp-process))
+        (when (process-live-p comint-process) (delete-process comint-process))))))
 
 (ert-deftest nyy/session-manager-shows-title-without-renaming ()
   (nyy/session-tool-test
@@ -417,6 +469,70 @@
            (title (aref (cadar entries) 0)))
       (should (equal title "Persisted ETL title"))
       (should (equal (buffer-name shell) "test session tool")))))
+
+(defmacro nyy/local-fragment-link-test (&rest body)
+  "Run BODY with a real local Markdown file and file-display policy."
+  (declare (indent 0))
+  `(let* ((directory (make-temp-file "agent-shell-fragments-" t))
+          (default-directory (file-name-as-directory directory))
+          (file (expand-file-name "guide.md" directory))
+          (agent-shell-markdown-open-file-function
+           (lambda (path) (display-buffer (find-file-noselect path))))
+          (transient-mark-mode t)
+          (make-backup-files nil))
+     (unwind-protect
+         (save-window-excursion
+           (write-region "# Usage\nDetails\nMore details\n" nil file nil 'silent)
+           (cl-letf (((symbol-function 'browse-url)
+                      (lambda (&rest _) (ert-fail "Local link escaped to browser"))))
+             ,@body))
+       (dolist (buffer (buffer-list))
+         (when (and (buffer-file-name buffer)
+                    (file-in-directory-p (buffer-file-name buffer) directory))
+           (kill-buffer buffer)))
+       (delete-directory directory t))))
+
+(ert-deftest nyy/local-fragment-link-rendered-return-opens-file ()
+  (nyy/local-fragment-link-test
+    (with-temp-buffer
+      (insert "Usage: [guide](guide.md#usage)\n")
+      (agent-shell-markdown-replace-markup :complete t :render-images nil)
+      (goto-char (point-min))
+      (search-forward "guide")
+      (backward-char)
+      (let ((command (lookup-key (get-text-property (point) 'keymap) (kbd "RET"))))
+        (call-interactively command)
+        (should (eq (window-buffer (get-buffer-window (get-file-buffer file)))
+                    (get-file-buffer file)))
+        (should (equal (with-current-buffer (get-file-buffer file) (buffer-string))
+                       "# Usage\nDetails\nMore details\n"))))))
+
+(ert-deftest nyy/local-fragment-link-preserves-line-range-navigation ()
+  (nyy/local-fragment-link-test
+    (agent-shell-markdown--open-link "guide.md#L2-L3")
+    (let ((window (get-buffer-window (get-file-buffer file))))
+      (with-selected-window window
+        (should (= (line-number-at-pos) 2))
+        (should (use-region-p))
+        (should (equal (buffer-substring-no-properties (region-beginning) (region-end))
+                       "Details\nMore details"))))))
+
+(ert-deftest nyy/local-fragment-link-preserves-literal-hash-filenames ()
+  (nyy/local-fragment-link-test
+    (let ((literal (expand-file-name "guide.md#usage" directory)))
+      (write-region "Literal filename\n" nil literal nil 'silent)
+      (should (equal (map-elt (agent-shell-markdown--parse-local-link "guide.md#usage") :file)
+                     literal)))))
+
+(ert-deftest nyy/local-fragment-link-does-not-reinterpret-web-or-missing-targets ()
+  (nyy/local-fragment-link-test
+    (let* ((url "https://example.invalid/guide.md")
+           (lookalike (expand-file-name url directory)))
+      (make-directory (file-name-directory lookalike) t)
+      (write-region "Not the web page\n" nil lookalike nil 'silent)
+      (should-not (agent-shell-markdown--parse-local-link (concat url "#usage")))
+      (should-not (agent-shell-markdown--parse-local-link "missing.md#usage"))
+      (should-not (file-exists-p (expand-file-name "missing.md" directory))))))
 
 (provide 'nyy-agent-shell-session-tests)
 ;;; nyy-agent-shell-session-tests.el ends here

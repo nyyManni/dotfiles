@@ -8,14 +8,14 @@ find_keyword = { fg = "#f38ba8", bold = true, italic = true, underline = true }
 find_position = { fg = "#f38ba8", bold = true, italic = true }
 
 # Marker
-marker_copied = { fg = "#1ba891", bg = "#1ba891" }
-marker_cut = { fg = "#1ba891", bg = "#1ba891" }
+marker_copied = { fg = "#415860", bg = "#415860" }
+marker_cut = { fg = "#415860", bg = "#415860" }
 marker_marked = { fg = "#f38ba8", bg = "#f38ba8" }
 marker_selected = { fg = "#94e2d5", bg = "#94e2d5" }
 
 # Count
-count_copied = { fg = "#0e352e", bg = "#1ba891" }
-count_cut = { fg = "#0e352e", bg = "#1ba891" }
+count_copied = { fg = "#94e2d5", bg = "#415860" }
+count_cut = { fg = "#94e2d5", bg = "#415860" }
 count_selected = { fg = "#11111b", bg = "#94e2d5" }
 
 # Border
@@ -40,8 +40,8 @@ progress_error = { fg = "#f38ba8", bg = "#1e1e2e" }
 perm_type = { fg = "#fab387" }
 perm_write = { fg = "#94e2d5" }
 perm_exec = { fg = "#f38ba8" }
-perm_read = { fg = "#1ba891" }
-perm_sep = { fg = "#6b02e9" }
+perm_read = { fg = "#415860" }
+perm_sep = { fg = "#51466a" }
 
 # : ]]]
 
@@ -96,7 +96,7 @@ border = { fg = "#cba6f7", bg = "#11111b" }
 [tasks]
 border = { fg = "#cba6f7" }
 title = {}
-hovered = { fg = "#1ba891", underline = true }
+hovered = { fg = "#415860", underline = true }
 
 # : ]]]
 
@@ -152,19 +152,19 @@ title_error = { fg = "#f38ba8" }
 
 rules = [
     # Images
-    { mime = "image/*", fg = "#94e2d5" },
+    { mime = "image/*", fg = "#bb8af4" },
 
     # Media
-    { mime = "{audio,video}/*", fg = "#f9e2af" },
+    { mime = "{audio,video}/*", fg = "#96e9db" },
 
     # Archives
-    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#f5c2e7" },
+    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#fab387" },
 
     # Documents
-    { mime = "application/{pdf,doc,rtf}", fg = "#a6e3a1" },
+    { mime = "application/{pdf,doc,rtf}", fg = "#94e2d5" },
 
     # Special files
-    { mime = "*", is = "orphan", fg = "#fbd7e1", bg = "#c8043a" },
+    { mime = "*", is = "orphan", fg = "#ff96b2", bg = "#5d3e52" },
     { mime = "application/*exec*", fg = "#f38ba8" },
 
     # Fallback

@@ -12,6 +12,14 @@ Check it with `xdg-user-dir PROJECTS`. Each checkout retains its own Git history
 local changes, ignored files, and data. Customer-wide settings and notes stay
 alongside that customer's checkouts.
 
+## Task workflow rollout
+
+The [task workflow rollout](task-workflow-rollout.md) defines a phased,
+root-local task system for personal and customer work. Phase 1 implements
+personal Org task capture, selection, and focus under
+`~/Projects/personal/tasks/`; see the [usage guide](../emacs/README.md#personal-tasks-phase-1).
+Later phases remain planned. Existing agent data is not moved by phase 1.
+
 ## Migration on 2026-10-16
 
 The complete `~/personal/git/` and `~/projects/` trees were renamed, not cloned or

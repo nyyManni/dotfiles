@@ -24,7 +24,10 @@
 
 ;; Set this explicitly before loading packages; changing user-emacs-directory
 ;; alone does not redirect the native cache until later in startup.
-(when (fboundp 'startup-redirect-eln-cache)
+;; The helper can exist even when native compilation is unavailable.
+(when (and (fboundp 'startup-redirect-eln-cache)
+           (fboundp 'native-comp-available-p)
+           (native-comp-available-p))
   (let ((cache-home (getenv "XDG_CACHE_HOME")))
     (startup-redirect-eln-cache
      (expand-file-name "emacs/eln-cache/"
@@ -80,12 +83,19 @@
   (push '(inhibit-double-buffering . t) default-frame-alist)
   (push '(font . "Fira Code Nerd Font Mono") default-frame-alist))
 
-(add-to-list 'default-frame-alist '(background-color . "#0c1014"))
-(add-to-list 'default-frame-alist '(foreground-color . "#99d1ce"))
+;; (set-face-attribute 'default nil 
+;;                     :family "DejaVu Sans Mono-8" 
+;;                     :height 1) 
+(set-frame-font (font-spec :family "DejaVu Sans Mono" :size 8.0) nil t)
+
+;; Seed the startup frame only; later clients must inherit the active theme.
+(add-to-list 'initial-frame-alist '(background-color . "#0c1014"))
+(add-to-list 'initial-frame-alist '(foreground-color . "#99d1ce"))
 
 ;; disable this for now, the performance is absolutely horrible
 (when (eq system-type 'gnu/linux)
   (add-to-list 'default-frame-alist '(alpha . (100 97))))
+;; (add-to-list 'default-frame-alist '(alpha . (97 97))))
 
 ;; Resizing the Emacs frame can be a terribly expensive part of changing the
 ;; font. By inhibiting this, we easily halve startup times with fonts that are

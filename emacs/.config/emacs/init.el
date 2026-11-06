@@ -62,6 +62,8 @@
 
       ring-bell-function   'ignore
 
+      use-dialog-box       nil
+
       frame-title-format   '("" "Emacs v" emacs-version))
 
 
@@ -150,7 +152,10 @@
   (blink-cursor-mode 0))
 
 
-(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+;; Neo Emacs 0.0.20 draws the end-of-line cursor at the indicator column.
+(if (fboundp 'neomacs-core-backend)
+    (remove-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+  (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode))
 
 (set-face-attribute 'fill-column-indicator nil :height 1.1)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
@@ -196,8 +201,6 @@
   :config
   (load-theme 'catppuccin t)
 
-  (add-hook 'server-after-make-frame-hook #'catppuccin-reload)
-
   (eval-after-load 'flymake
     (progn
       (require 'flymake)
@@ -224,7 +227,13 @@
 
   (defun my-get-python-version ()
     '("python" "--version"))
-  (setq doom-modeline-env-python-command #'my-get-python-version))
+  (setq doom-modeline-env-python-command #'my-get-python-version)
+  (doom-modeline-def-segment task-workflow
+    (when (and (doom-modeline--active)
+               (boundp 'task-workflow-modeline-string))
+      task-workflow-modeline-string))
+  (doom-modeline-remove-segment 'task-workflow)
+  (doom-modeline-add-segment 'task-workflow 'bar :after))
 
 (defun my-put-file-name-on-clipboard ()
   "Put the current file name on the clipboard."
@@ -356,6 +365,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     "P r" 'profiler-report))
 
 (use-package sudo-edit)
+
 
 
 (defun my-reload-file ()
@@ -1166,20 +1176,24 @@ directory to make multiple eshell windows easier."
           ("g" "General" entry (file my-misc-org-file)
            "* %? %t\n" :clock-in t :clock-resume t)))
 
+  :config
+  (require 'task-workflow)
+  (task-workflow-configure)
+
   :general
 
   (leader-def-key
     :keymaps '(org-mode-map)
     "s a"   'outline-show-all
 
-    "o t c" 'org-table-create
+    "o T c" 'org-table-create
     "p c"   'my-org-compile
 
-    ;; Task management keybindings.
-    "o t i" 'org-clock-in
+    ;; Org editing and clock keybindings.
+    "o T i" 'org-clock-in
     "o s"   'org-todo
     "o e"   'org-edit-special
-    "o t s" 'org-clock-display
+    "o T s" 'org-clock-display
     "o n s" 'org-narrow-to-subtree
     "o n w" 'widen)
   (leader-def-key
@@ -1204,10 +1218,17 @@ directory to make multiple eshell windows easier."
     "o a"   'org-agenda
     "o c"   'org-capture
     "o o"   'my-pop-to-temp-org-buffer
-    "o t r" 'org-clock-in-last
-    "o t o" 'org-clock-out
-    "o t t" 'org-clock-goto
-    "o t i" 'org-clock-in))
+    "o t c" 'task-workflow-capture
+    "o t m" 'task-workflow-capture-manual
+    "o t d" 'task-workflow-draft
+    "o t t" 'task-workflow-select
+    "o t f" 'task-workflow-focus
+    "o t g" 'task-workflow-visit-focused
+    "o t x" 'task-workflow-clear-focus
+    "o T r" 'org-clock-in-last
+    "o T o" 'org-clock-out
+    "o T t" 'org-clock-goto
+    "o T i" 'org-clock-in))
 
 (use-package org-agenda
 
@@ -1316,6 +1337,21 @@ directory to make multiple eshell windows easier."
    :keymaps 'gptel-mode-map
    "C-S-x" 'my-quit-gptel-shell))
 
+(use-package task-workflow-gptel
+  :straight nil
+  :ensure nil
+  :commands task-workflow-gptel-login)
+
+(use-package task-workflow-draft
+  :straight nil
+  :ensure nil
+  :commands task-workflow-draft)
+
+(use-package task-workflow-capture
+  :straight nil
+  :ensure nil
+  :commands task-workflow-capture)
+
 (use-package gptel-magit
   :ensure t
   :hook (magit-mode . gptel-magit-install))
@@ -1387,6 +1423,12 @@ directory to make multiple eshell windows easier."
   (add-hook 'emacs-startup-hook #'mcp-server-start-unix))
 
 
+(use-package autorevert
+  :straight nil
+  :custom
+  (auto-revert-verbose nil)
+  :config
+  (global-auto-revert-mode 1))
 
 (provide 'init)
 ;;; init.el ends here
